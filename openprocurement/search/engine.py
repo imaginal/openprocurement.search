@@ -17,11 +17,13 @@ class SearchEngine:
     config = {
         'index_names': 'index_names',
         'elastic_host': 'localhost',
+        'update_wait': 5,
     }
     def __init__(self, config={}):
         self.index_list = list()
         if config:
             self.config.update(config)
+            self.config['update_wait'] = int(self.config['update_wait'])
         self.names_db = shdict.shdict(self.config.get('index_names'))
         self.elastic = Elasticsearch([self.config.get('elastic_host')])
 
@@ -91,17 +93,23 @@ class IndexEngine(SearchEngine):
 
     def index_item(self, index_name, item):
         meta = item['meta']
-        logger.debug("INDEX %s id=%s version=%ld",
+        logger.debug("Index item %s id=%s version=%ld",
             index_name, meta['id'], meta['version'])
-        self.elastic.index(index_name,
-            doc_type=meta.get('doc_type'),
-            id=meta['id'],
-            version=meta['version'],
-            version_type='external',
-            body=item['data'])
+        try:
+            res = self.elastic.index(index_name,
+                doc_type=meta.get('doc_type'),
+                id=meta['id'],
+                version=meta['version'],
+                version_type='external',
+                body=item['data'])
+        except ElasticsearchException as e:
+            logger.error(u"Failed index %s object %s: %s",
+                index_name, meta['id'], unicode(e))
+            res = None
+        return res
 
     def run(self):
         while True:
             for index in self.index_list:
                 index.process()
-            sleep(5)
+            sleep(self.config['update_wait'])
