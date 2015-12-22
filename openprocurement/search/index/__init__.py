@@ -15,6 +15,7 @@ class BaseIndex:
         assert(self.__index_name__)
         if config:
             self.config.update(config)
+            self.config['index_speed'] = float(self.config['index_speed'])
         self.source = source
         self.engine = engine
         self.engine.add_index(self)
