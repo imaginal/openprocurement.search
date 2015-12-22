@@ -106,6 +106,8 @@ class BaseIndex:
                 pause = iter_count / float(self.config['index_speed'])
                 logger.debug("Sleep %1.1fs before next get", pause)
                 sleep(pause)
+            else:
+                break
             # DEBUG only
             #if count >= 1000:
             #    break
