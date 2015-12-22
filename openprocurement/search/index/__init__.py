@@ -88,9 +88,7 @@ class BaseIndex:
             source.reset()
 
         count = 0
-        items_list = True
-
-        while items_list:
+        while True:
             items_list = source.items()
             iter_count = 0
             for info in items_list:
@@ -99,18 +97,13 @@ class BaseIndex:
                     self.index_item(index_name, item)
                     count += 1
                 iter_count += 1
-            if iter_count:
-                logger.info("Fetched %d indexed %d last %s",
-                    iter_count, count, info.get('dateModified'))
-            if iter_count:
-                pause = iter_count / float(self.config['index_speed'])
-                logger.debug("Sleep %1.1fs before next get", pause)
-                sleep(pause)
-            else:
+            # break on empty set
+            if not iter_count:
                 break
-            # DEBUG only
-            #if count >= 1000:
-            #    break
+            pause = iter_count / float(self.config['index_speed'])
+            logger.info("Fetched %d indexed %d last %s wait %1.1fs",
+                iter_count, count, info.get('dateModified'), pause)
+            sleep(pause)
 
         logger.info("Done index_source, index %s count %d",
             index_name, count)
