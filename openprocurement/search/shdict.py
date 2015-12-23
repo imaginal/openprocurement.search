@@ -35,7 +35,7 @@ class shdict:
     def read(self):
         try:
             with open(self.filename) as f:
-                self.cache = yaml.load(f)
+                self.cache = yaml.load(f) or {}
             self.lastsync = time()
         except (IOError, ValueError):
             pass
