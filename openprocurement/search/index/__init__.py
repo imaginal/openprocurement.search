@@ -20,6 +20,9 @@ class BaseIndex:
         self.engine = engine
         self.engine.add_index(self)
 
+    def __repr__(self):
+        return self.__index_name__
+
     @property
     def current_index(self):
         key = self.__index_name__
@@ -105,8 +108,6 @@ class BaseIndex:
                 iter_count, count, info.get('dateModified'), pause)
             sleep(pause)
 
-        logger.info("Done index_source, index %s count %d",
-            index_name, count)
         return count
 
     def process(self):

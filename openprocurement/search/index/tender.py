@@ -21,7 +21,8 @@ class TenderIndex(BaseIndex):
     def create_index(self, name):
         try:
             tender_index = self.config['tender_index']
-            body = json.load(open(tender_index))
+            with open(tender_index) as f:
+                body = json.load(f)
         except (KeyError, ValueError):
             body = None
         self.engine.create_index(name, body=body)

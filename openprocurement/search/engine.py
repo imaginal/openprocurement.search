@@ -93,7 +93,7 @@ class IndexEngine(SearchEngine):
 
     def index_item(self, index_name, item):
         meta = item['meta']
-        logger.debug("Index item %s id=%s version=%ld",
+        logger.debug("Index %s object %s version %ld",
             index_name, meta['id'], meta['version'])
         try:
             res = self.elastic.index(index_name,
@@ -109,6 +109,8 @@ class IndexEngine(SearchEngine):
         return res
 
     def run(self):
+        logger.info("Starting IndexEngine with indices %s",
+            str(self.index_list))
         while True:
             for index in self.index_list:
                 index.process()
