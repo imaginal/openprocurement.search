@@ -113,7 +113,7 @@ class BaseIndex:
     def process(self):
         if self.need_reindex():
             index_name = self.new_index()
-            logger.warning("Starting full re-index, index %s",
+            logger.warning("Starting full re-index, new index %s",
                 index_name)
             self.index_source(index_name, reset=True)
             self.finish_index(index_name)

@@ -19,12 +19,14 @@ class TenderIndex(BaseIndex):
         return False
 
     def create_index(self, name):
+        body = None
         try:
             tender_index = self.config['tender_index']
-            with open(tender_index) as f:
-                body = json.load(f)
+            if tender_index:
+                with open(tender_index) as f:
+                    body = json.load(f)
         except (KeyError, ValueError):
-            body = None
+            pass
         self.engine.create_index(name, body=body)
 
     def finish_index(self, name):
