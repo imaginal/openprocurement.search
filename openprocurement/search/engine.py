@@ -44,7 +44,8 @@ class SearchEngine:
     def get_current_indexes(self):
         index_names = list()
         for key in self.index_list:
-            name = self.get_index(key)
+            name = (self.get_index(key) or
+                self.get_index(key+'.new'))
             if name:
                 index_names.append(name)
         return ','.join(index_names)

@@ -45,6 +45,32 @@ def prefix_query(query, field):
     return {"bool": {"should": body}}
 
 
+def range_query(query, field):
+    body = []
+    for q in query:
+        if q.find('-') < 0:
+            res = prefix_query([q], field)
+            body.append(res)
+        else:
+            beg, end = q.split('-', 1)
+            body.append({"range": {
+                field: {"gte": beg, "lte": end}
+                }})
+    if len(body) == 1:
+        return body[0]
+    return {"bool": {"should": body}}
+
+
+def dates_query(query, args):
+    op, key = args
+    body = {"range": {
+        key: {
+            op: query,
+            "time_zone": "+2:00",
+        }}}
+    return body
+
+
 prefix_map = {
     'cpv': 'items.classification.id',
     'dkpp': 'items.additionalClassifications.id',
@@ -55,6 +81,22 @@ match_map = {
     'procedure': 'procurementMethod',
     'status': 'status',
 }
+range_map = {
+    'region': 'procuringEntity.address.postalCode',
+}
+dates_map = {
+    'auction_start': ('gte', 'auctionPeriod.endDate'),
+    'auction_end':   ('lte', 'auctionPeriod.startDate'),
+    'award_start':   ('gte', 'awardPeriod.endDate'),
+    'award_end':     ('lte', 'awardPeriod.startDate'),
+    'enquiry_start': ('gte', 'enquiryPeriod.endDate'),
+    'enquiry_end':   ('lte', 'enquiryPeriod.startDate'),
+    'tender_start':  ('gte', 'tenderPeriod.endDate'),
+    'tender_end':    ('lte', 'tenderPeriod.startDate'),
+}
+ftext_map = {
+    'query': '_all',
+}
 
 
 @search_server.route('/search')
@@ -62,16 +104,18 @@ def search():
     args = request.args
     body = list()
 
+    # hierarchical classifiers
     for key in prefix_map.keys():
-        if not args.has_key(key):
+        if not args.get(key):
             continue
         field = prefix_map[key]
         query = args.getlist(key)
         match = prefix_query(query, field)
         body.append(match)
 
+    # ID's and states
     for key in match_map.keys():
-        if not args.has_key(key):
+        if not args.get(key):
             continue
         field = match_map[key]
         query = args.getlist(key)
@@ -80,12 +124,36 @@ def search():
             analyzer='whitespace')
         body.append(match)
 
-    if args.has_key('query'):
-        query = args.getlist('query')
-        match = match_query(query, '_all')
+    # range values ie postal code
+    for key in range_map.keys():
+        if not args.get(key):
+            continue
+        field = range_map[key]
+        query = args.getlist(key)
+        match = range_query(query, field)
         body.append(match)
 
-    if len(body) == 1:
+    # date range
+    for key in dates_map.keys():
+        if not args.get(key):
+            continue
+        field = dates_map[key]
+        query = args.get(key)
+        match = dates_query(query, field)
+        body.append(match)
+
+    # full-text search
+    for key in ftext_map.keys():
+        if not args.get(key):
+            continue
+        field = ftext_map[key]
+        query = args.getlist(key)
+        match = match_query(query, field)
+        body.append(match)
+
+    if not body:
+        return jsonify({"error": "Empty query"})
+    elif len(body) == 1:
         body = {"query": body[0]}
     else:
         body = {"query": {"bool" : {"must" : body}}}
