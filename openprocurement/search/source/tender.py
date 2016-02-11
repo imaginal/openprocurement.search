@@ -21,7 +21,8 @@ class TenderSource(BaseSource):
             self.config.update(config)
         client = Client(key=self.config['api_key'],
             host_url=self.config['api_url'],
-            api_version=self.config['api_version'])
+            api_version=self.config['api_version'],
+            params = {})
         self.client = client
 
     def patch_version(self, item):

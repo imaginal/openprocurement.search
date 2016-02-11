@@ -46,17 +46,21 @@ class BaseIndex:
         return
 
     def new_index(self):
-        index_name = self.__index_name__
-        index_key = index_name + '.new'
+        index_key = self.__index_name__
+        index_new = index_key + '.new'
         # try restore last index (in case of crash)
-        name = self.engine.get_index(index_key)
+        name = self.engine.get_index(index_new)
         current_index = self.current_index
         if current_index and name == current_index:
             name = None
         if not name:
-            name = "{}_{}".format(index_name, int(time()))
-            self.engine.set_index(index_key, name)
+            name = "{}_{}".format(index_key, int(time()))
             self.create_index(name)
+            self.engine.set_index(index_new, name)
+        # also set current if empty
+        current = self.engine.get_index(index_key)
+        if not current:
+            self.engine.set_index(index_key, name)
         return name
 
     def delete_index(self, name):

@@ -86,15 +86,14 @@ class IndexEngine(SearchEngine):
             item = self.elastic.get(index_name,
                 doc_type=meta.get('doc_type'),
                 id=meta['id'],
-                version=meta['version'],
                 _source=False)
         except ElasticsearchException:
             return False
-        return item['_version'] == meta['version']
+        return item['_version'] >= meta['version']
 
     def index_item(self, index_name, item):
         meta = item['meta']
-        logger.debug("Index %s object %s version %ld",
+        logger.debug("PUT index %s object %s version %ld",
             index_name, meta['id'], meta['version'])
         try:
             res = self.elastic.index(index_name,
@@ -106,7 +105,7 @@ class IndexEngine(SearchEngine):
         except ElasticsearchException as e:
             logger.error(u"Failed index %s object %s: %s",
                 index_name, meta['id'], unicode(e))
-            res = None
+            raise
         return res
 
     def run(self):
