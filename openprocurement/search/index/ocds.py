@@ -4,15 +4,16 @@ import simplejson as json
 
 from openprocurement.search.index import BaseIndex
 
-class TenderIndex(BaseIndex):
-    """OpenProcurement Tenders Index
+
+class OcdsIndex(BaseIndex):
+    """OCDS-Tender Index
     """
-    __index_name__ = 'tenders'
+    __index_name__ = 'ocds'
 
     def need_reindex(self):
         if not self.current_index:
             return True
-        if self.index_age() > 120*3600:
+        if self.index_age() > 360*3600:
             # TODO: make index_hours configurable
             dt = datetime.now()
             return dt.hour < 4
@@ -21,7 +22,7 @@ class TenderIndex(BaseIndex):
     def create_index(self, name):
         body = None
         try:
-            tender_index = self.config['tender_index']
+            tender_index = self.config['ocds_index']
             if tender_index:
                 with open(tender_index) as f:
                     body = json.load(f)

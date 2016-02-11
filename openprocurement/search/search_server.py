@@ -20,7 +20,8 @@ else:
     search_config = {}
 
 search_engine = SearchEngine(search_config)
-search_engine.add_index('tenders')
+#search_engine.add_index('tenders')
+search_engine.add_index('ocds')
 
 
 def match_query(query, field, type_=None, operator=None, analyzer=None):

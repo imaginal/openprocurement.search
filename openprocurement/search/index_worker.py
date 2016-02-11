@@ -10,11 +10,15 @@ import logging.config
 from ConfigParser import ConfigParser
 
 from openprocurement.search.engine import IndexEngine
-from openprocurement.search.source.tender import TenderSource
-from openprocurement.search.index.tender import TenderIndex
+
+#from openprocurement.search.source.tender import TenderSource
+from openprocurement.search.source.ocds import OcdsSource
+
+#from openprocurement.search.index.tender import TenderIndex
+from openprocurement.search.index.ocds import OcdsIndex
+
 
 LOCK_FILE = "index_worker.lock"
-
 
 def main():
     if len(sys.argv) < 2:
@@ -35,8 +39,9 @@ def main():
 
     try:
         engine = IndexEngine(config)
-        source = TenderSource(config)
-        TenderIndex(engine, source, config)
+        source = OcdsSource(config)
+        OcdsIndex(engine, source, config)
+        source.reset()
         engine.run()
     finally:
         lock_file.close()

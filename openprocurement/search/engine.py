@@ -106,7 +106,7 @@ class IndexEngine(SearchEngine):
         except ElasticsearchException as e:
             logger.error(u"Failed index %s object %s: %s",
                 index_name, meta['id'], unicode(e))
-            res = None
+            raise
         return res
 
     def run(self):
