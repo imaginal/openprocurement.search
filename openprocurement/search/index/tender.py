@@ -15,7 +15,7 @@ class TenderIndex(BaseIndex):
         if self.index_age() > 120*3600:
             # TODO: make index_hours configurable
             dt = datetime.now()
-            return dt.hour < 4
+            return dt.weekday() > 5 and dt.hour < 5
         return False
 
     def create_index(self, name):
