@@ -20,7 +20,7 @@ else:
     search_config = {}
 
 search_engine = SearchEngine(search_config)
-#search_engine.add_index('tenders')
+search_engine.add_index('tenders')
 search_engine.add_index('ocds')
 
 

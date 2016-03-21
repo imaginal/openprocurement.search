@@ -12,7 +12,7 @@ class TenderIndex(BaseIndex):
     def need_reindex(self):
         if not self.current_index:
             return True
-        if self.index_age() > 120*3600:
+        if self.index_age() > 72*3600:
             # TODO: make index_hours configurable
             dt = datetime.now()
             return dt.weekday() > 5 and dt.hour < 5

@@ -6,7 +6,7 @@ import simplejson as json
 import urllib, urllib2
 from random import choice
 from multiprocessing import Process
-from time import time
+from time import time, sleep
 
 FORMAT='%(asctime)-15s %(levelname)s %(processName)s %(message)s'
 g_args=None
@@ -16,6 +16,7 @@ g_dict={}
 def worker():
     logging.debug('Starting process')
 
+    n_errors = g_args.e
     requests = g_args.n
     while requests > 0:
         requests -= 1
@@ -23,10 +24,12 @@ def worker():
         args = list()
         # full text query
         if key == 'query':
-            code = choice(g_dict[key].keys())
-            name = g_dict[key][code]
-            word = choice(name.split(' '))
-            word = word.replace('"', '').encode('utf-8')
+            word = ''
+            while len(word) < 3:
+                code = choice(g_dict[key].keys())
+                name = g_dict[key][code]
+                word = choice(name.split(' '))
+                word = word.replace('"', '').encode('utf-8')
             args.append((key, word))
         elif key == 'cpv' or key == 'dkpp':
             code = choice(g_dict[key].keys())
@@ -44,11 +47,17 @@ def worker():
             resp = req.read()
             if code == 200:
                 data = json.loads(resp)
-                logging.debug("%d %d %s total %d", code, len(resp), url, data['total'])
+                total = data['total']
+                logging.debug("%d %d %s total %d", code, len(resp), url, total)
             else:
                 logging.error("%d %d %s", code, len(resp), url)
+                n_errors -= 1
         except Exception as e:
             logging.error('Exception %s on %s', str(e), url)
+            n_errors -= 1
+        if n_errors <= 0:
+            logging.error('Exit by max error occurred.')
+            break
 
     logging.debug('Leaving process')
 
@@ -65,6 +74,7 @@ def prepare():
     global g_args, g_dict
     parser = argparse.ArgumentParser(description='openprocurement.search.test_load')
     parser.add_argument('-c', metavar='concurrency', type=int, default=10)
+    parser.add_argument('-e', metavar='max_errors', type=int, default=10)
     parser.add_argument('-n', metavar='requests', type=int, default=100)
     parser.add_argument('-t', metavar='timeout', type=int, default=10)
     parser.add_argument('-v', metavar='verbosity', type=int, default=logging.INFO)
@@ -93,14 +103,14 @@ def main():
     start_time = time()
     prepare()
 
-    logging.debug('Starting workers...')
+    logging.info('Starting %d workers', g_args.c)
     process_list = list()
     for i in range(g_args.c):
         p = Process(target=worker)
         process_list.append(p)
         p.start()
 
-    logging.debug('Waiting for workers')
+    logging.info('Waiting for workers')
     for p in process_list:
         p.join()
 
