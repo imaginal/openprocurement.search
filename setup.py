@@ -41,7 +41,8 @@ setup(name='openprocurement.search',
         entry_points={
           'console_scripts': [
               'index_worker = openprocurement.search.index_worker:main',
-          ],
+              'ftpsync = openprocurement.search.ftpsync:main',
+           ],
           'paste.app_factory': [
               'search_server = openprocurement.search.search_server:make_app'
           ]
