@@ -71,8 +71,7 @@ def main():
         print("Usage: ftpsync config.ini")
         sys.exit(1)
 
-    #logging.config.fileConfig(sys.argv[1])
-    logging.basicConfig(level=logging.DEBUG)
+    logging.config.fileConfig(sys.argv[1])
 
     parser = ConfigParser()
     parser.read(sys.argv[1])
