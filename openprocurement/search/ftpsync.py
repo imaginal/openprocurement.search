@@ -30,11 +30,16 @@ class FTPSyncApp(object):
         self.ftp = FTP()
 
     def run(self):
+        logger.info("Connect to %s:%d",
+            self.config['host'],
+            self.config['port'])
         self.ftp.connect(
             self.config['host'],
             self.config['port'],
             self.config['timeout'])
 
+        logger.info("Login as %s",
+            self.config['user'])
         self.ftp.login(
             self.config['user'],
             self.config['passwd'])
