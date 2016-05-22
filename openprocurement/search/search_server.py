@@ -80,6 +80,7 @@ match_map = {
     'tid': 'tenderID',
     'edrpou': 'procuringEntity.identifier.id',
     'procedure': 'procurementMethod',
+    'proc_type': 'procurementMethodType',
     'status': 'status',
 }
 range_map = {
