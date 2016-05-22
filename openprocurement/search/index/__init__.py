@@ -82,7 +82,13 @@ class BaseIndex:
     def test_exists(self, index_name, info):
         return self.engine.test_exists(index_name, info)
 
+    def test_noindex(self, item):
+        return False
+
     def index_item(self, index_name, item):
+        if self.test_noindex(item):
+            logger.warning("Noindex %s", item.data.id)
+            return None
         return self.engine.index_item(index_name, item)
 
     def index_source(self, index_name=None, reset=False):
@@ -101,8 +107,8 @@ class BaseIndex:
             for info in items_list:
                 if not self.test_exists(index_name, info):
                     item = source.get(info)
-                    self.index_item(index_name, item)
-                    count += 1
+                    if self.index_item(index_name, item):
+                        count += 1
                     if count % 100 == 0:
                         sleep(1)
                 iter_count += 1

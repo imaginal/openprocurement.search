@@ -9,6 +9,18 @@ class TenderIndex(BaseIndex):
     """
     __index_name__ = 'tenders'
 
+    def test_noindex(self, item):
+        proc_type = item.data.procurementMethodType
+        if proc_type == 'negotiation' or proc_type == 'negotiation.quick':
+            active = 0
+            for award in item.data.get('awards', []):
+                if award.get('status', '') == 'active':
+                    active += 1
+                    break
+            if active == 0:
+                return True
+        return False
+
     def need_reindex(self):
         if not self.current_index:
             return True
