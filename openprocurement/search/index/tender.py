@@ -11,6 +11,7 @@ class TenderIndex(BaseIndex):
 
     def test_noindex(self, item):
         proc_type = item.data.procurementMethodType
+
         if proc_type == 'negotiation' or proc_type == 'negotiation.quick':
             active = 0
             for award in item.data.get('awards', []):
@@ -19,6 +20,16 @@ class TenderIndex(BaseIndex):
                     break
             if active == 0:
                 return True
+
+        elif proc_type == 'reporting':
+            active = 0
+            for contract in item.data.get('contracts', []):
+                if contract.get('status', '') == 'active':
+                    active += 1
+                    break
+            if active == 0:
+                return True
+
         return False
 
     def need_reindex(self):
