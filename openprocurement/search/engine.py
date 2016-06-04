@@ -50,8 +50,9 @@ class SearchEngine:
                 index_names.append(name)
         return ','.join(index_names)
 
-    def search(self, body, start=0):
-        index = self.get_current_indexes()
+    def search(self, body, start=0, index=None):
+        if not index:
+            index = self.get_current_indexes()
         if not index:
             return {"error": "there is no spoon"}
         try:
