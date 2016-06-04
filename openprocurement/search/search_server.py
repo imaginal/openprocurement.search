@@ -168,6 +168,32 @@ def search():
     return jsonify(res)
 
 
+@search_server.route('/orgsuggest')
+def orgsuggest():
+    query = request.args.get('query')
+    fuzziness = 0
+    if len(query) > 4:
+        fuzziness = 1
+    _all = {
+        "query": query,
+        "operator": "and",
+        "fuzziness": fuzziness
+    }
+    body = {
+        "size": 5,
+        "query": {
+            "match": { "_all": _all }
+        }
+    }
+    body["sort"] = { "rank": { "order": "desc" } }
+    index = "orgs_current"
+    res = search_engine.search(body, index=index)
+    if not res.get('items'):
+        _all["fuzziness"] += 1
+        res = search_engine.search(body, index=index)
+    return jsonify(res)
+
+
 def make_app(global_conf, **kwargs):
     class config:
         pass
