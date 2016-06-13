@@ -7,26 +7,28 @@ from openprocurement_client.client import Client
 from openprocurement.search.source import BaseSource
 
 
-class TenderSource(BaseSource):
-    """Tenders Source from open openprocurement.API
+class PlanSource(BaseSource):
+    """Tenders Source from open openprocurement.API.plans
     """
-    __doc_type__ = 'tender'
+    __doc_type__ = 'plan'
 
     config = {
-        'api_key': '',
-        'api_url': "https://api-sandbox.openprocurement.org",
-        'api_version': '0',
-        'params': {},
-        'timeout': 30,
+        'plan_api_key': '',
+        'plan_api_url': "https://api-sandbox.openprocurement.org",
+        'plan_api_version': '0',
+        'plan_resource': 'plans',
+        'plan_params': {}
     }
     def __init__(self, config={}):
         if config:
             self.config.update(config)
-        self.client = Client(key=self.config['api_key'],
-            host_url=self.config['api_url'],
-            api_version=self.config['api_version'],
+        client = Client(key=self.config['plan_api_key'],
+            host_url=self.config['plan_api_url'],
+            api_version=self.config['plan_api_version'],
+            resource=self.config['plan_resource'],
             timeout=self.config['timeout'],
-            params=self.config['params'])
+            params=self.config['plan_params'])
+        self.client = client
 
     def patch_version(self, item):
         """Convert dateModified to long version

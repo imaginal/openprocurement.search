@@ -17,8 +17,9 @@ from openprocurement.search.source.ocds import OcdsSource
 from openprocurement.search.index.tender import TenderIndex
 from openprocurement.search.index.ocds import OcdsIndex
 
+from openprocurement.search.source.plan import PlanSource
+from openprocurement.search.index.plan import PlanIndex
 
-LOCK_FILE = "index_worker.lock"
 
 def main():
     if len(sys.argv) < 2:
@@ -32,7 +33,8 @@ def main():
     logging.config.fileConfig(sys.argv[1])
 
     # try get exclusive lock to prevent second start
-    lock_file = open(LOCK_FILE, "w")
+    lock_filename = config.get('indexer_lock') or 'index_worker.pid'
+    lock_file = open(lock_filename, "w")
     fcntl.lockf(lock_file, fcntl.LOCK_EX+fcntl.LOCK_NB)
     lock_file.write(str(os.getpid())+"\n")
     lock_file.flush()
@@ -44,10 +46,12 @@ def main():
         source = OcdsSource(config)
         OcdsIndex(engine, source, config)
         source.reset()
+        source = PlanSource(config)
+        PlanIndex(engine, source, config)
         engine.run()
     finally:
         lock_file.close()
-        os.remove(LOCK_FILE)
+        os.remove(lock_filename)
 
     return 0
 

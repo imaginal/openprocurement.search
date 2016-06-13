@@ -47,16 +47,16 @@ class BaseIndex:
 
     def new_index(self):
         index_key = self.__index_name__
-        index_new = index_key + '.new'
+        index_key_next = "{}.next".format(index_key)
         # try restore last index (in case of crash)
-        name = self.engine.get_index(index_new)
+        name = self.engine.get_index(index_key_next)
         current_index = self.current_index
         if current_index and name == current_index:
             name = None
         if not name:
             name = "{}_{}".format(index_key, int(time()))
             self.create_index(name)
-            self.engine.set_index(index_new, name)
+            self.engine.set_index(index_key_next, name)
         # also set current if empty
         current = self.engine.get_index(index_key)
         if not current:
@@ -70,13 +70,13 @@ class BaseIndex:
     def set_current(self, name):
         logger.warning("Set current, index %s", name)
         old_index = self.current_index
-        index_key, suffix = name.split('_')
+        index_key, suffix = name.rsplit('_', 1)
         self.engine.set_index(index_key, name)
         assert(self.current_index == name)
-        # remove .new index key
-        index_new = index_key + '.new'
-        if self.engine.get_index(index_new) == name:
-            self.engine.set_index(index_new, '')
+        # remove index.next key
+        index_key_next = "{}.next".format(index_key)
+        if self.engine.get_index(index_key_next) == name:
+            self.engine.set_index(index_key_next, '')
         self.delete_index(old_index)
 
     def test_exists(self, index_name, info):
@@ -87,43 +87,52 @@ class BaseIndex:
 
     def index_item(self, index_name, item):
         if self.test_noindex(item):
-            logger.warning("Noindex %s", item.data.id)
+            logger.debug("[%s] Noindex %s %s", index_name,
+                item.data.id, item.data.get('tenderID', ''))
             return None
         return self.engine.index_item(index_name, item)
 
     def index_source(self, index_name=None, reset=False):
-        if not index_name:
-            index_name = self.current_index
-        assert(index_name)
-
         source = self.source
         if reset:
             source.reset()
 
-        count = 0
-        while True:
+        if not index_name:
+            index_name = self.current_index
+
+        if not index_name and self.engine.slave_mode:
+            self.engine.heartbeat(source)
+            index_name = self.current_index
+
+        if not index_name:
+            logger.warning("No current index")
+            return
+
+        index_count = 0
+        total_count = 0
+        while self.engine.heartbeat(source):
             items_list = source.items()
             iter_count = 0
             for info in items_list:
                 if not self.test_exists(index_name, info):
                     item = source.get(info)
                     if self.index_item(index_name, item):
-                        count += 1
-                    if count % 100 == 0:
-                        sleep(1)
+                        index_count += 1
                 iter_count += 1
             # break on empty set
             if not iter_count:
                 break
+            total_count += iter_count
+            last = info.get('dateModified', '').replace('T', ' ')[:19]
             pause = iter_count / float(self.config['index_speed'])
-            logger.info("Fetched %d indexed %d last %s wait %1.1fs",
-                iter_count, count, info.get('dateModified'), pause)
+            logger.info("[%s] Fetched %d indexed %d last %s wait %1.1fs",
+                index_name, total_count, index_count, last, pause)
             sleep(pause)
 
-        return count
+        return index_count
 
-    def process(self):
-        if self.need_reindex():
+    def process(self, allow_reindex = True):
+        if self.need_reindex() and allow_reindex:
             index_name = self.new_index()
             logger.warning("Starting full re-index, new index %s",
                 index_name)

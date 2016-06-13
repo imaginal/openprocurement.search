@@ -34,7 +34,7 @@ def process_index(elastic_host, index_list, prefix, current):
         if name == current:
             logger.info("Skip current %s", name)
             continue
-        name_prefix, created = name.split('_', 2)
+        name_prefix, created = name.rsplit('_', 1)
         if int(created) > young_index:
             logger.info("Skip too young %s", name)
             continue

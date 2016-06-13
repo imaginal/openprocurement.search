@@ -12,8 +12,10 @@ class shdict:
         self.lastsync = 0
         self.expire = expire
 
-    def __setitem__(self, key, item):
-        self.cache[key] = item
+    def __setitem__(self, key, value):
+        if self.cache.get(key) == value:
+            return
+        self.cache[key] = value
         self.write()
 
     def __getitem__(self, key):
