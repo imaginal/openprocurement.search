@@ -43,7 +43,7 @@ setup(name='openprocurement.search',
               'index_worker = openprocurement.search.index_worker:main',
               'search_server = openprocurement.search.search_server:main',
               'clean_indexes = openprocurement.search.clean_indexes:main',
-              'ftpsync = openprocurement.search.ftpsync:main',
+              'ocds_ftpsync = openprocurement.search.ocds_ftpsync:main',
           ],
           'paste.app_factory': [
               'search_server = openprocurement.search.search_server:make_app'

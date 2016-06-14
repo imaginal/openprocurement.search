@@ -73,7 +73,7 @@ def signal_handler(signo, frame):
 
 def main():
     if len(sys.argv) < 2:
-        print("Usage: ftpsync config.ini")
+        print("Usage: ocds_ftpsync config.ini")
         sys.exit(1)
 
     logging.config.fileConfig(sys.argv[1])

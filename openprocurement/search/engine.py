@@ -166,13 +166,15 @@ class IndexEngine(SearchEngine):
         """
         if self.slave_mode:
             heartbeat_diff = time() - self.test_heartbeat()
-            if heartbeat_diff < 300:
-                if source:
-                    source.reset()
-                return False
-            else:
+            if heartbeat_diff > 300:
                 logger.warning("Master died %d min ago",
                     int(heartbeat_diff/60))
+                if getattr(source, 'should_reset', False):
+                    source.should_reset = False
+                    source.reset()
+            else:
+                source.should_reset = True
+                return False
 
         self.master_heartbeat(int(time()))
         return True
@@ -189,6 +191,8 @@ class IndexEngine(SearchEngine):
     def run(self):
         logger.info("Starting IndexEngine with indices %s",
             str(self.index_list))
+        config_string = str(self.config).replace(", '", ",\n \t'")
+        logger.info("Engine config {}".format(config_string))
         self.wait_for_backend()
         allow_reindex = not self.slave_mode
         while True:
