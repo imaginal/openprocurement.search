@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 from os import path, listdir
-from time import time, mktime
+from time import mktime, sleep
+from datetime import datetime
 from fnmatch import fnmatch
 from iso8601 import parse_date
-from datetime import datetime
 import simplejson as json
 import re
 
@@ -19,7 +19,8 @@ class OcdsSource(BaseSource):
 
     config = {
         'ocds_dir': 'ocds',
-        'ocds_mask': 'ocds-tender-*.json'
+        'ocds_mask': 'ocds-tender-*.json',
+        'ocds_speed': 100,
     }
     def __init__(self, config={}):
         if config:
@@ -71,12 +72,20 @@ class OcdsSource(BaseSource):
 
     def items(self):
         if not self.files:
+            dt = datetime.now()
+            if dt.hour in [6,12,18] and dt.minute > 58:
+                self.reset()
+        if not self.files:
             return
         name = self.files.pop(0)
         fullname = path.join(self.config['ocds_dir'], name)
         with open(fullname) as f:
             data = json.load(f)
+        count = 0
         for r in data['releases']:
+            count += 1
+            if count % 100 == 0:
+                sleep(100.0/float(self.config['ocds_speed']))
             item = r['tender']
             if 'tenderID' not in item:
                 item['tenderID'] = r['ocid']
