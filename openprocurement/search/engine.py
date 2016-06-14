@@ -190,11 +190,15 @@ class IndexEngine(SearchEngine):
                 logger.error(u"Failed get elastic info: %s", unicode(e))
                 sleep(self.config['update_wait'])
 
+    def config_dump(self):
+        cs = "\n\t".join(["{} = {}".format(k ,v) \
+            for k, v in sorted(self.config.items())])
+        return cs
+
     def run(self):
         logger.info("Starting IndexEngine with indices %s",
             str(self.index_list))
-        config_string = str(self.config).replace(", '", ",\n \t'")
-        logger.info("Engine config {}".format(config_string))
+        logger.info("Engine config:\n\t%s", self.config_dump())
         self.wait_for_backend()
         allow_reindex = not self.slave_mode
         while True:
