@@ -86,6 +86,8 @@ match_map = {
     'proc_type': 'procurementMethodType',
     'tender_procedure': 'tender.procurementMethod',
     'tender_proc_type': 'tender.procurementMethodType',
+    'plan_procedure': 'tender.procurementMethod',
+    'plan_proc_type': 'tender.procurementMethodType',
     'status': 'status',
 }
 range_map = {
@@ -169,7 +171,6 @@ def prepare_search_body(args):
     return body
 
 
-@search_server.route('/search')
 @search_server.route('/tenders')
 def search_tenders():
     args = request.args
@@ -228,14 +229,14 @@ def orgsuggest():
 
 @search_server.route('/heartbeat')
 def heartbeat():
-    key = request.args.get('key')
-    if key != search_server.secret_key:
-        abort(404)
-    data = {
-        'index_names': search_engine.index_names_dict(),
-        'heartbeat': search_engine.master_heartbeat(),
-    }
+    data = { 'heartbeat': search_engine.master_heartbeat(), }
+    key = request.args.get('key', None)
+    if key == search_server.secret_key:
+        data['index_names'] = search_engine.index_names_dict()
+    elif key:
+        abort(403)
     return jsonify(data)
+
 
 def make_app(global_conf, **kwargs):
     class config:
@@ -244,6 +245,7 @@ def make_app(global_conf, **kwargs):
         setattr(config, key.upper(), value)
     search_server.config.from_object(config)
     return search_server
+
 
 def main():
     search_server.debug = True
