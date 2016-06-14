@@ -21,6 +21,7 @@ class SearchEngine(object):
         'index_names': 'index_names',
         'elastic_host': 'localhost',
         'slave_mode': None,
+        'slave_wakeup': 300,
         'update_wait': 5,
     }
     def __init__(self, config={}):
@@ -106,6 +107,7 @@ class SearchEngine(object):
         # cache response value for 30 sec
         if time() - self.last_heartbeat_check < 30:
             return self.last_heartbeat_value
+        # ... or get from master
         try:
             r = request(self.slave_mode, timeout=5)
             data = json.loads(r.body_string())
@@ -166,7 +168,7 @@ class IndexEngine(SearchEngine):
         """
         if self.slave_mode:
             heartbeat_diff = time() - self.test_heartbeat()
-            if heartbeat_diff > 300:
+            if heartbeat_diff > int(self.config['slave_wakeup']):
                 logger.warning("Master died %d min ago",
                     int(heartbeat_diff/60))
                 if getattr(source, 'should_reset', False):
@@ -180,13 +182,13 @@ class IndexEngine(SearchEngine):
         return True
 
     def wait_for_backend(self):
-        try:
-            self.elastic.info()
-        except ElasticsearchException as e:
-            logger.error(u"Failed get elastic info: %s", unicode(e))
-            sleep(self.config['update_wait'])
-            return False
-        return True
+        alive = False
+        while not alive:
+            try:
+                alive = self.elastic.info()
+            except ElasticsearchException as e:
+                logger.error(u"Failed get elastic info: %s", unicode(e))
+                sleep(self.config['update_wait'])
 
     def run(self):
         logger.info("Starting IndexEngine with indices %s",
