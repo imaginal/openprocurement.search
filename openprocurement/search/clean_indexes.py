@@ -11,6 +11,7 @@ from ConfigParser import ConfigParser
 FORMAT='%(asctime)-15s %(levelname)s %(processName)s %(message)s'
 logger=logging.getLogger(__name__)
 
+
 def delete_index(elastic_host, name):
     url = "http://%s/%s" % (elastic_host, name)
     logger.warning("DELETE %s" % url)
@@ -24,8 +25,12 @@ def delete_index(elastic_host, name):
 
 
 def process_index(elastic_host, index_list, prefix, current):
-    young_index = time.time() - 86400
+    logger.info("Process index prefix %s", prefix)
+
+    fresh_time = time.time() - (10*24*3600) # 10 days
     candidates = list()
+    skip_count = 0
+
     for index in index_list:
         name = index['index']
         if not name.startswith(prefix+'_'):
@@ -33,21 +38,25 @@ def process_index(elastic_host, index_list, prefix, current):
             continue
         if name == current:
             logger.info("Skip current %s", name)
+            skip_count += 1
             continue
-        name_prefix, created = name.rsplit('_', 1)
-        if int(created) > young_index:
-            logger.info("Skip too young %s", name)
+        name_prefix, created_time = name.rsplit('_', 1)
+        if int(created_time) > fresh_time:
+            logger.info("Skip fresh %s", name)
+            skip_count += 1
             continue
         if name.startswith(prefix):
-            candidates.append((name, created))
+            candidates.append((name, created_time))
 
-    if len(candidates) < 2:
-        logger.info("Not enought candidates for %s", prefix)
+    if len(candidates) < 1:
+        logger.info("Not enought candidates")
         return
 
-    candidates = sorted(candidates, key=lambda i: i[1])
-    name, created = candidates.pop()
-    logger.info("Skip youngest one %s", name)
+    if skip_count < 2:
+        candidates = sorted(candidates, key=lambda i: i[1])
+        name, created = candidates.pop()
+        logger.info("Skip youngest %s", name)
+
     for name,created in candidates:
         delete_index(elastic_host, name)
 
@@ -60,6 +69,8 @@ def get_indexes(elastic_host):
 
 
 def process_config(config):
+    logger.info("Process config %s", config)
+
     parser = ConfigParser()
     parser.read(config)
 
