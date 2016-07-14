@@ -37,6 +37,7 @@ class SearchEngine(object):
         return self.elastic.transport.perform_request(self, method, url, params, body)
 
     def add_index(self, index):
+        logger.info("Add idnex %s", str(index))
         if index not in self.index_list:
             self.index_list.append(index)
 

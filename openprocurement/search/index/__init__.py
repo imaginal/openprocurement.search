@@ -16,6 +16,9 @@ class BaseIndex:
         if config:
             self.config.update(config)
             self.config['index_speed'] = float(self.config['index_speed'])
+        rename_index = 'rename_' + self.__index_name__
+        if rename_index in self.config:
+            self.__index_name__ = self.config[rename_index]
         self.source = source
         self.engine = engine
         self.engine.add_index(self)

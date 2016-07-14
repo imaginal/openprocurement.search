@@ -22,8 +22,21 @@ search_config = dict(config_parser.items('search_engine'))
 
 search_engine = SearchEngine(search_config)
 
+
 TENDER_INDEX_KEYS = ['tenders', 'ocds']
 PLAN_INDEX_KEYS = ['plans']
+
+def rename_index_names(config, index_list):
+    for i, name in enumerate(index_list):
+        rename_key = 'rename_' + name
+        if rename_key in config:
+            search_server.logger.info("Rename %s -> %s",
+                name, config[rename_key])
+            index_list[i] = config[rename_key]
+    return index_list
+
+rename_index_names(search_config, TENDER_INDEX_KEYS)
+rename_index_names(search_config, PLAN_INDEX_KEYS)
 
 
 def match_query(query, field, type_=None, operator=None, analyzer=None):

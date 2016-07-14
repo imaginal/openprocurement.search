@@ -14,10 +14,11 @@ class PlanSource(BaseSource):
 
     config = {
         'plan_api_key': '',
-        'plan_api_url': "https://api-sandbox.openprocurement.org",
+        'plan_api_url': "",
         'plan_api_version': '0',
         'plan_resource': 'plans',
-        'plan_params': {}
+        'plan_params': {},
+        'timeout': 30,
     }
     def __init__(self, config={}):
         if config:

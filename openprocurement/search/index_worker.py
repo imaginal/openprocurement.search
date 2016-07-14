@@ -40,14 +40,17 @@ def main():
     lock_file.flush()
 
     try:
-        engine = IndexEngine(config)
-        source = TenderSource(config)
-        TenderIndex(engine, source, config)
-        source = OcdsSource(config)
-        OcdsIndex(engine, source, config)
-        source.reset()
-        source = PlanSource(config)
-        PlanIndex(engine, source, config)
+        if config.get('api_url', None):
+            engine = IndexEngine(config)
+            source = TenderSource(config)
+            TenderIndex(engine, source, config)
+        if config.get('ocds_dir', None):
+            source = OcdsSource(config)
+            OcdsIndex(engine, source, config)
+            source.reset()
+        if config.get('plan_api_url', None):
+            source = PlanSource(config)
+            PlanIndex(engine, source, config)
         engine.run()
     finally:
         lock_file.close()
