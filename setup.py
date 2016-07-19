@@ -26,6 +26,7 @@ setup(name='openprocurement.search',
         install_requires=[
           'setuptools',
           'requests',
+          'retrying',
           'iso8601',
           'python-dateutil',
           'simplejson',
