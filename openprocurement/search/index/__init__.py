@@ -36,7 +36,7 @@ class BaseIndex:
             name = self.current_index
         if not name:
             return time()
-        prefix, suffix = name.split('_')
+        prefix, suffix = name.rsplit('_', 1)
         return int(time() - int(suffix))
 
     def need_reindex(self):
@@ -55,6 +55,8 @@ class BaseIndex:
         name = self.engine.get_index(index_key_next)
         current_index = self.current_index
         if current_index and name == current_index:
+            name = None
+        if self.index_age(name) > 86400:
             name = None
         if not name:
             name = "{}_{}".format(index_key, int(time()))
@@ -88,11 +90,15 @@ class BaseIndex:
     def test_noindex(self, item):
         return False
 
+    def before_index_item(self, item):
+        return
+
     def index_item(self, index_name, item):
         if self.test_noindex(item):
             logger.debug("[%s] Noindex %s %s", index_name,
                 item.data.id, item.data.get('tenderID', ''))
             return None
+        self.before_index_item(item)
         return self.engine.index_item(index_name, item)
 
     def index_source(self, index_name=None, reset=False):
@@ -122,10 +128,16 @@ class BaseIndex:
                     if self.index_item(index_name, item):
                         index_count += 1
                 iter_count += 1
+                total_count += 1
+                # update heartbeat for long indexing
+                if iter_count % 1000 == 0:
+                    logger.info("[%s] Fetched %d indexed %d",
+                        index_name, total_count, index_count)
+                    self.engine.heartbeat(source)
+                    sleep(1)
             # break on empty set
             if not iter_count:
                 break
-            total_count += iter_count
             last = info.get('dateModified', '').replace('T', ' ')[:19]
             pause = iter_count / float(self.config['index_speed'])
             logger.info("[%s] Fetched %d indexed %d last %s wait %1.1fs",
