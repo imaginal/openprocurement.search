@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from time import mktime
+from retrying import retry
 from iso8601 import parse_date
 from socket import setdefaulttimeout
 
@@ -47,6 +48,7 @@ class TenderSource(BaseSource):
         for tender in tender_list:
             yield self.patch_version(tender)
 
+    @retry(stop_max_attempt_number=5, wait_fixed=5000)
     def get(self, item):
         tender = self.client.get_tender(item['id'])
         tender['meta'] = item
