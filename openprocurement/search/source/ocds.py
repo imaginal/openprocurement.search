@@ -73,7 +73,7 @@ class OcdsSource(BaseSource):
     def items(self):
         if not self.files:
             dt = datetime.now()
-            if dt.hour in [6,12,18] and dt.minute > 58:
+            if dt.hour in [6,18] and dt.minute > 58:
                 self.reset()
         if not self.files:
             return
@@ -81,11 +81,7 @@ class OcdsSource(BaseSource):
         fullname = path.join(self.config['ocds_dir'], name)
         with open(fullname) as f:
             data = json.load(f)
-        count = 0
         for r in data['releases']:
-            count += 1
-            if count % 100 == 0:
-                sleep(100.0/float(self.config['ocds_speed']))
             item = r['tender']
             if 'tenderID' not in item:
                 item['tenderID'] = r['ocid']
