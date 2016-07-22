@@ -16,20 +16,14 @@ class PlanIndex(BaseIndex):
         if self.index_age() > 120*3600:
             # TODO: make index_hours configurable
             dt = datetime.now()
-            return dt.weekday() > 5 and dt.hour < 5
+            return dt.isoweekday() >= 6 and dt.hour < 6
         return False
 
     def create_index(self, name):
-        body = None
-        try:
-            tender_index = self.config['plan_index']
-            logger.info("Load index settings from %s", tender_index)
-            if tender_index:
-                with open(tender_index) as f:
-                    body = json.load(f)
-        except (KeyError, ValueError) as e:
-            logger.error("%s", str(e));
-            pass
+        plan_index = self.config['plan_index']
+        logger.debug("Load plan index settings from %s", plan_index)
+        with open(plan_index) as f:
+            body = json.load(f)
         self.engine.create_index(name, body=body)
 
     def finish_index(self, name):

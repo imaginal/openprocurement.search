@@ -3,9 +3,12 @@ from time import mktime
 from retrying import retry
 from iso8601 import parse_date
 from socket import setdefaulttimeout
+from logging import getLogger
 
 from openprocurement_client.client import Client
 from openprocurement.search.source import BaseSource
+
+logger = getLogger(__name__)
 
 
 class PlanSource(BaseSource):
@@ -25,13 +28,12 @@ class PlanSource(BaseSource):
     def __init__(self, config={}):
         if config:
             self.config.update(config)
-        client = Client(key=self.config['plan_api_key'],
+        self.client = Client(key=self.config['plan_api_key'],
             host_url=self.config['plan_api_url'],
             api_version=self.config['plan_api_version'],
             resource=self.config['plan_resource'],
             timeout=self.config['timeout'],
             params=self.config['plan_params'])
-        self.client = client
 
     def patch_version(self, item):
         """Convert dateModified to long version
@@ -43,13 +45,14 @@ class PlanSource(BaseSource):
         return item
 
     def reset(self):
+        logger.info("Reset plans, plan_skip_until %s", self.config['plan_skip_until'])
         self.client.params.pop('offset', None)
 
     def items(self):
         if self.config.get('timeout', None):
             setdefaulttimeout(float(self.config['timeout']))
         skip_until = self.config.get('plan_skip_until', None)
-        if skip_until[:2] != '20':
+        if skip_until and skip_until[:2] != '20':
             skip_until = None
         tender_list = self.client.get_tenders()
         for tender in tender_list:
@@ -57,7 +60,7 @@ class PlanSource(BaseSource):
                 continue
             yield self.patch_version(tender)
 
-    @retry(stop_max_attempt_number=5, wait_fixed=5000)
+    @retry(stop_max_attempt_number=5, wait_fixed=15000)
     def get(self, item):
         tender = self.client.get_tender(item['id'])
         tender['meta'] = item

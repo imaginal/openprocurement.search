@@ -3,9 +3,12 @@ from time import mktime
 from retrying import retry
 from iso8601 import parse_date
 from socket import setdefaulttimeout
+from logging import getLogger
 
 from openprocurement_client.client import Client
 from openprocurement.search.source import BaseSource
+
+logger = getLogger(__name__)
 
 
 class TenderSource(BaseSource):
@@ -40,13 +43,14 @@ class TenderSource(BaseSource):
         return item
 
     def reset(self):
+        logger.info("Reset tenders, skip_until %s", self.config['skip_until'])
         self.client.params.pop('offset', None)
 
     def items(self):
         if self.config.get('timeout', None):
             setdefaulttimeout(float(self.config['timeout']))
         skip_until = self.config.get('skip_until', None)
-        if skip_until[:2] != '20':
+        if skip_until and skip_until[:2] != '20':
             skip_until = None
         tender_list = self.client.get_tenders()
         for tender in tender_list:
@@ -54,7 +58,7 @@ class TenderSource(BaseSource):
                 continue
             yield self.patch_version(tender)
 
-    @retry(stop_max_attempt_number=5, wait_fixed=5000)
+    @retry(stop_max_attempt_number=5, wait_fixed=15000)
     def get(self, item):
         tender = self.client.get_tender(item['id'])
         tender['meta'] = item

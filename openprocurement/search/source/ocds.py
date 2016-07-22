@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from os import path, listdir
 from time import mktime, time
-from datetime import datetime
 from fnmatch import fnmatch
 from iso8601 import parse_date
 import simplejson as json
