@@ -48,7 +48,7 @@ class PlanSource(BaseSource):
     def items(self):
         if self.config.get('timeout', None):
             setdefaulttimeout(float(self.config['timeout']))
-        skip_until = self.config.get('skip_until', None)
+        skip_until = self.config.get('plan_skip_until', None)
         if skip_until[:2] != '20':
             skip_until = None
         tender_list = self.client.get_tenders()
