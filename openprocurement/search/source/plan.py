@@ -19,6 +19,7 @@ class PlanSource(BaseSource):
         'plan_api_version': '0',
         'plan_resource': 'plans',
         'plan_params': {},
+        'plan_skip_until': None,
         'timeout': 30,
     }
     def __init__(self, config={}):
@@ -47,8 +48,13 @@ class PlanSource(BaseSource):
     def items(self):
         if self.config.get('timeout', None):
             setdefaulttimeout(float(self.config['timeout']))
+        skip_until = self.config.get('skip_until', None)
+        if skip_until[:2] != '20':
+            skip_until = None
         tender_list = self.client.get_tenders()
         for tender in tender_list:
+            if skip_until and skip_until > tender['dateModified']:
+                continue
             yield self.patch_version(tender)
 
     @retry(stop_max_attempt_number=5, wait_fixed=5000)
