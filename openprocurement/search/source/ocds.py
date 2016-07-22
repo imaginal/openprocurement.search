@@ -26,6 +26,7 @@ class OcdsSource(BaseSource):
         if config:
             self.config.update(config)
         self.last_reset_time = 0
+        self.last_files = []
         self.files = []
 
     def patch_version(self, item):
@@ -75,11 +76,17 @@ class OcdsSource(BaseSource):
         self.files = sorted(files)
         self.last_reset_time = time()
 
+    def lazy_reset(self):
+        self.reset()
+        # compare to last one, clean if noting was changed
+        if self.files != self.last_files:
+            self.last_files = list(self.files)
+        else:
+            self.files = []
+
     def items(self):
-        if not self.files:
-            dt = datetime.now()
-            if dt.hour in [0,6,12,18] and self.since_last_reset() > 3600:
-                self.reset()
+        if not self.files and self.since_last_reset() > 3600:
+            self.lazy_reset()
         if not self.files:
             return
         name = self.files.pop(0)
