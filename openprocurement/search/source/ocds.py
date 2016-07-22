@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from os import path, listdir
-from time import mktime, sleep
+from time import mktime, time
 from datetime import datetime
 from fnmatch import fnmatch
 from iso8601 import parse_date
@@ -25,6 +25,7 @@ class OcdsSource(BaseSource):
     def __init__(self, config={}):
         if config:
             self.config.update(config)
+        self.last_reset_time = 0
         self.files = []
 
     def patch_version(self, item):
@@ -63,17 +64,21 @@ class OcdsSource(BaseSource):
             }
         return data
 
+    def since_last_reset(self):
+        return time() - self.last_reset_time
+
     def reset(self):
         files = []
         for name in listdir(self.config['ocds_dir']):
             if fnmatch(name, self.config['ocds_mask']):
                 files.append(name)
         self.files = sorted(files)
+        self.last_reset_time = time()
 
     def items(self):
         if not self.files:
             dt = datetime.now()
-            if dt.hour in [6,18] and dt.minute > 58:
+            if dt.hour in [0,6,12,18] and self.since_last_reset() > 3600:
                 self.reset()
         if not self.files:
             return
