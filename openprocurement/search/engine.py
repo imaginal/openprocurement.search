@@ -4,10 +4,11 @@ from logging import getLogger
 
 import simplejson as json
 from restkit import request
+from retrying import retry
 
 from elasticsearch import Elasticsearch
 from elasticsearch.client import IndicesClient
-from elasticsearch.exceptions import ElasticsearchException
+from elasticsearch.exceptions import ElasticsearchException, RequestError
 
 from openprocurement.search import shdict
 
@@ -141,6 +142,7 @@ class IndexEngine(SearchEngine):
             return False
         return item['_version'] >= meta['version']
 
+    @retry(stop_max_attempt_number=5, wait_fixed=5000)
     def index_item(self, index_name, item):
         meta = item['meta']
         logger.debug("PUT index %s object %s version %ld",
@@ -152,7 +154,7 @@ class IndexEngine(SearchEngine):
                 version=meta['version'],
                 version_type='external',
                 body=item['data'])
-        except ElasticsearchException as e:
+        except (ElasticsearchException, RequestError) as e:
             logger.error(u"Failed index %s object %s: %s",
                 index_name, meta['id'], unicode(e))
             raise

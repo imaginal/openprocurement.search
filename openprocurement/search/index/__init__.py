@@ -9,7 +9,7 @@ class BaseIndex:
     """Search Index Interface
     """
     config = {
-        'index_speed': 20,
+        'index_speed': 100.0,
     }
     def __init__(self, engine, source, config={}):
         assert(self.__index_name__)
@@ -96,6 +96,13 @@ class BaseIndex:
     def before_index_item(self, item):
         return
 
+    def indexing_stat(self, index_name, fetched, indexed, iter_count, last_date):
+        last_date = last_date or ""
+        pause = 1.0 * iter_count / self.config['index_speed']
+        logger.info("[%s] Fetched %d indexed %d last %s",
+            index_name, fetched, indexed, last_date[:19])
+        sleep(pause)
+
     def index_item(self, index_name, item):
         if self.test_noindex(item):
             logger.debug("[%s] Noindex %s %s", index_name,
@@ -122,29 +129,27 @@ class BaseIndex:
         index_count = 0
         total_count = 0
         while self.engine.heartbeat(self.source):
-            items_list = self.source.items()
             iter_count = 0
-            for info in items_list:
+            for info in self.source.items():
                 if not self.test_exists(index_name, info):
                     item = self.source.get(info)
                     if self.index_item(index_name, item):
                         index_count += 1
                 iter_count += 1
                 total_count += 1
-                # update heartbeat for long indexing (ocds)
-                if iter_count % 1000 == 0:
-                    logger.info("[%s] Fetched %d indexed %d",
-                        index_name, total_count, index_count)
+                # update heartbeat for long indexing
+                if iter_count >= 500:
+                    self.indexing_stat(index_name, total_count, index_count,
+                        iter_count, info.get('dateModified'))
                     self.engine.heartbeat(self.source)
-                    sleep(1)
-            # break on empty set
-            if not iter_count:
+                    iter_count = 0
+
+            if iter_count:
+                self.indexing_stat(index_name, total_count, index_count,
+                    iter_count, info.get('dateModified'))
+            # leave loop on huge data for process other indexes
+            if total_count >= 10000:
                 break
-            last = info.get('dateModified', '').replace('T', ' ')[:19]
-            pause = iter_count / float(self.config['index_speed'])
-            logger.info("[%s] Fetched %d indexed %d last %s wait %1.1fs",
-                index_name, total_count, index_count, last, pause)
-            sleep(pause)
 
         return index_count
 

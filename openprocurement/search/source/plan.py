@@ -3,12 +3,9 @@ from time import mktime
 from retrying import retry
 from iso8601 import parse_date
 from socket import setdefaulttimeout
-from logging import getLogger
 
 from openprocurement_client.client import Client
-from openprocurement.search.source import BaseSource
-
-logger = getLogger(__name__)
+from openprocurement.search.source import BaseSource, logger
 
 
 class PlanSource(BaseSource):

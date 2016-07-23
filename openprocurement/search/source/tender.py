@@ -6,9 +6,7 @@ from socket import setdefaulttimeout
 from logging import getLogger
 
 from openprocurement_client.client import Client
-from openprocurement.search.source import BaseSource
-
-logger = getLogger(__name__)
+from openprocurement.search.source import BaseSource, logger
 
 
 class TenderSource(BaseSource):

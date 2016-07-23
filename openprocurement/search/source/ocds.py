@@ -6,7 +6,7 @@ from iso8601 import parse_date
 import simplejson as json
 import re
 
-from openprocurement.search.source import BaseSource
+from openprocurement.search.source import BaseSource, logger
 
 
 re_postalCode = re.compile(r"\d\d\d\d\d")
@@ -74,6 +74,7 @@ class OcdsSource(BaseSource):
                 files.append(name)
         self.files = sorted(files)
         self.last_reset_time = time()
+        logger.info("Reset ocds, found %d files", len(self.files))
 
     def lazy_reset(self):
         self.reset()
