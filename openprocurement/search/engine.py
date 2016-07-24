@@ -95,7 +95,8 @@ class SearchEngine(object):
             fp.write("%d\n" % value)
         else:
             fp = open(filename)
-            value = float(fp.read())
+            value = fp.read() or 0
+            value = int(value)
         fp.close()
         logger.debug("Heartbeat %s", str(value))
         return value
