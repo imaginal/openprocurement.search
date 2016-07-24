@@ -104,7 +104,7 @@ class SearchEngine(object):
         # set initial heartbeat_value to current time
         if getattr(self, 'last_heartbeat_check', None) is None:
             self.last_heartbeat_check = 0
-            self.last_heartbeat_value = int(time())
+            self.last_heartbeat_value = int(time()) - 30
         # cache response value for 30 sec
         if time() - self.last_heartbeat_check < 30:
             return self.last_heartbeat_value
@@ -113,7 +113,7 @@ class SearchEngine(object):
             r = request(self.slave_mode, timeout=5)
             data = json.loads(r.body_string())
         except Exception as e:
-            logger.error("Test heartbeat %s", unicode(e))
+            logger.error("Can't check heartbeat %s", unicode(e))
             # if request failed accept last successed value
             data = {'heartbeat': self.last_heartbeat_value}
         if 'index_names' in data:
