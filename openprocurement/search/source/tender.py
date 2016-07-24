@@ -3,7 +3,6 @@ from time import mktime
 from retrying import retry
 from iso8601 import parse_date
 from socket import setdefaulttimeout
-from logging import getLogger
 
 from openprocurement_client.client import Client
 from openprocurement.search.source import BaseSource, logger
@@ -25,11 +24,7 @@ class TenderSource(BaseSource):
     def __init__(self, config={}):
         if config:
             self.config.update(config)
-        self.client = Client(key=self.config['api_key'],
-            host_url=self.config['api_url'],
-            api_version=self.config['api_version'],
-            timeout=self.config['timeout'],
-            params=self.config['params'])
+        self.client = None
 
     def patch_version(self, item):
         """Convert dateModified to long version
@@ -42,9 +37,15 @@ class TenderSource(BaseSource):
 
     def reset(self):
         logger.info("Reset tenders, skip_until %s", self.config['skip_until'])
-        self.client.params.pop('offset', None)
+        self.client = Client(key=self.config['api_key'],
+            host_url=self.config['api_url'],
+            api_version=self.config['api_version'],
+            timeout=self.config['timeout'],
+            params=self.config['params'])
 
     def items(self):
+        if not self.client:
+            self.reset()
         if self.config.get('timeout', None):
             setdefaulttimeout(float(self.config['timeout']))
         skip_until = self.config.get('skip_until', None)

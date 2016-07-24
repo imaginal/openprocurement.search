@@ -25,12 +25,7 @@ class PlanSource(BaseSource):
     def __init__(self, config={}):
         if config:
             self.config.update(config)
-        self.client = Client(key=self.config['plan_api_key'],
-            host_url=self.config['plan_api_url'],
-            api_version=self.config['plan_api_version'],
-            resource=self.config['plan_resource'],
-            timeout=self.config['timeout'],
-            params=self.config['plan_params'])
+        self.client = None
 
     def patch_version(self, item):
         """Convert dateModified to long version
@@ -43,9 +38,16 @@ class PlanSource(BaseSource):
 
     def reset(self):
         logger.info("Reset plans, plan_skip_until %s", self.config['plan_skip_until'])
-        self.client.params.pop('offset', None)
+        self.client = Client(key=self.config['plan_api_key'],
+            host_url=self.config['plan_api_url'],
+            api_version=self.config['plan_api_version'],
+            resource=self.config['plan_resource'],
+            timeout=self.config['timeout'],
+            params=self.config['plan_params'])
 
     def items(self):
+        if not self.client:
+            self.reset()
         if self.config.get('timeout', None):
             setdefaulttimeout(float(self.config['timeout']))
         skip_until = self.config.get('plan_skip_until', None)
