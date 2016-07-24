@@ -123,11 +123,13 @@ class BaseIndex:
             index_name = self.current_index
 
         if not index_name:
-            logger.warning("No current index")
+            logger.warning("No current index for %s", repr(self))
             return
 
         index_count = 0
         total_count = 0
+        # heartbeat return False in slave mode if master is ok
+        # heartbeat always True in master mode
         while self.engine.heartbeat(self.source):
             iter_count = 0
             for info in self.source.items():
@@ -147,19 +149,16 @@ class BaseIndex:
             if iter_count:
                 self.indexing_stat(index_name, total_count, index_count,
                     iter_count, info.get('dateModified'))
-            # leave loop on huge data for process other indexes
-            if total_count >= 10000:
-                break
 
         return index_count
 
     def process(self, allow_reindex = True):
         if self.need_reindex() and allow_reindex:
             index_name = self.new_index()
-            logger.info("Starting full re-index, new index %s",
-                index_name)
+            logger.info("Starting full reindex, new index %s", index_name)
             self.index_source(index_name, reset=True)
             self.finish_index(index_name)
             self.set_current(index_name)
+            logger.info("Finish full reindex, new index %s", index_name)
 
         return self.index_source()
