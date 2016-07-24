@@ -131,6 +131,7 @@ class BaseIndex:
         # heartbeat return False in slave mode if master is ok
         # heartbeat always True in master mode
         while self.engine.heartbeat(self.source):
+            info = None
             iter_count = 0
             for info in self.source.items():
                 if not self.test_exists(index_name, info):
@@ -146,6 +147,9 @@ class BaseIndex:
                     self.engine.heartbeat(self.source)
                     iter_count = 0
 
+            # break if nothing iterated
+            if not info:
+                break
             if iter_count:
                 self.indexing_stat(index_name, total_count, index_count,
                     iter_count, info.get('dateModified'))
