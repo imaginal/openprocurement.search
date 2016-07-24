@@ -14,9 +14,7 @@ class PlanIndex(BaseIndex):
         if not self.current_index:
             return True
         if self.index_age() > 120*3600:
-            # TODO: make index_hours configurable
-            dt = datetime.now()
-            return dt.isoweekday() >= 6 and dt.hour < 6
+            return datetime.now().isoweekday() >= 6
         return False
 
     def create_index(self, name):

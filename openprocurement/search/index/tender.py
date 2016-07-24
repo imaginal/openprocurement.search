@@ -10,8 +10,8 @@ class TenderIndex(BaseIndex):
     __index_name__ = 'tenders'
 
     def test_noindex(self, item):
-        # don't index by procurementMethodType should working
-        # for tenders created since 2016-05-31
+        # noindex filter by procurementMethodType should working
+        # only for tenders created since 2016-05-31
         if item.data.tenderID > 'UA-2016-05-31':
             proc_type = item.data.procurementMethodType
             if proc_type == 'negotiation' or proc_type == 'negotiation.quick':
@@ -37,9 +37,7 @@ class TenderIndex(BaseIndex):
         if not self.current_index:
             return True
         if self.index_age() > 120*3600:
-            # TODO: make index_hours configurable
-            dt = datetime.now()
-            return dt.isoweekday() >= 6 and dt.hour < 6
+            return datetime.now().isoweekday() >= 6
         return False
 
     def create_index(self, name):
