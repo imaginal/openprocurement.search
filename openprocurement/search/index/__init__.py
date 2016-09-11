@@ -148,11 +148,11 @@ class BaseIndex:
                     iter_count = 0
 
             # break if nothing iterated
-            if not info:
-                break
             if iter_count:
                 self.indexing_stat(index_name, total_count, index_count,
                     iter_count, info.get('dateModified'))
+            else:
+                break
 
         return index_count
 
