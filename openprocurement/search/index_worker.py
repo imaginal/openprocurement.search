@@ -1,25 +1,31 @@
 # -*- coding: utf-8 -*-
-from gevent import monkey
-monkey.patch_all()
 
 import os
 import sys
 import fcntl
+import signal
 import logging.config
 
 from ConfigParser import ConfigParser
 
-from openprocurement.search.engine import IndexEngine
+from openprocurement.search.engine import IndexEngine, logger
+
+from openprocurement.search.source.orgs import OrgsSource
+from openprocurement.search.index.orgs import OrgsIndex
 
 from openprocurement.search.source.tender import TenderSource
-from openprocurement.search.source.ocds import OcdsSource
-
 from openprocurement.search.index.tender import TenderIndex
+
+from openprocurement.search.source.ocds import OcdsSource
 from openprocurement.search.index.ocds import OcdsIndex
 
 from openprocurement.search.source.plan import PlanSource
 from openprocurement.search.index.plan import PlanIndex
 
+
+def sigterm_handler(signo, frame):
+    logger.warning("Signal received %d", signo)
+    sys.exit(0)
 
 def main():
     if len(sys.argv) < 2:
@@ -39,8 +45,13 @@ def main():
     lock_file.write(str(os.getpid())+"\n")
     lock_file.flush()
 
+    signal.signal(signal.SIGTERM, sigterm_handler)
+    signal.signal(signal.SIGINT, sigterm_handler)
+
     try:
         engine = IndexEngine(config)
+        source = OrgsSource(config)
+        OrgsIndex(engine, source, config)
         if config.get('api_url', None):
             source = TenderSource(config)
             TenderIndex(engine, source, config)
@@ -51,9 +62,13 @@ def main():
             source = PlanSource(config)
             PlanIndex(engine, source, config)
         engine.run()
+    except Exception as e:
+        logger.error("Fail: %s", str(e))
+        raise
     finally:
         lock_file.close()
         os.remove(lock_filename)
+        logger.info("Shutdown")
 
     return 0
 
