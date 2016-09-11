@@ -236,7 +236,7 @@ def orgsuggest():
         return jsonify(res)
     # fulltext search
     query = request.args.get('query', '')
-    if not query or len(query) > 100:
+    if not query or len(query) > 50:
         return jsonify({"error": "bad query"})
     fuzziness = 0
     if len(query) > 4:
