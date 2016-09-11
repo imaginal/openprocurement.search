@@ -125,23 +125,31 @@ class SearchEngine(object):
         return self.last_heartbeat_value
 
 
-
 class IndexEngine(SearchEngine):
     """Indexer Engine
     """
+    def __init__(self, config={}):
+        super(IndexEngine, self).__init__(config)
+        logger.info("Engine config:\n\t%s", self.config_dump())
+
+    def config_dump(self):
+        cs = "\n\t".join(["{} = {}".format(k ,v) \
+            for k, v in sorted(self.config.items())])
+        return cs
+
     def create_index(self, index_name, body):
         indices = IndicesClient(self.elastic)
         indices.create(index_name, body=body)
 
     def test_exists(self, index_name, meta):
         try:
-            item = self.elastic.get(index_name,
+            found = self.elastic.get(index_name,
                 doc_type=meta.get('doc_type'),
                 id=meta['id'],
                 _source=False)
         except ElasticsearchException:
             return False
-        return item['_version'] >= meta['version']
+        return found['_version'] >= meta['version']
 
     @retry(stop_max_attempt_number=5, wait_fixed=5000)
     def index_item(self, index_name, item):
@@ -160,6 +168,16 @@ class IndexEngine(SearchEngine):
                 index_name, meta['id'], unicode(e))
             raise
         return res
+
+    def index_by_type(self, doc_type, item):
+        for index in self.index_list:
+            if index.source.doc_type == doc_type:
+                break
+        if index.source.doc_type != doc_type:
+            raise IndexError("doc_type %s not found", doc_type)
+        if index.source.push(item):
+            # flush the index queue
+            index.index_source()
 
     def heartbeat(self, source=None):
         """
@@ -193,15 +211,9 @@ class IndexEngine(SearchEngine):
                 logger.error(u"Failed get elastic info: %s", unicode(e))
                 sleep(self.config['update_wait'])
 
-    def config_dump(self):
-        cs = "\n\t".join(["{} = {}".format(k ,v) \
-            for k, v in sorted(self.config.items())])
-        return cs
-
     def run(self):
         logger.info("Starting IndexEngine with indices %s",
             str(self.index_list))
-        logger.info("Engine config:\n\t%s", self.config_dump())
         self.wait_for_backend()
         allow_reindex = not self.slave_mode
         while True:
