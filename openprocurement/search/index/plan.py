@@ -10,6 +10,11 @@ class PlanIndex(BaseIndex):
     """
     __index_name__ = 'plans'
 
+    def before_index_item(self, item):
+        entity = item.data.get('procuringEntity', None)
+        if entity:
+            self.engine.index_by_type('org', entity)
+
     def need_reindex(self):
         if not self.current_index:
             return True
@@ -24,6 +29,3 @@ class PlanIndex(BaseIndex):
             body = json.load(f)
         self.engine.create_index(name, body=body)
 
-    def finish_index(self, name):
-        # TODO: create EDRPOU json
-        return

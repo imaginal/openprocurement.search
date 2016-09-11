@@ -9,6 +9,11 @@ class TenderIndex(BaseIndex):
     """
     __index_name__ = 'tenders'
 
+    def before_index_item(self, item):
+        entity = item.data.get('procuringEntity', None)
+        if entity:
+            self.engine.index_by_type('org', entity)
+
     def test_noindex(self, item):
         # noindex filter by procurementMethodType should working
         # only for tenders created since 2016-05-31
@@ -47,6 +52,3 @@ class TenderIndex(BaseIndex):
             body = json.load(f)
         self.engine.create_index(name, body=body)
 
-    def finish_index(self, name):
-        # TODO: create EDRPOU json
-        return

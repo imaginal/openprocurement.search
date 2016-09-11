@@ -27,7 +27,8 @@ search_config = dict(config_parser.items('search_engine'))
 search_engine = SearchEngine(search_config)
 
 TENDER_INDEX_KEYS = ['tenders', 'ocds']
-PLAN_INDEX_KEYS = ['plans']
+PLAN_INDEX_KEYS = ['plans',]
+ORGS_INDEX_KEYS = ['orgs',]
 
 def rename_index_names(config, index_list):
     for i, name in enumerate(index_list):
@@ -38,8 +39,9 @@ def rename_index_names(config, index_list):
 
 rename_index_names(search_config, TENDER_INDEX_KEYS)
 rename_index_names(search_config, PLAN_INDEX_KEYS)
-search_server.logger.info("Start with indexes %s %s",
-    str(TENDER_INDEX_KEYS), str(PLAN_INDEX_KEYS))
+rename_index_names(search_config, ORGS_INDEX_KEYS)
+search_server.logger.info("Start with indexes %s %s %s",
+    str(TENDER_INDEX_KEYS), str(PLAN_INDEX_KEYS), str(ORGS_INDEX_KEYS))
 
 
 
@@ -221,7 +223,21 @@ def search_plans():
 
 @search_server.route('/orgsuggest')
 def orgsuggest():
-    query = request.args.get('query')
+    # excact search
+    edrpou = request.args.get('edrpou', '')
+    if edrpou and len(edrpou) < 10:
+        body = {
+            "size": 1,
+            "query": {
+                "match": { "edrpou": edrpou, }
+            }
+        }
+        res = search_engine.search(body, index_keys=ORGS_INDEX_KEYS)
+        return jsonify(res)
+    # fulltext search
+    query = request.args.get('query', '')
+    if not query or len(query) > 100:
+        return jsonify({"error": "bad query"})
     fuzziness = 0
     if len(query) > 4:
         fuzziness = 1
@@ -237,11 +253,10 @@ def orgsuggest():
         }
     }
     body["sort"] = { "rank": { "order": "desc" } }
-    index = "orgs_current"
-    res = search_engine.search(body, index=index)
+    res = search_engine.search(body, index_keys=ORGS_INDEX_KEYS)
     if not res.get('items'):
         _all["fuzziness"] += 1
-        res = search_engine.search(body, index=index)
+        res = search_engine.search(body, index_keys=ORGS_INDEX_KEYS)
     return jsonify(res)
 
 

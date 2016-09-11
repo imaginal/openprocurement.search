@@ -6,6 +6,10 @@ logger = getLogger(__name__)
 class BaseSource:
     """Data Source Interface
     """
+    @property
+    def doc_type(self):
+        return self.__doc_type__
+
     def reset(self):
         pass
 
