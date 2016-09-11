@@ -40,7 +40,12 @@ def process_all(elastic_host, index_list, index_yaml):
         if name in current_names:
             logger.info("Skip current %s", name)
             continue
-        if int(created) > fresh_time:
+        try:
+            created_time = int(created)
+        except ValueError:
+            logger.info("Skip unknown %s", name)
+            continue
+        if created_time > fresh_time:
             logger.info("Skip fresh %s", name)
             continue
         candidates.append(name)
