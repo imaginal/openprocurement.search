@@ -55,7 +55,7 @@ class SearchEngine(object):
             index_keys = self.index_list
         for key in index_keys:
             if isinstance(key, object):
-                key = repr(key)
+                key = str(key)
             name = self.get_index(key)
             if name:
                 index_names.append(name)

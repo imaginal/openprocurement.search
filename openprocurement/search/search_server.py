@@ -69,13 +69,20 @@ def prefix_query(query, field):
 
 
 def range_query(query, field):
+    double = bool(field == 'value.amount')
     body = []
     for q in query:
         if q.find('-') < 0:
-            res = prefix_query([q], field)
+            if double:
+                q = float(q)
+                res = {"range": {field: {"gte": q}}}
+            else:
+                res = prefix_query([q], field)
             body.append(res)
         else:
             beg, end = q.split('-', 1)
+            if double:
+                beg, end = float(beg), float(end)
             body.append({"range": {
                 field: {"gte": beg, "lte": end}
                 }})
@@ -114,6 +121,7 @@ match_map = {
 }
 range_map = {
     'region': 'procuringEntity.address.postalCode',
+    'value': 'value.amount',
 }
 dates_map = {
     'auction_start': ('gte', 'auctionPeriod.endDate'),

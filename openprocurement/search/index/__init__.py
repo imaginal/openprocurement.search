@@ -23,6 +23,9 @@ class BaseIndex:
         self.engine = engine
         self.engine.add_index(self)
 
+    def __str__(self):
+        return self.__index_name__
+
     def __repr__(self):
         return self.__index_name__
 
