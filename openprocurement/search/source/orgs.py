@@ -12,7 +12,7 @@ class OrgsSource(BaseSource):
 
     config = {
         'orgs_db': None,
-        'orgs_queue': 10,
+        'orgs_queue': 1000,
     }
     def __init__(self, config={}):
         if config:
