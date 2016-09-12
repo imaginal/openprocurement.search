@@ -15,7 +15,6 @@ from openprocurement.search.source.orgs import OrgsSource
 from openprocurement.search.source.tender import TenderSource
 from openprocurement.search.source.ocds import OcdsSource
 from openprocurement.search.source.plan import PlanSource
-from munch import munchify
 
 
 engine = type('engine', (), {})()
@@ -36,9 +35,10 @@ class IndexOrgsEngine(IndexEngine):
         code = entity.get('identifier', {}).get('id', None)
         if not code or len(code) < 5 or len(code) > 15:
             return
-        try:
+        self.index_by_type('org', entity)
+        if code in self.orgs_map:
             self.orgs_map[code] += 1
-        except KeyError:
+        else:
             self.orgs_map[code] = 1
 
     def process_source(self, source):
@@ -60,14 +60,16 @@ class IndexOrgsEngine(IndexEngine):
             logger.info("[%s] Processed %d last %s map_size %d",
                 source.doc_type, items_count,
                 meta.get('dateModified'), len(self.orgs_map))
+        # flush
+        for index in self.index_list:
+            index.process(allow_reindex=False)
 
     def flush_orgs_map(self):
         index_name = self.get_current_indexes()
-        logger.info("Flush orgs to index [%s]", index_name)
+        logger.info("[%s] Flush orgs to index", index_name)
         if not index_name:
             return
         iter_count = 0
-        create_count = 0
         update_count = 0
         orgs_index = self.index_list[0]
         doc_type = orgs_index.source.doc_type
@@ -77,35 +79,30 @@ class IndexOrgsEngine(IndexEngine):
                 break
             iter_count += 1
             if iter_count % 100 == 0:
-                logger.info("[%s] Created %d updated %d orgs %d%%",
-                    index_name, create_count, update_count,
+                logger.info("[%s] Updated %d orgs %d%%",
+                    index_name, update_count,
                     int(100*iter_count/map_len))
             # get item
             meta = {'id': code, 'doc_type': doc_type}
             found = self.get_item(index_name, meta)
-            # if not found - create
-            if found:
-                # if rank not changed - ignore
-                if found['_source']['rank'] == rank:
-                    continue
-                item = {
-                    'meta': {
-                        'id': found['_id'],
-                        'doc_type': found['_type'],
-                        'version': found['_version']+1,
-                    },
-                    'data': found['_source'],
-                }
-                update_count += 1
-            else:
-                create_count += 1
-                meta['version'] = 1
-                item = orgs_index.source.patch_item(meta)
-                if not item['data']['name']:
-                    #logger.warning("Noname for %s", item['meta']['id'])
-                    continue
+            # if not found - ignore, but warn
+            if not found:
+                logger.warning("[%s] Code %d not found", index_name, code)
+                continue
+            # if rank not changed - ignore
+            if found['_source']['rank'] == rank:
+                continue
+            item = {
+                'meta': {
+                    'id': found['_id'],
+                    'doc_type': found['_type'],
+                    'version': found['_version']+1,
+                },
+                'data': found['_source'],
+            }
             item['data']['rank'] = rank
             self.index_item(index_name, item)
+            update_count += 1
 
 
 def main():
