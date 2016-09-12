@@ -122,7 +122,8 @@ class BaseIndex:
             index_name = self.current_index
 
         if not index_name and self.engine.slave_mode:
-            self.engine.heartbeat(self.source)
+            if not self.engine.heartbeat(self.source):
+                return
             index_name = self.current_index
 
         if not index_name:
