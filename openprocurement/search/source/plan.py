@@ -41,6 +41,8 @@ class PlanSource(BaseSource):
 
     def reset(self):
         logger.info("Reset plans, plan_skip_until %s", self.config['plan_skip_until'])
+        if self.config.get('timeout', None):
+            setdefaulttimeout(float(self.config['timeout']))
         self.client = Client(key=self.config['plan_api_key'],
             host_url=self.config['plan_api_url'],
             api_version=self.config['plan_api_version'],

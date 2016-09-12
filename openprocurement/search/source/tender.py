@@ -40,6 +40,8 @@ class TenderSource(BaseSource):
 
     def reset(self):
         logger.info("Reset tenders, skip_until %s", self.config['skip_until'])
+        if self.config.get('timeout', None):
+            setdefaulttimeout(float(self.config['timeout']))
         self.client = Client(key=self.config['api_key'],
             host_url=self.config['api_url'],
             api_version=self.config['api_version'],
