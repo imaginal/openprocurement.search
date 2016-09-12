@@ -97,6 +97,8 @@ def dates_query(query, args):
 prefix_map = {
     'cpv': 'items.classification.id',
     'dkpp': 'items.additionalClassifications.id',
+    'plan_cpv': 'classification.id',
+    'plan_dkpp': 'additionalClassifications.id',
 }
 match_map = {
     'tid': 'tenderID',
