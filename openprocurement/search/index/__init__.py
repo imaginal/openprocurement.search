@@ -134,6 +134,8 @@ class BaseIndex:
             info = None
             iter_count = 0
             for info in self.source.items():
+                if self.engine.should_exit:
+                    break
                 if not self.test_exists(index_name, info):
                     item = self.source.get(info)
                     if self.index_item(index_name, item):
@@ -146,7 +148,10 @@ class BaseIndex:
                         iter_count, info.get('dateModified'))
                     self.engine.heartbeat(self.source)
                     iter_count = 0
-
+            # break if should exit
+            if self.engine.should_exit:
+                logger.warning("Should exit")
+                break
             # break if nothing iterated
             if iter_count:
                 self.indexing_stat(index_name, total_count, index_count,

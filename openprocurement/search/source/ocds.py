@@ -3,6 +3,7 @@ from os import path, listdir
 from time import mktime, time
 from fnmatch import fnmatch
 from iso8601 import parse_date
+from munch import munchify
 import simplejson as json
 import re
 
@@ -27,6 +28,9 @@ class OcdsSource(BaseSource):
         self.last_reset_time = 0
         self.last_files = []
         self.files = []
+
+    def procuring_entity(self, item):
+        return item['data'].get('procuringEntity', None)
 
     def patch_version(self, item):
         """Convert dateModified to long version
@@ -62,7 +66,7 @@ class OcdsSource(BaseSource):
             'meta': meta,
             'data': item,
             }
-        return data
+        return munchify(data)
 
     def since_last_reset(self):
         return time() - self.last_reset_time

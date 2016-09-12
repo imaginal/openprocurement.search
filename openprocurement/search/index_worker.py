@@ -23,9 +23,14 @@ from openprocurement.search.source.plan import PlanSource
 from openprocurement.search.index.plan import PlanIndex
 
 
+engine = type('engine', (), {})()
+
 def sigterm_handler(signo, frame):
     logger.warning("Signal received %d", signo)
+    engine.should_exit = True
+    signal.alarm(3)
     sys.exit(0)
+
 
 def main():
     if len(sys.argv) < 2:
@@ -46,9 +51,10 @@ def main():
     lock_file.flush()
 
     signal.signal(signal.SIGTERM, sigterm_handler)
-    signal.signal(signal.SIGINT, sigterm_handler)
+    #signal.signal(signal.SIGINT, sigterm_handler)
 
     try:
+        global engine
         engine = IndexEngine(config)
         source = OrgsSource(config)
         OrgsIndex(engine, source, config)
@@ -63,8 +69,7 @@ def main():
             PlanIndex(engine, source, config)
         engine.run()
     except Exception as e:
-        logger.error("Fail: %s", str(e))
-        raise
+        logger.exception("Exception: %s", str(e))
     finally:
         lock_file.close()
         os.remove(lock_filename)

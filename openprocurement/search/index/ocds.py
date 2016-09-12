@@ -11,7 +11,7 @@ class OcdsIndex(BaseIndex):
     __index_name__ = 'ocds'
 
     def before_index_item(self, item):
-        entity = item.data.get('procuringEntity', None)
+        entity = self.source.procuring_entity(item)
         if entity:
             self.engine.index_by_type('org', entity)
 

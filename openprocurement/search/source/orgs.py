@@ -28,11 +28,12 @@ class OrgsSource(BaseSource):
         self.queue = {}
 
     def patch_item(self, item):
+        item_data = item.get('data', {})
         data = {
-            "edrpou": item.id,
-            "location": item.data.get('address', {}).get('region', u""),
-            "name": (item.data.get('name') or item.data.get('name_ru') or
-                item.data.get('identifier', {}).get('legalName', u"")),
+            "edrpou": item['id'],
+            "location": item_data.get('address', {}).get('region', u""),
+            "name": (item_data.get('name') or item_data.get('name_ru') or
+                item_data.get('identifier', {}).get('legalName', u"")),
             "short": u"",
             "rank": 1,
         }
@@ -54,6 +55,10 @@ class OrgsSource(BaseSource):
         """push item in to queue and return True if need to flush"""
         code = item.get('identifier', {}).get('id', None)
         if not code or len(code) < 5 or len(code) > 15:
+            return False
+        name = (item.get('name') or item.get('name_ru') or
+            item.get('identifier', {}).get('legalName', u""))
+        if not name or len(name) < 3:
             return False
         if code not in self.queue:
             data = {

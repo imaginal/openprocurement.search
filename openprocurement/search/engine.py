@@ -33,6 +33,7 @@ class SearchEngine(object):
         self.names_db = shdict.shdict(self.config.get('index_names'))
         self.elastic = Elasticsearch([self.config.get('elastic_host')])
         self.slave_mode = self.config.get('slave_mode') or None
+        self.should_exit = False
 
     def perform_request(self, method, url, params=None, body=None):
         return self.elastic.transport.perform_request(self, method, url, params, body)
@@ -53,6 +54,8 @@ class SearchEngine(object):
         if not index_keys:
             index_keys = self.index_list
         for key in index_keys:
+            if isinstance(key, object):
+                key = repr(key)
             name = self.get_index(key)
             if name:
                 index_names.append(name)
@@ -130,7 +133,7 @@ class IndexEngine(SearchEngine):
     """
     def __init__(self, config={}):
         super(IndexEngine, self).__init__(config)
-        logger.info("Engine config:\n\t%s", self.config_dump())
+        logger.info("Start with config:\n\t%s", self.config_dump())
 
     def config_dump(self):
         cs = "\n\t".join(["{} = {}".format(k ,v) \
@@ -140,6 +143,16 @@ class IndexEngine(SearchEngine):
     def create_index(self, index_name, body):
         indices = IndicesClient(self.elastic)
         indices.create(index_name, body=body)
+
+    def get_item(self, index_name, meta):
+        try:
+            found = self.elastic.get(index_name,
+                doc_type=meta.get('doc_type'),
+                id=meta['id'],
+                _source=True)
+        except ElasticsearchException:
+            return None
+        return found
 
     def test_exists(self, index_name, meta):
         try:
@@ -187,6 +200,8 @@ class IndexEngine(SearchEngine):
             if age > 5 min return true (allow slave working)
             if age < 5 min return false and also reset source
         """
+        if self.should_exit:
+            return False
         if self.slave_mode:
             heartbeat_diff = time() - self.test_heartbeat()
             if heartbeat_diff > int(self.config['slave_wakeup']):
@@ -216,7 +231,7 @@ class IndexEngine(SearchEngine):
             str(self.index_list))
         self.wait_for_backend()
         allow_reindex = not self.slave_mode
-        while True:
+        while not self.should_exit:
             for index in self.index_list:
                 index.process(allow_reindex)
             sleep(self.config['update_wait'])

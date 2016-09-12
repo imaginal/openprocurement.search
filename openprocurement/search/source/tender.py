@@ -26,6 +26,9 @@ class TenderSource(BaseSource):
             self.config.update(config)
         self.client = None
 
+    def procuring_entity(self, item):
+        return item.data.get('procuringEntity', None)
+
     def patch_version(self, item):
         """Convert dateModified to long version
         """
