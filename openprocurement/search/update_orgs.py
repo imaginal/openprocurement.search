@@ -48,6 +48,7 @@ class IndexOrgsEngine(IndexEngine):
         while items_list:
             if self.should_exit:
                 break
+            save_count = items_count
             items_list = source.items()
             for meta in items_list:
                 if self.should_exit:
@@ -60,6 +61,8 @@ class IndexOrgsEngine(IndexEngine):
             logger.info("[%s] Processed %d last %s map_size %d",
                 source.doc_type, items_count,
                 meta.get('dateModified'), len(self.orgs_map))
+            if items_count - save_count < 5:
+                break
         # flush
         for index in self.index_list:
             index.process(allow_reindex=False)
