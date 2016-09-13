@@ -54,6 +54,8 @@ class OrgsSource(BaseSource):
     def push(self, item):
         """push item in to queue and return True if need to flush"""
         code = item.get('identifier', {}).get('id', None)
+        if code and type(code) == int:
+            code = str(code)
         if not code or len(code) < 5 or len(code) > 15:
             return False
         name = (item.get('name') or item.get('name_ru') or
