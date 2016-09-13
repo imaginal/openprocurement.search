@@ -22,7 +22,7 @@ engine = type('engine', (), {})()
 def sigterm_handler(signo, frame):
     logger.warning("Signal received %d", signo)
     engine.should_exit = True
-    signal.alarm(3)
+    signal.alarm(2)
     sys.exit(0)
 
 
@@ -110,7 +110,7 @@ class IndexOrgsEngine(IndexEngine):
 
 def main():
     if len(sys.argv) < 2:
-        print("usage: update_orgs etc/search.ini")
+        print("Usage: update_orgs etc/search.ini")
         sys.exit(1)
 
     parser = ConfigParser()
