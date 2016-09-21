@@ -21,6 +21,7 @@ class OcdsSource(BaseSource):
         'ocds_dir': 'ocds',
         'ocds_mask': 'ocds-tender-*.json',
         'ocds_speed': 100,
+        'ocds_skip_until': None,
     }
     def __init__(self, config={}):
         if config:
@@ -93,6 +94,10 @@ class OcdsSource(BaseSource):
             self.lazy_reset()
         if not self.files:
             return
+        self.last_skipped = None
+        skip_until = self.config.get('ocds_skip_until', None)
+        if skip_until and skip_until[:2] != '20':
+            skip_until = None
         name = self.files.pop(0)
         fullname = path.join(self.config['ocds_dir'], name)
         with open(fullname) as f:
@@ -103,6 +108,9 @@ class OcdsSource(BaseSource):
                 item['tenderID'] = r['ocid']
             if 'dateModified' not in item:
                 item['dateModified'] = r['date']
+            if skip_until and skip_until > item['dateModified']:
+                self.last_skipped = item['dateModified']
+                continue
             yield self.patch_version(item)
 
     def get(self, item):

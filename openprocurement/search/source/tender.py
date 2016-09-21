@@ -53,12 +53,14 @@ class TenderSource(BaseSource):
             self.reset()
         if self.config.get('timeout', None):
             setdefaulttimeout(float(self.config['timeout']))
+        self.last_skipped = None
         skip_until = self.config.get('skip_until', None)
         if skip_until and skip_until[:2] != '20':
             skip_until = None
         tender_list = self.client.get_tenders()
         for tender in tender_list:
             if skip_until and skip_until > tender['dateModified']:
+                self.last_skipped = tender['dateModified']
                 continue
             yield self.patch_version(tender)
 
