@@ -23,8 +23,9 @@ class OcdsIndex(BaseIndex):
         return False
 
     def create_index(self, name):
-        orgs_index = self.config['orgs_index']
-        logger.debug("Load orgs index settings from %s", orgs_index)
-        with open(orgs_index) as f:
+        ocds_index = self.config['ocds_index']
+        logger.info("[%s] Create new OCDS index from %s",
+            name, ocds_index)
+        with open(ocds_index) as f:
             body = json.load(f)
         self.engine.create_index(name, body=body)

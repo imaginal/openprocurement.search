@@ -47,8 +47,8 @@ class TenderIndex(BaseIndex):
 
     def create_index(self, name):
         tender_index = self.config['tender_index']
-        logger.debug("Load tender index settings from %s", tender_index)
+        logger.info("[%s] Create new tender index from %s",
+            name, tender_index)
         with open(tender_index) as f:
             body = json.load(f)
         self.engine.create_index(name, body=body)
-

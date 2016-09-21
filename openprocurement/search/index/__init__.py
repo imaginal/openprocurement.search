@@ -102,8 +102,8 @@ class BaseIndex:
     def indexing_stat(self, index_name, fetched, indexed, iter_count, last_date):
         last_date = last_date or ""
         pause = 1.0 * iter_count / self.config['index_speed']
-        logger.info("[%s] Fetched %d indexed %d last %s",
-            index_name, fetched, indexed, last_date[:19])
+        logger.info("[%s] Fetched %d indexed %d last %s wait %1.1fs",
+            index_name, fetched, indexed, last_date[:19], pause)
         sleep(pause)
 
     def index_item(self, index_name, item):
@@ -160,6 +160,9 @@ class BaseIndex:
             if iter_count:
                 self.indexing_stat(index_name, total_count, index_count,
                     iter_count, info.get('dateModified'))
+            elif getattr(self.source, 'last_skipped', None):
+                logger.info("[%s] Fetched %d, skip_until, last %s",
+                    index_name, total_count, self.source.last_skipped)
             else:
                 break
 

@@ -16,7 +16,8 @@ class OrgsIndex(BaseIndex):
 
     def create_index(self, name):
         orgs_index = self.config['orgs_index']
-        logger.debug("Load orgs index settings from %s", orgs_index)
+        logger.info("[%s] Create new orgs-suggest index from %s",
+            name, orgs_index)
         with open(orgs_index) as f:
             body = json.load(f)
         self.engine.create_index(name, body=body)
