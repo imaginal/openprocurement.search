@@ -5,6 +5,7 @@ import sys
 import fcntl
 import signal
 import logging.config
+from datetime import datetime, timedelta
 
 from ConfigParser import ConfigParser
 
@@ -35,7 +36,10 @@ class IndexOrgsEngine(IndexEngine):
         code = entity.get('identifier', {}).get('id', None)
         if not code or len(code) < 5 or len(code) > 15:
             return
-        self.index_by_type('org', entity)
+        try:
+            self.index_by_type('org', entity)
+        except Exception as e:
+            logger.exception("Can't index: %s", str(e))
         if code in self.orgs_map:
             self.orgs_map[code] += 1
         else:
@@ -58,11 +62,16 @@ class IndexOrgsEngine(IndexEngine):
                 entity = source.procuring_entity(item)
                 if entity:
                     self.process_entity(entity)
+            # prevent stop by skip_until before first 100 processed
+            if items_count < 100 and source.last_skipped:
+                logger.info("[%s] Processed %d by skip_until, last %s",
+                    source.doc_type, items_count, source.last_skipped)
+                continue
+            if items_count - save_count < 1:
+                break
             logger.info("[%s] Processed %d last %s map_size %d",
                 source.doc_type, items_count,
                 meta.get('dateModified'), len(self.orgs_map))
-            if items_count - save_count < 5:
-                break
         # flush
         for index in self.index_list:
             index.process(allow_reindex=False)
@@ -104,8 +113,11 @@ class IndexOrgsEngine(IndexEngine):
                 'data': found['_source'],
             }
             item['data']['rank'] = rank
-            self.index_item(index_name, item)
-            update_count += 1
+            try:
+                self.index_item(index_name, item)
+                update_count += 1
+            except Exception as e:
+                logger.exception("Fail index %s: %s", str(item), str(e))
 
 
 def main():
@@ -130,6 +142,14 @@ def main():
     #signal.signal(signal.SIGINT, sigterm_handler)
 
     try:
+        if config.get('update_orgs_days', None):
+            days = config.get('update_orgs_days').strip()
+            date = datetime.now() - timedelta(days=int(days))
+            date = date.strftime("%Y-%m-%d")
+            logger.warning("Set mandatory skip_until = %s", date)
+            config['skip_until'] = date
+            config['plan_skip_until'] = date
+            config['ocds_skip_until'] = date
         global engine
         engine = IndexOrgsEngine(config)
         source = OrgsSource(config)
