@@ -24,7 +24,7 @@ class OcdsIndex(BaseIndex):
 
     def create_index(self, name):
         ocds_index = self.config['ocds_index']
-        logger.info("[%s] Create new OCDS index from %s",
+        logger.info("Create new OCDS index %s from %s",
             name, ocds_index)
         with open(ocds_index) as f:
             body = json.load(f)

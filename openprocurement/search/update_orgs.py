@@ -64,7 +64,7 @@ class IndexOrgsEngine(IndexEngine):
                     self.process_entity(entity)
             # prevent stop by skip_until before first 100 processed
             if items_count < 100 and source.last_skipped:
-                logger.info("[%s] Processed %d by skip_until, last %s",
+                logger.info("[%s] Processed %d last_skipped %s",
                     source.doc_type, items_count, source.last_skipped)
                 continue
             if items_count - save_count < 1:
@@ -94,12 +94,15 @@ class IndexOrgsEngine(IndexEngine):
                 logger.info("[%s] Updated %d orgs %d%%",
                     index_name, update_count,
                     int(100*iter_count/map_len))
+            # dont update rare companies
+            if rank < 5:
+                continue
             # get item
             meta = {'id': code, 'doc_type': doc_type}
             found = self.get_item(index_name, meta)
             # if not found - ignore, but warn
             if not found:
-                logger.warning("[%s] Code %d not found", index_name, code)
+                logger.warning("[%s] Code %s not found", index_name, str(code))
                 continue
             # if rank not changed - ignore
             if found['_source']['rank'] == rank:

@@ -7,7 +7,7 @@ from openprocurement.search.index import BaseIndex, logger
 class OrgsIndex(BaseIndex):
     """org-suggest index
     """
-    __index_name__ = 'orgs'
+    __index_name__ = 'orgsgst'
 
     def need_reindex(self):
         if not self.current_index:
@@ -16,7 +16,7 @@ class OrgsIndex(BaseIndex):
 
     def create_index(self, name):
         orgs_index = self.config['orgs_index']
-        logger.info("[%s] Create new orgs-suggest index from %s",
+        logger.info("Create new orgs-suggest index %s from %s",
             name, orgs_index)
         with open(orgs_index) as f:
             body = json.load(f)

@@ -24,7 +24,7 @@ class PlanIndex(BaseIndex):
 
     def create_index(self, name):
         plan_index = self.config['plan_index']
-        logger.info("[%s] Create new plans index from %s",
+        logger.info("Create new plans index %s from %s",
             name, plan_index)
         with open(plan_index) as f:
             body = json.load(f)
