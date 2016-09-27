@@ -4,6 +4,7 @@ import simplejson as json
 
 from openprocurement.search.index import BaseIndex, logger
 
+
 class TenderIndex(BaseIndex):
     """OpenProcurement Tenders Index
     """
@@ -35,6 +36,10 @@ class TenderIndex(BaseIndex):
                         break
                 if active == 0:
                     return True
+            elif proc_type == 'competitiveDialogueUA.stage2' or \
+                    proc_type == 'competitiveDialogueEU.stage2':
+                if item.data.status == 'draft.stage2':
+                    return True
 
         return False
 
@@ -47,8 +52,7 @@ class TenderIndex(BaseIndex):
 
     def create_index(self, name):
         tender_index = self.config['tender_index']
-        logger.info("Create new tender index %s from %s",
-            name, tender_index)
+        logger.info("Create new tender index %s from %s", name, tender_index)
         with open(tender_index) as f:
             body = json.load(f)
         self.engine.create_index(name, body=body)
