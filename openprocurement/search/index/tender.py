@@ -36,6 +36,7 @@ class TenderIndex(BaseIndex):
                         break
                 if active == 0:
                     return True
+            # Julia Dvornyk Monday, 26 sep 2016, Messenger 9:35am
             elif proc_type == 'competitiveDialogueUA.stage2' or \
                     proc_type == 'competitiveDialogueEU.stage2':
                 if item.data.status == 'draft.stage2':
