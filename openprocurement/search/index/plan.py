@@ -14,6 +14,7 @@ class PlanIndex(BaseIndex):
         entity = self.source.procuring_entity(item)
         if entity:
             self.engine.index_by_type('org', entity)
+        return True
 
     def need_reindex(self):
         if not self.current_index:

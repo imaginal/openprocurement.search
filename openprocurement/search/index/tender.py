@@ -14,6 +14,7 @@ class TenderIndex(BaseIndex):
         entity = self.source.procuring_entity(item)
         if entity:
             self.engine.index_by_type('org', entity)
+        return True
 
     def test_noindex(self, item):
         # noindex filter by procurementMethodType should working
@@ -47,7 +48,7 @@ class TenderIndex(BaseIndex):
     def need_reindex(self):
         if not self.current_index:
             return True
-        if self.index_age() > 120*3600:
+        if self.index_age() > 120 * 3600:
             return datetime.now().isoweekday() >= 6
         return False
 
