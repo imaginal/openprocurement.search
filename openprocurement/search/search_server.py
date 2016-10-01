@@ -45,8 +45,6 @@ search_server.logger.info("Start with indexes %s %s %s",
     str(TENDER_INDEX_KEYS), str(PLAN_INDEX_KEYS), str(ORGS_INDEX_KEYS))
 
 
-
-
 def match_query(query, field, type_=None, operator=None, analyzer=None):
     count = len(query)
     query = " ".join(query)
@@ -86,7 +84,7 @@ def range_query(query, field):
                 beg, end = float(beg), float(end)
             body.append({"range": {
                 field: {"gte": beg, "lte": end}
-                }})
+            }})
     if len(body) == 1:
         return body[0]
     return {"bool": {"should": body}}
@@ -196,7 +194,7 @@ def prepare_search_body(args):
     elif len(body) == 1:
         body = {"query": body[0]}
     else:
-        body = {"query": {"bool" : {"must" : body}}}
+        body = {"query": {"bool": {"must": body}}}
 
     body["sort"] = {"dateModified": {"order": "desc"}}
     return body
@@ -209,8 +207,8 @@ def search_tenders():
     if not body:
         return jsonify({"error": "empty query"})
     start = int(args.get('start') or 0)
-    #limit = int(args.get('limit') or 10)
-    #limit = min(max(1, limit), 100)
+    # limit = int(args.get('limit') or 10)
+    # limit = min(max(1, limit), 100)
     res = search_engine.search(body, start,
         index_keys=TENDER_INDEX_KEYS)
     if search_server.debug:
@@ -240,7 +238,7 @@ def orgsuggest():
         body = {
             "size": 1,
             "query": {
-                "match": { "edrpou": edrpou, }
+                "match": {"edrpou": edrpou}
             }
         }
         res = search_engine.search(body, index_keys=ORGS_INDEX_KEYS)
@@ -260,10 +258,10 @@ def orgsuggest():
     body = {
         "size": 5,
         "query": {
-            "match": { "_all": _all }
+            "match": {"_all": _all}
         }
     }
-    body["sort"] = { "rank": { "order": "desc" } }
+    body["sort"] = {"rank": {"order": "desc"}}
     res = search_engine.search(body, index_keys=ORGS_INDEX_KEYS)
     if not res.get('items'):
         _all["fuzziness"] += 1
@@ -273,7 +271,7 @@ def orgsuggest():
 
 @search_server.route('/heartbeat')
 def heartbeat():
-    data = { 'heartbeat': search_engine.master_heartbeat(), }
+    data = {'heartbeat': search_engine.master_heartbeat()}
     key = request.args.get('key', None)
     if key == search_server.secret_key:
         data['index_names'] = search_engine.index_names_dict()
@@ -293,4 +291,6 @@ def make_app(global_conf, **kwargs):
 
 def main():
     search_server.debug = True
+    search_server.logger.info("Start in debug mode with secret_key='%s'",
+        search_server.secret_key)
     return search_server.run(host='0.0.0.0')
