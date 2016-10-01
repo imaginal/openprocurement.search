@@ -2,7 +2,10 @@
 import sqlite3
 from munch import munchify
 
-from openprocurement.search.source import BaseSource, logger
+from openprocurement.search.source import BaseSource
+
+from logging import getLogger
+logger = getLogger(__name__)
 
 
 class OrgsSource(BaseSource):
@@ -14,6 +17,7 @@ class OrgsSource(BaseSource):
         'orgs_db': None,
         'orgs_queue': 1000,
     }
+
     def __init__(self, config={}):
         if config:
             self.config.update(config)
@@ -33,12 +37,13 @@ class OrgsSource(BaseSource):
             "edrpou": item['id'],
             "location": item_data.get('address', {}).get('region', u""),
             "name": (item_data.get('name') or item_data.get('name_ru') or
-                item_data.get('identifier', {}).get('legalName', u"")),
+                     item_data.get('identifier', {}).get('legalName', u"")),
             "short": u"",
             "rank": 1,
         }
         if self.db_curs:
-            self.db_curs.execute("SELECT name,short,loc FROM uo WHERE code=?", (item['id'],))
+            self.db_curs.execute("SELECT name,short,loc FROM uo WHERE code=?",
+                                 (item['id'],))
             row = self.db_curs.fetchone()
             if row:
                 data['name'] = row[0]
@@ -46,7 +51,7 @@ class OrgsSource(BaseSource):
                 data['location'] = row[2]
             else:
                 logger.warning("UA-EDR not found %s", item['id'])
-        return {'meta': item, 'data': data,}
+        return {'meta': item, 'data': data}
 
     def reset(self):
         self.queue = {}
@@ -59,7 +64,7 @@ class OrgsSource(BaseSource):
         if not code or len(code) < 5 or len(code) > 15:
             return False
         name = (item.get('name') or item.get('name_ru') or
-            item.get('identifier', {}).get('legalName', u""))
+                item.get('identifier', {}).get('legalName', u""))
         if not name or len(name) < 3:
             return False
         if code not in self.queue:
