@@ -135,19 +135,19 @@ def main():
     logging.config.fileConfig(sys.argv[1])
 
     # try get exclusive lock to prevent second start
-    lock_filename = config.get('update_orgs') or 'update_orgs.pid'
+    lock_filename = parser.get('update_orgs', 'pidfile')
     lock_file = open(lock_filename, "w")
-    fcntl.lockf(lock_file, fcntl.LOCK_EX+fcntl.LOCK_NB)
-    lock_file.write(str(os.getpid())+"\n")
+    fcntl.lockf(lock_file, fcntl.LOCK_EX + fcntl.LOCK_NB)
+    lock_file.write(str(os.getpid()) + "\n")
     lock_file.flush()
 
     signal.signal(signal.SIGTERM, sigterm_handler)
-    #signal.signal(signal.SIGINT, sigterm_handler)
+    # signal.signal(signal.SIGINT, sigterm_handler)
 
     try:
-        if config.get('update_orgs_days', None):
-            days = config.get('update_orgs_days').strip()
-            date = datetime.now() - timedelta(days=int(days))
+        if parser.has_option('update_orgs', 'update_days'):
+            update_days = parser.get('update_orgs', 'update_days')
+            date = datetime.now() - timedelta(days=int(update_days))
             date = date.strftime("%Y-%m-%d")
             logger.warning("Set mandatory skip_until = %s", date)
             config['skip_until'] = date
