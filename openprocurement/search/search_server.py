@@ -28,7 +28,7 @@ search_engine = SearchEngine(search_config)
 
 TENDER_INDEX_KEYS = ['tenders', 'ocds']
 PLAN_INDEX_KEYS = ['plans']
-ORGS_INDEX_KEYS = ['orgsgst']
+ORGS_INDEX_KEYS = ['orgs']
 
 
 def rename_index_names(config, index_list):
