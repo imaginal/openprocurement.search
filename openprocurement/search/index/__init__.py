@@ -9,8 +9,9 @@ class BaseIndex:
     """Search Index Interface
     """
     config = {
-        'index_speed': 100.0,
+        'index_speed': 100,
     }
+
     def __init__(self, engine, source, config={}):
         assert(self.__index_name__)
         if config:
@@ -81,7 +82,7 @@ class BaseIndex:
         old_index = self.current_index
         if name != old_index:
             logger.info("Change current index %s -> %s",
-                old_index, name)
+                        old_index, name)
             self.engine.set_index(index_key, name)
             assert(self.current_index == name)
             self.delete_index(old_index)
@@ -97,18 +98,21 @@ class BaseIndex:
         return False
 
     def before_index_item(self, item):
-        return
+        return True
 
-    def indexing_stat(self, index_name, fetched, indexed, iter_count, last_date):
+    def indexing_stat(self, index_name, fetched, indexed,
+                      iter_count, last_date):
         last_date = last_date or ""
         pause = 1.0 * iter_count / self.config['index_speed']
-        logger.info("[%s] Fetched %d indexed %d last %s wait %1.1fs",
-            index_name, fetched, indexed, last_date[:19], pause)
+        logger.info(
+            "[%s] Fetched %d indexed %d last %s wait %1.1fs",
+            index_name, fetched, indexed, last_date, pause)
         sleep(pause)
 
     def index_item(self, index_name, item):
         if self.test_noindex(item):
-            logger.debug("[%s] Noindex %s %s", index_name,
+            logger.debug(
+                "[%s] Noindex %s %s", index_name,
                 item.data.id, item.data.get('tenderID', ''))
             return None
         self.before_index_item(item)
@@ -147,23 +151,25 @@ class BaseIndex:
                 iter_count += 1
                 total_count += 1
                 # update heartbeat for long indexing
-                if iter_count >= 500:
-                    self.indexing_stat(index_name, total_count, index_count,
+                if iter_count % 100 == 0:
+                    self.indexing_stat(
+                        index_name, total_count, index_count,
                         iter_count, info.get('dateModified'))
                     self.engine.heartbeat(self.source)
-                    iter_count = 0
             # break if should exit
             if self.engine.should_exit:
                 logger.warning("Should exit")
                 break
             # break if nothing iterated
-            if iter_count:
-                self.indexing_stat(index_name, total_count, index_count,
+            if iter_count % 100 > 0:
+                self.indexing_stat(
+                    index_name, total_count, index_count,
                     iter_count, info.get('dateModified'))
             elif getattr(self.source, 'last_skipped', None):
-                logger.info("[%s] Fetched %d, last_skipped %s",
+                logger.info(
+                    "[%s] Fetched %d, last_skipped %s",
                     index_name, total_count, self.source.last_skipped)
-            else:
+            elif iter_count == 0:
                 break
 
         return index_count
