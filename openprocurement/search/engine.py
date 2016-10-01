@@ -192,20 +192,17 @@ class IndexEngine(SearchEngine):
     def index_by_type(self, doc_type, item):
         for index in self.index_list:
             if index.source.doc_type == doc_type:
-                break
-        if index.source.doc_type != doc_type:
-            raise IndexError("doc_type %s not found", doc_type)
-        if index.source.push(item):
-            # flush the index queue
-            index.index_source()
+                if index.source.push(item):
+                    index.index_source()
+            break
 
     def heartbeat(self, source=None):
         """
         In master mode update timestamp and return true
         In slave mode update index_names from master
             and check maser last timestamp
-            if age > 5 min return true (allow slave working)
-            if age < 5 min return false and also reset source
+            if age > slave_wakeup return true (allow slave working)
+            if age < slave_wakeup return false and also reset source
         """
         if self.should_exit:
             return False
@@ -214,11 +211,12 @@ class IndexEngine(SearchEngine):
             if heartbeat_diff > int(self.config['slave_wakeup']):
                 logger.warning("Master died %d min ago",
                     int(heartbeat_diff / 60))
-                if getattr(source, 'should_reset', False):
+                if source and getattr(source, 'should_reset', False):
                     source.should_reset = False
                     source.reset()
             else:
-                source.should_reset = True
+                if source:
+                    source.should_reset = True
                 return False
 
         self.master_heartbeat(int(time()))

@@ -61,8 +61,9 @@ def main():
     try:
         global engine
         engine = IndexEngine(config)
-        source = OrgsSource(config)
-        OrgsIndex(engine, source, config)
+        if config.get('orgs_index', None):
+            source = OrgsSource(config)
+            OrgsIndex(engine, source, config)
         if config.get('api_url', None):
             source = TenderSource(config)
             TenderIndex(engine, source, config)
