@@ -107,7 +107,8 @@ class BaseIndex:
         logger.info(
             "[%s] Fetched %d indexed %d last %s wait %1.1fs",
             index_name, fetched, indexed, last_date, pause)
-        sleep(pause)
+        if pause > 0.01:
+            sleep(pause)
 
     def index_item(self, index_name, item):
         if self.test_noindex(item):
@@ -139,7 +140,7 @@ class BaseIndex:
         # heartbeat return False in slave mode if master is ok
         # heartbeat always True in master mode
         while self.engine.heartbeat(self.source):
-            info = None
+            info = {}
             iter_count = 0
             for info in self.source.items():
                 if self.engine.should_exit:
@@ -151,17 +152,18 @@ class BaseIndex:
                 iter_count += 1
                 total_count += 1
                 # update heartbeat for long indexing
-                if iter_count % 100 == 0:
+                if iter_count >= 100:
                     self.indexing_stat(
                         index_name, total_count, index_count,
                         iter_count, info.get('dateModified'))
                     self.engine.heartbeat(self.source)
+                    iter_count = 0
             # break if should exit
             if self.engine.should_exit:
                 logger.warning("Should exit")
                 break
             # break if nothing iterated
-            if iter_count % 100 > 0:
+            if iter_count > 0:
                 self.indexing_stat(
                     index_name, total_count, index_count,
                     iter_count, info.get('dateModified'))
@@ -169,12 +171,12 @@ class BaseIndex:
                 logger.info(
                     "[%s] Fetched %d, last_skipped %s",
                     index_name, total_count, self.source.last_skipped)
-            elif iter_count == 0:
+            elif not info:
                 break
 
         return index_count
 
-    def process(self, allow_reindex = True):
+    def process(self, allow_reindex=True):
         if self.need_reindex() and allow_reindex:
             index_name = self.new_index()
             logger.info("Starting full reindex, new index %s", index_name)
