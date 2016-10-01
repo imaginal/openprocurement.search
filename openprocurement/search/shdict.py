@@ -3,6 +3,7 @@ import os
 import yaml
 from time import time
 
+
 class shdict:
     """dict shared between processes
     """
@@ -15,7 +16,10 @@ class shdict:
     def __setitem__(self, key, value):
         if self.cache.get(key) == value:
             return
-        self.cache[key] = value
+        if value:
+            self.cache[key] = value
+        else:
+            self.cache.pop(key)
         self.write()
 
     def __getitem__(self, key):
