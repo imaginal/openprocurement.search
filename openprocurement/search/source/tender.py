@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
-from time import mktime
-from retrying import retry
+from time import mktime, sleep
 from iso8601 import parse_date
 from socket import setdefaulttimeout
 
-from openprocurement_client.client import Client
-from openprocurement.search.source import BaseSource, logger
+from openprocurement_client.client import TendersClient
+from openprocurement.search.source import BaseSource
+
+from logging import getLogger
+logger = getLogger(__name__)
 
 
 class TenderSource(BaseSource):
@@ -18,12 +20,17 @@ class TenderSource(BaseSource):
         'api_url': "",
         'api_version': '0',
         'params': {},
+        'limit': 1000,
+        'preload': 100000,
         'skip_until': None,
         'timeout': 30,
     }
+
     def __init__(self, config={}):
         if config:
             self.config.update(config)
+        self.config['limit'] = int(self.config['limit']) or 100
+        self.config['preload'] = int(self.config['preload']) or 100
         self.client = None
 
     def procuring_entity(self, item):
@@ -42,30 +49,53 @@ class TenderSource(BaseSource):
         logger.info("Reset tenders, skip_until %s", self.config['skip_until'])
         if self.config.get('timeout', None):
             setdefaulttimeout(float(self.config['timeout']))
-        self.client = Client(key=self.config['api_key'],
+        self.client = TendersClient(
+            key=self.config['api_key'],
             host_url=self.config['api_url'],
             api_version=self.config['api_version'],
-            timeout=self.config['timeout'],
             params=self.config['params'])
+        if self.config['limit']:
+            self.client.params['limit'] = self.config['limit']
+        self.skip_until = self.config.get('skip_until', None)
+        if self.skip_until and self.skip_until[:2] != '20':
+            self.skip_until = None
+
+    def preload(self):
+        preload_items = []
+        items = True
+        while items:
+            items = self.client.get_tenders()
+            if items:
+                preload_items.extend(items)
+                logger.info("Preload %d tenders, last %s",
+                            len(preload_items), items[-1]['dateModified'])
+            if len(preload_items) >= self.config['preload']:
+                break
+        return preload_items
 
     def items(self):
         if not self.client:
             self.reset()
-        if self.config.get('timeout', None):
-            setdefaulttimeout(float(self.config['timeout']))
         self.last_skipped = None
-        skip_until = self.config.get('skip_until', None)
-        if skip_until and skip_until[:2] != '20':
-            skip_until = None
-        tender_list = self.client.get_tenders()
-        for tender in tender_list:
-            if skip_until and skip_until > tender['dateModified']:
+        for tender in self.preload():
+            if self.skip_until > tender['dateModified']:
                 self.last_skipped = tender['dateModified']
                 continue
             yield self.patch_version(tender)
 
-    @retry(stop_max_attempt_number=5, wait_fixed=15000)
     def get(self, item):
-        tender = self.client.get_tender(item['id'])
+        tender = None
+        retry_count = 0
+        while not tender:
+            try:
+                tender = self.client.get_tender(item['id'])
+                break
+            except Exception as e:
+                if retry_count > 3:
+                    raise e
+                retry_count += 1
+                logger.exception("get_tender %s error %s", str(item), str(e))
+                sleep(float(self.config['timeout']))
+                self.reset()
         tender['meta'] = item
         return tender
