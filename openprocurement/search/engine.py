@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-from time import time, sleep
 from logging import getLogger
+from time import time, sleep
 
 import simplejson as json
 from restkit import request
@@ -18,6 +18,7 @@ logger = getLogger(__name__)
 class SearchEngine(object):
     """Search Engine
     """
+
     config = {
         'index_names': 'index_names',
         'elastic_host': 'localhost',
@@ -25,6 +26,7 @@ class SearchEngine(object):
         'slave_wakeup': 300,
         'update_wait': 5,
     }
+
     def __init__(self, config={}):
         self.index_list = list()
         if config:
@@ -77,18 +79,18 @@ class SearchEngine(object):
                 body=body, from_=start, size=limit)
         except ElasticsearchException as e:
             res = {"error": unicode(e)}
-        if not res.has_key('hits'):
+        if 'hits' not in res:
             return res
         hits = res['hits']
         items = []
-        if hits.has_key('hits'):
+        if 'hits' in hits:
             for h in hits['hits']:
                 items.append(h['_source'])
         res = {
             'items': items,
             'total': hits.get('total', 0),
             'start': start
-            }
+        }
         return res
 
     def master_heartbeat(self, value=None):
@@ -136,9 +138,14 @@ class IndexEngine(SearchEngine):
         logger.info("Start with config:\n\t%s", self.config_dump())
 
     def config_dump(self):
-        cs = "\n\t".join(["{} = {}".format(k ,v) \
+        cs = "\n\t".join(["%-16s = %s" % (k, v)
             for k, v in sorted(self.config.items())])
         return cs
+
+    def index_dump(self):
+        ns = "\n\t".join(["%-16s = %s" % (k, v)
+            for k, v in self.index_names_dict().items()])
+        return ns
 
     def create_index(self, index_name, body):
         indices = IndicesClient(self.elastic)
@@ -206,7 +213,7 @@ class IndexEngine(SearchEngine):
             heartbeat_diff = time() - self.test_heartbeat()
             if heartbeat_diff > int(self.config['slave_wakeup']):
                 logger.warning("Master died %d min ago",
-                    int(heartbeat_diff/60))
+                    int(heartbeat_diff / 60))
                 if getattr(source, 'should_reset', False):
                     source.should_reset = False
                     source.reset()
@@ -219,16 +226,20 @@ class IndexEngine(SearchEngine):
 
     def wait_for_backend(self):
         alive = False
+        retry_count = 0
         while not alive:
             try:
                 alive = self.elastic.info()
             except ElasticsearchException as e:
+                if retry_count > 10:
+                    raise e
+                retry_count += 1
                 logger.error(u"Failed get elastic info: %s", unicode(e))
                 sleep(self.config['update_wait'])
 
     def run(self):
-        logger.info("Starting IndexEngine with indices %s",
-            str(self.index_list))
+        logger.info("IndexEngine configured with indexes %s\n\t%s",
+                    self.index_list, self.index_dump())
         self.wait_for_backend()
         allow_reindex = not self.slave_mode
         while not self.should_exit:
