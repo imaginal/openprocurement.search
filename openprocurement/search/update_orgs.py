@@ -56,7 +56,7 @@ class IndexOrgsEngine(IndexEngine):
         logger.info("Process source [%s]", source.doc_type)
         items_list = True
         items_count = 0
-        while items_list:
+        while True:
             if self.should_exit:
                 break
             save_count = items_count
@@ -69,16 +69,20 @@ class IndexOrgsEngine(IndexEngine):
                 entity = source.procuring_entity(item)
                 if entity:
                     self.process_entity(entity)
+                # log progress
+                if items_count % 100 == 0:
+                    logger.info(
+                        "[%s] Processed %d last %s map_size %d",
+                        source.doc_type, items_count,
+                        meta.get('dateModified'), len(self.orgs_map))
             # prevent stop by skip_until before first 100 processed
             if items_count < 100 and source.last_skipped:
-                logger.info("[%s] Processed %d last_skipped %s",
+                logger.info(
+                    "[%s] Processed %d last_skipped %s",
                     source.doc_type, items_count, source.last_skipped)
                 continue
             if items_count - save_count < 1:
                 break
-            logger.info("[%s] Processed %d last %s map_size %d",
-                source.doc_type, items_count,
-                meta.get('dateModified'), len(self.orgs_map))
         # flush
         for index in self.index_list:
             index.process(allow_reindex=False)
@@ -93,14 +97,14 @@ class IndexOrgsEngine(IndexEngine):
         orgs_index = self.index_list[0]
         doc_type = orgs_index.source.doc_type
         map_len = len(self.orgs_map)
-        for code,rank in self.orgs_map.iteritems():
+        for code, rank in self.orgs_map.iteritems():
             if self.should_exit:
                 break
             iter_count += 1
             if iter_count % 100 == 0:
                 logger.info("[%s] Updated %d orgs %d%%",
                     index_name, update_count,
-                    int(100*iter_count/map_len))
+                    int(100 * iter_count / map_len))
             # dont update rare companies
             if rank < 5:
                 continue
@@ -118,7 +122,7 @@ class IndexOrgsEngine(IndexEngine):
                 'meta': {
                     'id': found['_id'],
                     'doc_type': found['_type'],
-                    'version': found['_version']+1,
+                    'version': found['_version'] + 1,
                 },
                 'data': found['_source'],
             }
