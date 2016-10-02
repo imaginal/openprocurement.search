@@ -20,6 +20,7 @@ from openprocurement.search.source.plan import PlanSource
 
 engine = type('engine', (), {})()
 
+
 def sigterm_handler(signo, frame):
     logger.warning("Signal received %d", signo)
     engine.should_exit = True
@@ -33,9 +34,14 @@ class IndexOrgsEngine(IndexEngine):
         self.orgs_map = {}
 
     def process_entity(self, entity):
-        code = entity.get('identifier', {}).get('id', None)
-        if not code or len(code) < 5 or len(code) > 15:
-            return
+        try:
+            code = entity['identifier']['id']
+            if code and type(code) == int:
+                code = str(code)
+            if len(code) < 5 or len(code) > 15:
+                raise ValueError("Bad code")
+        except (KeyError, TypeError, ValueError):
+            return False
         try:
             self.index_by_type('org', entity)
         except Exception as e:
@@ -44,6 +50,7 @@ class IndexOrgsEngine(IndexEngine):
             self.orgs_map[code] += 1
         else:
             self.orgs_map[code] = 1
+        return True
 
     def process_source(self, source):
         logger.info("Process source [%s]", source.doc_type)

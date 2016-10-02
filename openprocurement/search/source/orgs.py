@@ -58,10 +58,13 @@ class OrgsSource(BaseSource):
 
     def push(self, item):
         """push item in to queue and return True if need to flush"""
-        code = item.get('identifier', {}).get('id', None)
-        if code and type(code) == int:
-            code = str(code)
-        if not code or len(code) < 5 or len(code) > 15:
+        try:
+            code = item['identifier']['id']
+            if code and type(code) == int:
+                code = str(code)
+            if len(code) < 5 or len(code) > 15:
+                raise ValueError("Bad code")
+        except (KeyError, TypeError, ValueError):
             return False
         name = (item.get('name') or item.get('name_ru') or
                 item.get('identifier', {}).get('legalName', u""))
