@@ -19,7 +19,7 @@ class shdict:
         if value:
             self.cache[key] = value
         else:
-            self.cache.pop(key)
+            self.cache.pop(key, None)
         self.write()
 
     def __getitem__(self, key):
