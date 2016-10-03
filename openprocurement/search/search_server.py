@@ -248,7 +248,7 @@ def orgsuggest():
     if not query or len(query) > 50:
         return jsonify({"error": "bad query"})
     fuzziness = 0
-    if len(query) > 4:
+    if len(query) > 8:
         fuzziness = 1
     _all = {
         "query": query,
