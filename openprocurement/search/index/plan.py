@@ -19,7 +19,7 @@ class PlanIndex(BaseIndex):
     def need_reindex(self):
         if not self.current_index:
             return True
-        if self.index_age() > 120*3600:
+        if self.index_age() > 120 * 3600:
             return datetime.now().isoweekday() >= 6
         return False
 
@@ -30,4 +30,3 @@ class PlanIndex(BaseIndex):
         with open(plan_index) as f:
             body = json.load(f)
         self.engine.create_index(name, body=body)
-

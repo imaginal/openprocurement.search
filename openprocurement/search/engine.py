@@ -23,7 +23,7 @@ class SearchEngine(object):
         'index_names': 'index_names',
         'elastic_host': 'localhost',
         'slave_mode': None,
-        'slave_wakeup': 300,
+        'slave_wakeup': 600,
         'update_wait': 5,
     }
 
@@ -135,17 +135,17 @@ class IndexEngine(SearchEngine):
     """
     def __init__(self, config={}):
         super(IndexEngine, self).__init__(config)
-        logger.info("Start with config:\n\t%s", self.config_dump())
+        logger.info("Start with config:\n\t%s", self.dump_config())
 
-    def config_dump(self):
+    def dump_config(self):
         cs = "\n\t".join(["%-16s = %s" % (k, v)
             for k, v in sorted(self.config.items())])
         return cs
 
-    def index_dump(self):
+    def dump_index_names(self):
         ns = "\n\t".join(["%-16s = %s" % (k, v)
             for k, v in self.index_names_dict().items()])
-        return ns
+        return ns or "(index_names is empty)"
 
     def create_index(self, index_name, body):
         indices = IndicesClient(self.elastic)
@@ -237,7 +237,7 @@ class IndexEngine(SearchEngine):
 
     def run(self):
         logger.info("IndexEngine configured with indexes %s\n\t%s",
-                    self.index_list, self.index_dump())
+                    self.index_list, self.dump_index_names())
         if self.slave_mode:
             logger.info("Start in slave mode, wait for master...")
         self.wait_for_backend()

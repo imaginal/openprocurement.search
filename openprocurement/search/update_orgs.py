@@ -71,15 +71,13 @@ class IndexOrgsEngine(IndexEngine):
                     self.process_entity(entity)
                 # log progress
                 if items_count % 100 == 0:
-                    logger.info(
-                        "[%s] Processed %d last %s map_size %d",
-                        source.doc_type, items_count,
-                        meta.get('dateModified'), len(self.orgs_map))
+                    logger.info("[%s] Processed %d last %s map_size %d",
+                                source.doc_type, items_count,
+                                meta.get('dateModified'), len(self.orgs_map))
             # prevent stop by skip_until before first 100 processed
             if items_count < 100 and source.last_skipped:
-                logger.info(
-                    "[%s] Processed %d last_skipped %s",
-                    source.doc_type, items_count, source.last_skipped)
+                logger.info("[%s] Processed %d last_skipped %s",
+                            source.doc_type, items_count, source.last_skipped)
                 continue
             if items_count - save_count < 1:
                 break
