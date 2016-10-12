@@ -47,9 +47,9 @@ search_server.logger.info("Start with indexes %s %s %s",
 
 def match_query(query, field, type_=None, operator=None, analyzer=None):
     count = len(query)
-    query = " ".join(query)
-    query = {"query": query}
-    if count > 1 and operator:
+    qtext = " ".join(query)
+    query = {"query": qtext}
+    if operator and qtext.find(" ") >= 0:
         query["operator"] = operator
     if analyzer:
         query["analyzer"] = analyzer
@@ -237,9 +237,7 @@ def orgsuggest():
     if edrpou and len(edrpou) < 10:
         body = {
             "size": 1,
-            "query": {
-                "match": {"edrpou": edrpou}
-            }
+            "query": {"match": {"edrpou": edrpou}}
         }
         res = search_engine.search(body, index_keys=ORGS_INDEX_KEYS)
         return jsonify(res)
@@ -257,11 +255,9 @@ def orgsuggest():
     }
     body = {
         "size": 5,
-        "query": {
-            "match": {"_all": _all}
-        }
+        "query": {"match": {"_all": _all}},
+        "sort": {"rank": {"order": "desc"}}
     }
-    body["sort"] = {"rank": {"order": "desc"}}
     res = search_engine.search(body, index_keys=ORGS_INDEX_KEYS)
     if not res.get('items'):
         _all["fuzziness"] += 1
