@@ -46,7 +46,6 @@ search_server.logger.info("Start with indexes %s %s %s",
 
 
 def match_query(query, field, type_=None, operator=None, analyzer=None):
-    count = len(query)
     qtext = " ".join(query)
     query = {"query": qtext}
     if operator and qtext.find(" ") >= 0:
@@ -186,7 +185,8 @@ def prepare_search_body(args):
             continue
         field = ftext_map[key]
         query = args.getlist(key)
-        match = match_query(query, field)
+        match = match_query(query, field,
+            operator="and")
         body.append(match)
 
     if not body:

@@ -10,6 +10,7 @@ class BaseIndex:
     """
     config = {
         'index_speed': 100,
+        'ignore_errors': 0
     }
 
     def __init__(self, engine, source, config={}):
@@ -117,7 +118,17 @@ class BaseIndex:
                 item.data.id, item.data.get('tenderID', ''))
             return None
         self.before_index_item(item)
-        return self.engine.index_item(index_name, item)
+        try:
+            res = self.engine.index_item(index_name, item)
+        except Exception as e:
+            logger.exception("[%s] Can't index %s: %s", index_name, 
+                item.data.id, str(e))
+            if self.config['ignore_errors']:
+                logger.info("[%s] Index error ignored %s", index_name,
+                    item.data.id)
+            else:
+                raise
+        return res
 
     def index_source(self, index_name=None, reset=False):
         if reset:

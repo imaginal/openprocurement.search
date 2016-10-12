@@ -171,7 +171,7 @@ class IndexEngine(SearchEngine):
             return False
         return found['_version'] >= meta['version']
 
-    @retry(stop_max_attempt_number=5, wait_fixed=5000)
+    @retry(stop_max_attempt_number=5, wait_fixed=10000)
     def index_item(self, index_name, item):
         meta = item['meta']
         logger.debug("PUT index %s object %s version %ld",
