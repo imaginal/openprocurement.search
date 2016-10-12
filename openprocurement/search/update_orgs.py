@@ -59,31 +59,39 @@ class IndexOrgsEngine(IndexEngine):
         while True:
             if self.should_exit:
                 break
-            save_count = items_count
-            items_list = source.items()
-            for meta in items_list:
-                if self.should_exit:
-                    break
-                items_count += 1
-                item = source.get(meta)
-                entity = source.procuring_entity(item)
-                if entity:
-                    self.process_entity(entity)
-                # log progress
-                if items_count % 100 == 0:
-                    logger.info("[%s] Processed %d last %s map_size %d",
-                                source.doc_type, items_count,
-                                meta.get('dateModified'), len(self.orgs_map))
+            try:
+                save_count = items_count
+                items_list = source.items()
+                for meta in items_list:
+                    if self.should_exit:
+                        break
+                    items_count += 1
+                    item = source.get(meta)
+                    entity = source.procuring_entity(item)
+                    if entity:
+                        self.process_entity(entity)
+                    # log progress
+                    if items_count % 100 == 0:
+                        logger.info(
+                            "[%s] Processed %d last %s map_size %d",
+                            source.doc_type, items_count,
+                            meta.get('dateModified'), len(self.orgs_map))
+            except Exception as e:
+                logger.exception("Can't process_source: %s", str(e))
+                break
             # prevent stop by skip_until before first 100 processed
             if items_count < 100 and source.last_skipped:
-                logger.info("[%s] Processed %d last_skipped %s",
-                            source.doc_type, items_count, source.last_skipped)
+                logger.info(
+                    "[%s] Processed %d last_skipped %s",
+                    source.doc_type, items_count, source.last_skipped)
                 continue
             if items_count - save_count < 1:
                 break
-        # flush
+        # flush new orgs
         for index in self.index_list:
             index.process(allow_reindex=False)
+        # flush orgs ranks
+        self.flush_orgs_map()
 
     def flush_orgs_map(self):
         index_name = self.get_current_indexes()
