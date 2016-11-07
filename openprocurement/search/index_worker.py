@@ -30,22 +30,26 @@ engine = type('engine', (), {})()
 def sigterm_handler(signo, frame):
     logger.warning("Signal received %d", signo)
     engine.should_exit = True
-    signal.alarm(2)
+    signal.alarm(1)
     sys.exit(0)
 
 
 def main():
     if len(sys.argv) < 2:
-        print("Usage: index_worker etc/search.ini")
+        print("Usage: index_worker etc/search.ini [custom_index_names]")
         sys.exit(1)
 
     parser = ConfigParser()
     parser.read(sys.argv[1])
     config = dict(parser.items('search_engine'))
 
+    if len(sys.argv) > 2:
+        config['indexer_lock'] = sys.argv[2]+'.pid'
+        config['index_names'] = sys.argv[2]
+
     logging.config.fileConfig(sys.argv[1])
 
-    logger.info("Starting ProZorro openprocurement.search.index_worker v0.5-b")
+    logger.info("Starting ProZorro openprocurement.search.index_worker v0.5-3")
     logger.info("Copyright (c) 2015,2016 Volodymyr Flonts <flyonts@gmail.com>")
 
     # try get exclusive lock to prevent second start
