@@ -19,10 +19,10 @@ class TenderSource(BaseSource):
         'api_key': '',
         'api_url': "",
         'api_version': '0',
-        'params': {},
-        'limit': 1000,
-        'preload': 100000,
+        'api_mode': '',
         'skip_until': None,
+        'limit': 1000,
+        'preload': 500000,
         'timeout': 30,
     }
 
@@ -49,13 +49,16 @@ class TenderSource(BaseSource):
         logger.info("Reset tenders, skip_until %s", self.config['skip_until'])
         if self.config.get('timeout', None):
             setdefaulttimeout(float(self.config['timeout']))
+        params = {}
+        if self.config['api_mode']:
+            params['mode'] = self.config['api_mode']
+        if self.config['limit']:
+            params['limit'] = self.config['limit']
         self.client = TendersClient(
             key=self.config['api_key'],
             host_url=self.config['api_url'],
             api_version=self.config['api_version'],
-            params=self.config['params'])
-        if self.config['limit']:
-            self.client.params['limit'] = self.config['limit']
+            params=params)
         self.skip_until = self.config.get('skip_until', None)
         if self.skip_until and self.skip_until[:2] != '20':
             self.skip_until = None
@@ -67,9 +70,10 @@ class TenderSource(BaseSource):
             items = self.client.get_tenders()
             if items:
                 preload_items.extend(items)
-                if len(items) > 100 or len(preload_items) > 100:
-                    logger.info("Preload %d tenders, last %s",
-                                len(preload_items), items[-1]['dateModified'])
+                logger.info("Preload %d tenders, last %s",
+                            len(preload_items), items[-1]['dateModified'])
+            if items and len(items) < 10:
+                break
             if len(preload_items) >= self.config['preload']:
                 break
         return preload_items

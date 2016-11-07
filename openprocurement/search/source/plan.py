@@ -20,10 +20,10 @@ class PlanSource(BaseSource):
         'plan_api_url': "",
         'plan_api_version': '0',
         'plan_resource': 'plans',
-        'plan_params': {},
+        'plan_api_mode': '',
         'plan_skip_until': None,
         'plan_limit': 1000,
-        'plan_preload': 100000,
+        'plan_preload': 500000,
         'timeout': 30,
     }
 
@@ -51,14 +51,17 @@ class PlanSource(BaseSource):
                     self.config['plan_skip_until'])
         if self.config.get('timeout', None):
             setdefaulttimeout(float(self.config['timeout']))
+        params = {}
+        if self.config['plan_api_mode']:
+            params['mode'] = self.config['plan_api_mode']
+        if self.config['plan_limit']:
+            params['limit'] = self.config['plan_limit']
         self.client = TendersClient(
             key=self.config['plan_api_key'],
             host_url=self.config['plan_api_url'],
             api_version=self.config['plan_api_version'],
             resource=self.config['plan_resource'],
-            params=self.config['plan_params'])
-        if self.config['plan_limit']:
-            self.client.params['limit'] = self.config['plan_limit']
+            params=params)
         self.skip_until = self.config.get('plan_skip_until', None)
         if self.skip_until and self.skip_until[:2] != '20':
             self.skip_until = None
@@ -72,6 +75,8 @@ class PlanSource(BaseSource):
                 preload_items.extend(items)
                 logger.info("Preload %d plans, last %s",
                             len(preload_items), items[-1]['dateModified'])
+            if items and len(items) < 10:
+                break
             if len(preload_items) >= self.config['plan_preload']:
                 break
         return preload_items
