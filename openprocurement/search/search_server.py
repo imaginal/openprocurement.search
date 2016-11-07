@@ -278,8 +278,9 @@ def orgsuggest():
 def heartbeat():
     data = {'heartbeat': search_engine.master_heartbeat()}
     key = request.args.get('key', None)
-    if key == search_server.secret_key:
+    if key and key == search_server.secret_key:
         data['index_names'] = search_engine.index_names_dict()
+        data['index_stats'] = search_engine.index_docs_count()
     elif key:
         abort(403)
     return jsonify(data)
