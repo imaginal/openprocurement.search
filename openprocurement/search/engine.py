@@ -25,6 +25,7 @@ class SearchEngine(object):
         'slave_mode': None,
         'slave_wakeup': 600,
         'update_wait': 5,
+        'start_wait': 1,
     }
 
     def __init__(self, config={}):
@@ -162,6 +163,7 @@ class IndexEngine(SearchEngine):
     def create_index(self, index_name, body):
         indices = IndicesClient(self.elastic)
         indices.create(index_name, body=body)
+        sleep(2) # prevent same index time
 
     def get_item(self, index_name, meta):
         try:
@@ -235,8 +237,10 @@ class IndexEngine(SearchEngine):
         return True
 
     def wait_for_backend(self):
-        alive = False
+        if self.config['start_wait']:
+            sleep(float(self.config['start_wait']))
         retry_count = 0
+        alive = False
         while not alive:
             try:
                 alive = self.elastic.info()
