@@ -2,6 +2,7 @@
 from gevent import monkey
 monkey.patch_all()
 
+import re
 import sys
 from ConfigParser import ConfigParser
 
@@ -60,7 +61,8 @@ def match_query(query, field, type_=None, operator=None, analyzer=None):
 def prefix_query(query, field):
     body = []
     for q in query:
-        body.append({"prefix": {field: q}})
+        query = {field: {"prefix": q}}
+        body.append({"prefix": query})
     if len(body) == 1:
         return body[0]
     return {"bool": {"should": body}}
@@ -100,14 +102,20 @@ def dates_query(query, args):
 
 
 prefix_map = {
+    'tid': 'tenderID',
+    'pid': 'planID',
     'cpv': 'items.classification.id',
     'dkpp': 'items.additionalClassifications.id',
     'plan_cpv': 'classification.id',
     'plan_dkpp': 'additionalClassifications.id',
 }
 match_map = {
-    'tid': 'tenderID',
-    'pid': 'planID',
+    'tid_exact': 'tenderID',
+    'pid_exact': 'planID',
+    'cpv_exact': 'items.classification.id',
+    'dkpp_exact': 'items.additionalClassifications.id',
+    'plan_cpv_exact': 'classification.id',
+    'plan_dkpp_exact': 'additionalClassifications.id',
     'edrpou': 'procuringEntity.identifier.id',
     'procedure': 'procurementMethod',
     'proc_type': 'procurementMethodType',
@@ -196,7 +204,8 @@ def prepare_search_body(args):
     else:
         body = {"query": {"bool": {"must": body}}}
 
-    body["sort"] = {"dateModified": {"order": "desc"}}
+    if args.get("sort", "date") == "date":
+        body["sort"] = {"dateModified": {"order": "desc"}}
     return body
 
 
