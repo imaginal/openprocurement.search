@@ -67,6 +67,18 @@ class SearchEngine(object):
         self.names_db.read()
         return dict(self.names_db.cache or {})
 
+    def index_docs_count(self):
+        indices = IndicesClient(self.elastic)
+        stin = indices.stats()
+        stout = {}
+        for k,v in self.index_names_dict().items():
+            try:
+                k += '_docs_count'
+                stout[k] = stin['indices'][v]['total']['docs']['count']
+            except KeyError:
+                pass
+        return stout
+
     def search(self, body, start=0, limit=0, index=None, index_keys=None):
         if not index:
             index = self.get_current_indexes(index_keys)
