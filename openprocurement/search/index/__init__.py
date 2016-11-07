@@ -24,6 +24,7 @@ class BaseIndex:
         self.source = source
         self.engine = engine
         self.engine.add_index(self)
+        self.after_init()
 
     def __str__(self):
         return self.__index_name__
@@ -43,6 +44,9 @@ class BaseIndex:
             return time()
         prefix, suffix = name.rsplit('_', 1)
         return int(time() - int(suffix))
+
+    def after_init(self):
+        pass
 
     def need_reindex(self):
         return not self.current_index
@@ -121,11 +125,12 @@ class BaseIndex:
         try:
             res = self.engine.index_item(index_name, item)
         except Exception as e:
-            logger.exception("[%s] Can't index %s: %s", index_name, 
-                item.data.id, str(e))
+            logger.exception("[%s] Fail index %s: %s", index_name,
+                             item.data.id, str(e))
             if self.config['ignore_errors']:
-                logger.info("[%s] Index error ignored %s", index_name,
-                    item.data.id)
+                logger.info("[%s] Not indexed %s", index_name,
+                            item.data.id)
+                res = None
             else:
                 raise
         return res

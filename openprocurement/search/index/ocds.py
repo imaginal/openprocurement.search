@@ -8,7 +8,7 @@ from openprocurement.search.index import BaseIndex, logger
 class OcdsIndex(BaseIndex):
     """OCDS old-tender Index
     """
-    __index_name__ = 'ocds'
+    __index_name__ = 'ocdsnew'
 
     def before_index_item(self, item):
         entity = self.source.procuring_entity(item)
@@ -16,11 +16,16 @@ class OcdsIndex(BaseIndex):
             self.engine.index_by_type('org', entity)
         return True
 
+    def after_init(self):
+        reindex = self.config.get('ocds_reindex', '30,7')
+        self.max_age, self.reindex_day = map(int, reindex.split(','))
+        self.max_age *= 86400
+
     def need_reindex(self):
         if not self.current_index:
             return True
-        if self.index_age() > 120*3600:
-            return datetime.now().isoweekday() >= 6
+        if self.index_age() > self.max_age:
+            return datetime.now().isoweekday() >= self.reindex_day
         return False
 
     def create_index(self, name):
