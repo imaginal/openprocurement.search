@@ -8,7 +8,9 @@ from openprocurement.search.index import BaseIndex, logger
 class OcdsIndex(BaseIndex):
     """OCDS old-tender Index
     """
-    __index_name__ = 'ocdsnew'
+    __index_name__ = 'ocds'
+
+    allow_async_reindex = True
 
     def before_index_item(self, item):
         entity = self.source.procuring_entity(item)

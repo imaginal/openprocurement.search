@@ -15,12 +15,12 @@ re_postalCode = re.compile(r"\d\d\d\d\d")
 class OcdsSource(BaseSource):
     """OCDS Source from json files
     """
-    __doc_type__ = 'ocds-tender'
+    __doc_type__ = 'ocds'
 
     config = {
         'ocds_dir': 'ocds',
-        'ocds_mask': 'ocds-tender-*.json',
-        'ocds_speed': 100,
+        'ocds_mask': 'ocds-*.json',
+        'ocds_speed': 500,
         'ocds_skip_until': None,
     }
     def __init__(self, config={}):

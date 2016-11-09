@@ -28,29 +28,33 @@ engine = type('engine', (), {})()
 
 
 def sigterm_handler(signo, frame):
-    logger.warning("Signal received %d", signo)
+    logger.info("Signal received %d", signo)
     engine.should_exit = True
+    engine.stop_childs()
     signal.alarm(1)
     sys.exit(0)
 
 
 def main():
     if len(sys.argv) < 2:
-        print("Usage: index_worker etc/search.ini [custom_index_names]")
+        print("Usage: index_worker etc/search.ini [custom_index_names_file]")
         sys.exit(1)
 
     parser = ConfigParser()
     parser.read(sys.argv[1])
     config = dict(parser.items('search_engine'))
 
+    # disable slave mode if used custom_index_names
     if len(sys.argv) > 2:
         config['indexer_lock'] = sys.argv[2]+'.pid'
         config['index_names'] = sys.argv[2]
+        config['slave_mode'] = ''
+        config['start_wait'] = 0
 
     logging.config.fileConfig(sys.argv[1])
 
     logger.info("Starting ProZorro openprocurement.search.index_worker v0.5-3")
-    logger.info("Copyright (c) 2015,2016 Volodymyr Flonts <flyonts@gmail.com>")
+    logger.info("Copyright (c) 2015-2016 Volodymyr Flonts <flyonts@gmail.com>")
 
     # try get exclusive lock to prevent second start
     lock_filename = config.get('indexer_lock') or 'index_worker.pid'
@@ -84,6 +88,7 @@ def main():
         lock_file.close()
         os.remove(lock_filename)
         logger.info("Shutdown")
+        engine.stop_childs()
 
     return 0
 

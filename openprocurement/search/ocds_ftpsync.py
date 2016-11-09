@@ -53,14 +53,15 @@ class FTPSyncApp(object):
 
         filematch = self.config['filematch']
 
-        for filename in self.ftp.nlst(filematch):
+        for origname in self.ftp.nlst(filematch):
+            filename = origname.replace('?', '_').replace(' ', '_')
             if os.path.exists(filename):
                 logger.info("EXISTS %s", filename)
                 continue
             try:
                 fp = open(filename, 'wb')
                 logger.info("RETR %s", filename)
-                self.ftp.retrbinary('RETR ' + filename, fp.write)
+                self.ftp.retrbinary('RETR ' + origname, fp.write)
                 fp.close()
             except Exception as e:
                 logger.error("Exception {}".format(e))

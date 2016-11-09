@@ -10,6 +10,8 @@ class PlanIndex(BaseIndex):
     """
     __index_name__ = 'plans'
 
+    allow_async_reindex = True
+
     def before_index_item(self, item):
         entity = self.source.procuring_entity(item)
         if entity:

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
+import fcntl
 import yaml
 from time import time
 
@@ -7,7 +8,7 @@ from time import time
 class shdict:
     """dict shared between processes
     """
-    def __init__(self, name, expire=5):
+    def __init__(self, name, expire=1):
         self.cache = dict()
         self.filename = name + '.yaml'
         self.lastsync = 0
@@ -18,9 +19,10 @@ class shdict:
             return
         if value:
             self.cache[key] = value
+            self.write()
         else:
             self.cache.pop(key, None)
-        self.write()
+            self.write(key)
 
     def __getitem__(self, key):
         if self.is_expired():
@@ -40,16 +42,23 @@ class shdict:
 
     def read(self):
         try:
-            with open(self.filename) as f:
-                self.cache = yaml.load(f) or {}
+            with open(self.filename) as fp:
+                self.cache = yaml.load(fp) or {}
             self.lastsync = time()
         except (IOError, ValueError):
             pass
 
-    def write(self):
+    def write(self, pop_key=None):
         tmp_file = self.filename+'.tmp'
-        with open(tmp_file, 'w') as f:
-            yaml.dump(self.cache, f,
+        with open(tmp_file, 'w') as fp:
+            fcntl.lockf(fp, fcntl.LOCK_EX)
+            tmp_cache = self.cache
+            self.read()
+            self.cache.update(tmp_cache)
+            if pop_key:
+                self.cache.pop(pop_key)
+            yaml.dump(self.cache, fp,
                 default_flow_style=False)
+            fcntl.lockf(fp, fcntl.LOCK_UN)
         os.rename(tmp_file, self.filename)
-        self.lastsync = time()
+        # self.lastsync = time()

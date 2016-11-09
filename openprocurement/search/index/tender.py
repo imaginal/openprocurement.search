@@ -9,6 +9,8 @@ class TenderIndex(BaseIndex):
     """OpenProcurement Tenders Index
     """
     __index_name__ = 'tenders'
+    
+    allow_async_reindex = True
 
     def before_index_item(self, item):
         entity = self.source.procuring_entity(item)

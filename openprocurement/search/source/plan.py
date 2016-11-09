@@ -2,6 +2,7 @@
 from time import mktime, sleep
 from iso8601 import parse_date
 from socket import setdefaulttimeout
+from retrying import retry
 
 from openprocurement_client.client import TendersClient
 from openprocurement.search.source import BaseSource
@@ -46,8 +47,9 @@ class PlanSource(BaseSource):
         item['version'] = long(version)
         return item
 
+    @retry(stop_max_attempt_number=5, wait_fixed=5000)
     def reset(self):
-        logger.info("Reset plans, plan_skip_until %s",
+        logger.info("Reset plans, plan_skip_until=%s",
                     self.config['plan_skip_until'])
         if self.config.get('timeout', None):
             setdefaulttimeout(float(self.config['timeout']))
@@ -102,8 +104,11 @@ class PlanSource(BaseSource):
                 if retry_count > 3:
                     raise e
                 retry_count += 1
-                logger.exception("get_plan %s error %s", str(item), str(e))
+                logger.error("PlanSource.get_plan %s error %s %s",
+                    str(item), str(e.__class__), str(e))
                 sleep(float(self.config['timeout']))
-                self.reset()
+                if retry_count > 2:
+                    logger.warning("PlanSource.reset after error")
+                    self.reset()
         tender['meta'] = item
         return tender

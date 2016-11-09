@@ -50,7 +50,7 @@ class OrgsSource(BaseSource):
                 data['short'] = row[1]
                 data['location'] = row[2]
             else:
-                logger.warning("UA-EDR not found %s", item['id'])
+                logger.info("UA-EDR not found '%s'", item['id'])
         return {'meta': item, 'data': data}
 
     def reset(self):

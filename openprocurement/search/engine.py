@@ -8,7 +8,7 @@ from retrying import retry
 
 from elasticsearch import Elasticsearch
 from elasticsearch.client import IndicesClient
-from elasticsearch.exceptions import ElasticsearchException, RequestError
+from elasticsearch.exceptions import ElasticsearchException, RequestError, NotFoundError
 
 from openprocurement.search import shdict
 
@@ -25,8 +25,11 @@ class SearchEngine(object):
         'slave_mode': None,
         'slave_wakeup': 600,
         'update_wait': 5,
+        'error_wait': 10,
         'start_wait': 1,
     }
+
+    debug = False
 
     def __init__(self, config={}):
         self.index_list = list()
@@ -36,7 +39,19 @@ class SearchEngine(object):
         self.names_db = shdict.shdict(self.config.get('index_names'))
         self.elastic = Elasticsearch([self.config.get('elastic_host')])
         self.slave_mode = self.config.get('slave_mode') or None
+        self.debug = self.config.get('debug', False)
         self.should_exit = False
+
+    def start_subprocess(self):
+        self.elastic = Elasticsearch([self.config.get('elastic_host')])
+        for index in self.index_list:
+            if getattr(index, 'reindex_process', None):
+                index.reindex_process = None
+
+    def stop_childs(self):
+        for index in self.index_list:
+            if hasattr(index, 'stop_childs'):
+                index.stop_childs()
 
     def perform_request(self, method, url, params=None, body=None):
         return self.elastic.transport.perform_request(self, method, url, params, body)
@@ -57,9 +72,11 @@ class SearchEngine(object):
         if not index_keys:
             index_keys = self.index_list
         for key in index_keys:
-            if isinstance(key, object):
-                key = str(key)
+            if hasattr(key, '__index_name__'):
+                key = key.__index_name__
             name = self.get_index(key)
+            if not name:
+                name = self.get_index(key+'.next')
             if name:
                 index_names.append(name)
         return ','.join(index_names)
@@ -116,7 +133,8 @@ class SearchEngine(object):
             value = fp.read() or 0
             value = int(value)
         fp.close()
-        logger.debug("Heartbeat %s", str(value))
+        if self.debug:
+            logger.debug("Heartbeat %s", str(value))
         return value
 
     def test_heartbeat(self):
@@ -151,19 +169,18 @@ class IndexEngine(SearchEngine):
         logger.info("Start with config:\n\t%s", self.dump_config())
 
     def dump_config(self):
-        cs = "\n\t".join(["%-16s = %s" % (k, v)
+        cs = "\n\t".join(["%-17s = %s" % (k, v)
             for k, v in sorted(self.config.items())])
         return cs
 
     def dump_index_names(self):
-        ns = "\n\t".join(["%-16s = %s" % (k, v)
+        ns = "\n\t".join(["%-17s = %s" % (k, v)
             for k, v in self.index_names_dict().items()])
         return ns or "(index_names is empty)"
 
     def create_index(self, index_name, body):
         indices = IndicesClient(self.elastic)
         indices.create(index_name, body=body)
-        sleep(2) # prevent same index time
 
     def get_item(self, index_name, meta):
         try:
@@ -175,32 +192,28 @@ class IndexEngine(SearchEngine):
             return None
         return found
 
+    @retry(stop_max_attempt_number=5, wait_fixed=5000)
     def test_exists(self, index_name, meta):
         try:
             found = self.elastic.get(index_name,
                 doc_type=meta.get('doc_type'),
                 id=meta['id'],
                 _source=False)
-        except ElasticsearchException:
+        except NotFoundError:
             return False
         return found['_version'] >= meta['version']
 
-    @retry(stop_max_attempt_number=5, wait_fixed=10000)
     def index_item(self, index_name, item):
         meta = item['meta']
-        logger.debug("PUT index %s object %s version %ld",
-            index_name, meta['id'], meta['version'])
-        try:
-            res = self.elastic.index(index_name,
-                doc_type=meta.get('doc_type'),
-                id=meta['id'],
-                version=meta['version'],
-                version_type='external',
-                body=item['data'])
-        except (ElasticsearchException, RequestError) as e:
-            logger.error(u"Failed index %s object %s: %s",
-                index_name, meta['id'], unicode(e))
-            raise
+        if self.debug:
+            logger.debug("PUT index %s object %s version %ld",
+                index_name, meta['id'], meta['version'])
+        res = self.elastic.index(index_name,
+            doc_type=meta.get('doc_type'),
+            id=meta['id'],
+            version=meta['version'],
+            version_type='external',
+            body=item['data'])
         return res
 
     def index_by_type(self, doc_type, item):
@@ -249,10 +262,17 @@ class IndexEngine(SearchEngine):
                     raise e
                 retry_count += 1
                 logger.error(u"Failed get elastic info: %s", unicode(e))
-                sleep(self.config['update_wait'])
+                sleep(int(self.config['error_wait']))
+
+        info_string = "".join(["\n\t%-17s = %s" % (k, str(v))
+                for k,v in alive['version'].items()])
+        logger.info(u"ElasticSearch version: %s", info_string)
+
+        if alive['version']['number'][:4] != '1.7.':
+            raise RuntimeError("Unsuported elastic version, requie v1.7")
 
     def run(self):
-        logger.info("IndexEngine configured with indexes %s\n\t%s",
+        logger.info("Configured with indexes %s\n\t%s",
                     self.index_list, self.dump_index_names())
         if self.slave_mode:
             logger.info("Start in slave mode, wait for master...")

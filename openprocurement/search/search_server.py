@@ -32,18 +32,20 @@ PLAN_INDEX_KEYS = ['plans']
 ORGS_INDEX_KEYS = ['orgs']
 
 
-def rename_index_names(config, index_list):
-    for i, name in enumerate(index_list):
-        rename_key = 'rename_' + name
-        if rename_key in config:
-            index_list[i] = config[rename_key]
-    return index_list
+def rename_index_names(config, list_of_lists):
+    total_renames = 0
+    for index_list in list_of_lists:
+        for i, name in enumerate(index_list):
+            rename_key = 'rename_' + name
+            if rename_key in config:
+                index_list[i] = config[rename_key]
+                total_renames += 1
+    search_server.logger.info("Use indexes %s",
+        list_of_lists)
+    return total_renames
 
-rename_index_names(search_config, TENDER_INDEX_KEYS)
-rename_index_names(search_config, PLAN_INDEX_KEYS)
-rename_index_names(search_config, ORGS_INDEX_KEYS)
-search_server.logger.info("Start with indexes %s %s %s",
-    str(TENDER_INDEX_KEYS), str(PLAN_INDEX_KEYS), str(ORGS_INDEX_KEYS))
+rename_index_names(search_config, (ORGS_INDEX_KEYS,
+    TENDER_INDEX_KEYS, PLAN_INDEX_KEYS))
 
 
 def match_query(query, field, type_=None, operator=None, analyzer=None):
