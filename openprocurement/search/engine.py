@@ -249,9 +249,16 @@ class IndexEngine(SearchEngine):
         self.master_heartbeat(int(time()))
         return True
 
+    def sleep(self, seconds):
+        if not isinstance(seconds, float):
+            seconds = float(seconds)
+        while not self.should_exit and seconds > 0:
+            sleep(0.1 if seconds > 0.1 else seconds)
+            seconds -= 0.1
+
     def wait_for_backend(self):
         if self.config['start_wait']:
-            sleep(float(self.config['start_wait']))
+            self.sleep(float(self.config['start_wait']))
         retry_count = 0
         alive = False
         while not alive:
@@ -262,7 +269,7 @@ class IndexEngine(SearchEngine):
                     raise e
                 retry_count += 1
                 logger.error(u"Failed get elastic info: %s", unicode(e))
-                sleep(int(self.config['error_wait']))
+                self.sleep(int(self.config['error_wait']))
 
         info_string = "".join(["\n\t%-17s = %s" % (k, str(v))
                 for k,v in alive['version'].items()])
@@ -281,4 +288,5 @@ class IndexEngine(SearchEngine):
         while not self.should_exit:
             for index in self.index_list:
                 index.process(allow_reindex)
-            sleep(self.config['update_wait'])
+            self.sleep(self.config['update_wait'])
+        logger.info("Leave main loop")

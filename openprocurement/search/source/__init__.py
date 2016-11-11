@@ -6,6 +6,8 @@ logger = getLogger(__name__)
 class BaseSource:
     """Data Source Interface
     """
+    should_exit = False
+
     @property
     def doc_type(self):
         return self.__doc_type__

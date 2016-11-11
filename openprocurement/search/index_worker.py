@@ -31,8 +31,8 @@ def sigterm_handler(signo, frame):
     logger.info("Signal received %d", signo)
     engine.should_exit = True
     engine.stop_childs()
-    signal.alarm(1)
-    sys.exit(0)
+    signal.alarm(3)
+    # sys.exit(0)
 
 
 def main():

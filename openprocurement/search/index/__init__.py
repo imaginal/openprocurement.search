@@ -65,9 +65,6 @@ class BaseIndex(object):
     def create_index(self, name):
         return
 
-    def finish_index(self, name):
-        return
-
     def new_index(self, is_async=False):
         index_key = self.__index_name__
         index_key_next = "{}.next".format(index_key)
@@ -130,7 +127,7 @@ class BaseIndex(object):
             "[%s] Fetched %d indexed %d last %s wait %1.1fs",
             index_name, fetched, indexed, last_date, pause)
         if pause > 0.01:
-            sleep(pause)
+            self.engine.sleep(pause)
 
     def index_item(self, index_name, item):
         if self.test_noindex(item):
@@ -153,7 +150,7 @@ class BaseIndex(object):
                 if self.config['ignore_errors']:
                     return None
 
-            sleep(int(self.config['error_wait']))
+            self.engine.sleep(self.config['error_wait'])
 
             if self.test_exists(index_name, item['meta']):
                 return None
@@ -184,7 +181,7 @@ class BaseIndex(object):
             iter_count = 0
             for info in self.source.items():
                 if self.engine.should_exit:
-                    break
+                    return
                 if not self.test_exists(index_name, info):
                     item = self.source.get(info)
                     if self.index_item(index_name, item):
@@ -200,8 +197,7 @@ class BaseIndex(object):
                     iter_count = 0
             # break if should exit
             if self.engine.should_exit:
-                logger.warning("Should exit")
-                break
+                return
             # break if nothing iterated
             if iter_count > 0:
                 self.indexing_stat(
@@ -214,9 +210,14 @@ class BaseIndex(object):
             elif not info:
                 break
 
+        if self.engine.should_exit:
+            return
+
         return index_count
 
     def stop_childs(self):
+        if self.source:
+            self.source.should_exit = True
         if not self.reindex_process:
             return
         if self.reindex_process.pid == os.getpid():
@@ -250,17 +251,19 @@ class BaseIndex(object):
             # reconnect elatic and prevent future stop_childs
             self.engine.start_subprocess()
         index_name = self.new_index(is_async)
-        logger.info("Starting full reindex, new index %s", index_name)
-        self.index_source(index_name, reset=True)
-        self.finish_index(index_name)
-        self.set_current(index_name)
-        logger.info("Finish full reindex, new index %s", index_name)
+        # logger.info("Starting full reindex, new index %s", index_name)
+        if self.index_source(index_name, reset=True):
+            self.set_current(index_name)
+        # logger.info("Finish full reindex, new index %s", index_name)
         # exit with specific code to signal master process reset source
         if is_async:
             logger.info("*** Exit subprocess")
             sys.exit(self.magic_exit_code)
 
     def reindex(self):
+        if self.engine.should_exit:
+            return
+
         # check for reindex in sync mode
         if not self.allow_async_reindex or not self.config['async_reindex']:
             return self.do_reindex()
@@ -279,15 +282,18 @@ class BaseIndex(object):
         for i in range(30):
             if self.reindex_process.is_alive():
                 break
-            sleep(1)
+            self.engine.sleep(1)
         if self.reindex_process.is_alive():
             logger.info("Subprocess started %s pid %d", 
                 self.reindex_process.name, self.reindex_process.pid)
-            sleep(2)
+            self.engine.sleep(2)
         else:
             logger.error("Can't start subprocess")
 
     def process(self, allow_reindex=True):
+        if self.engine.should_exit:
+            return
+
         if self.reindex_process:
             self.check_subprocess()
 

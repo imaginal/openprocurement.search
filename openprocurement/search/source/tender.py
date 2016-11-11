@@ -3,6 +3,7 @@ from time import mktime, sleep
 from iso8601 import parse_date
 from socket import setdefaulttimeout
 from retrying import retry
+from restkit import ResourceError
 
 from openprocurement_client.client import TendersClient
 from openprocurement.search.source import BaseSource
@@ -46,7 +47,7 @@ class TenderSource(BaseSource):
         item['version'] = long(version)
         return item
 
-    @retry(stop_max_attempt_number=5, wait_fixed=5000)
+    @retry(stop_max_attempt_number=5, wait_fixed=15000)
     def reset(self):
         logger.info("Reset tenders, skip_until=%s", self.config['skip_until'])
         if self.config.get('timeout', None):
@@ -67,18 +68,30 @@ class TenderSource(BaseSource):
 
     def preload(self):
         preload_items = []
-        items = True
-        while items:
-            items = self.client.get_tenders()
-            if items:
-                preload_items.extend(items)
-            if items and len(preload_items) >= 100:
-                logger.info("Preload %d tenders, last %s",
-                            len(preload_items), items[-1]['dateModified'])
-            if items and len(items) < 10:
+        while True:
+            if self.should_exit:
+                return []
+            try:
+                items = self.client.get_tenders()
+            except ResourceError as e:
+                logger.error("TenderSource.preload error %s", str(e))
+                self.reset()
+                break
+            if not items:
+                break
+
+            preload_items.extend(items)
+
+            if len(preload_items) >= 100:
+                logger.info(
+                    "Preload %d tenders, last %s",
+                    len(preload_items),
+                    items[-1]['dateModified'])
+            if len(items) < 10:
                 break
             if len(preload_items) >= self.config['preload']:
                 break
+
         return preload_items
 
     def items(self):
@@ -94,19 +107,18 @@ class TenderSource(BaseSource):
     def get(self, item):
         tender = None
         retry_count = 0
-        while not tender:
+        while not self.should_exit:
             try:
                 tender = self.client.get_tender(item['id'])
                 break
-            except Exception as e:
+            except ResourceError as e:
                 if retry_count > 3:
                     raise e
-                retry_count += 1
-                logger.error("TenderSource.get_tender %s error %s %s",
-                    str(item), str(e.__class__), str(e))
-                sleep(float(self.config['timeout']))
-                if retry_count > 2:
-                    logger.warning("TenderSource.reset after error")
+                logger.error("TenderSource.get_tender %s error %s",
+                    str(item['id']), str(e))
+                if retry_count > 1:
                     self.reset()
+                retry_count += 1
+                sleep(1)
         tender['meta'] = item
         return tender
