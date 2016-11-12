@@ -17,10 +17,9 @@ search_server.config.from_object(__name__)
 # load config
 
 config_parser = ConfigParser()
-if len(sys.argv) > 2 and sys.argv[1] == '--paste':
-    config_parser.read(sys.argv[2])
-elif len(sys.argv) > 1 and sys.argv[1][-4:] == '.ini':
-    config_parser.read(sys.argv[1])
+for arg in sys.argv:
+    if arg.endswith('.ini'):
+        config_parser.read(arg)
 search_config = dict(config_parser.items('search_engine'))
 
 # create engine
@@ -40,8 +39,8 @@ def rename_index_names(config, list_of_lists):
             if rename_key in config:
                 index_list[i] = config[rename_key]
                 total_renames += 1
-    search_server.logger.info("Use indexes %s",
-        list_of_lists)
+    if search_server.debug:
+        search_server.logger.info("Use indexes %s", list_of_lists)
     return total_renames
 
 rename_index_names(search_config, (ORGS_INDEX_KEYS,
