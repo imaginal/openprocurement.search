@@ -46,25 +46,31 @@ def main():
 
     # disable slave mode if used custom_index_names
     if len(sys.argv) > 2:
-        config['indexer_lock'] = sys.argv[2]+'.pid'
         config['index_names'] = sys.argv[2]
         config['slave_mode'] = ''
         config['start_wait'] = 0
 
     logging.config.fileConfig(sys.argv[1])
 
-    logger.info("Starting ProZorro openprocurement.search.index_worker v0.5-3")
+    logger.info("Starting ProZorro openprocurement.search.index_worker v0.6a1")
     logger.info("Copyright (c) 2015-2016 Volodymyr Flonts <flyonts@gmail.com>")
 
     # try get exclusive lock to prevent second start
-    lock_filename = config.get('indexer_lock') or 'index_worker.pid'
+    lock_filename = config.get('index_names', 'index_worker')+'.lock'
     lock_file = open(lock_filename, "w")
-    fcntl.lockf(lock_file, fcntl.LOCK_EX + fcntl.LOCK_NB)
-    lock_file.write(str(os.getpid()) + "\n")
-    lock_file.flush()
+    try:
+        fcntl.lockf(lock_file, fcntl.LOCK_EX + fcntl.LOCK_NB)
+        lock_file.write(str(os.getpid()) + "\n")
+        lock_file.flush()
+    except:
+        logger.error("Can't get lock %s maybe already started",
+            lock_filename)
+        lock_file.close()
+        return 1
 
     signal.signal(signal.SIGTERM, sigterm_handler)
     # signal.signal(signal.SIGINT, sigterm_handler)
+
 
     try:
         global engine
