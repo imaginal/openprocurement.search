@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime
+from pkgutil import get_data
 import simplejson as json
 
 from openprocurement.search.index import BaseIndex, logger
@@ -59,9 +60,8 @@ class TenderIndex(BaseIndex):
             return datetime.now().isoweekday() >= self.reindex_day
         return False
 
-    def create_index(self, name):
-        tender_index = self.config['tender_index']
-        logger.info("Create new tender index %s from %s", name, tender_index)
-        with open(tender_index) as f:
-            body = json.load(f)
+    def create_index(self, name, settings='settings/tender.json'):
+        logger.info("Create new index %s from %s", name, settings)
+        data = get_data(__name__, settings)
+        body = json.loads(data)
         self.engine.create_index(name, body=body)

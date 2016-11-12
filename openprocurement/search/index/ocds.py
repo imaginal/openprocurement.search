@@ -30,10 +30,8 @@ class OcdsIndex(BaseIndex):
             return datetime.now().isoweekday() >= self.reindex_day
         return False
 
-    def create_index(self, name):
-        ocds_index = self.config['ocds_index']
-        logger.info("Create new OCDS index %s from %s",
-            name, ocds_index)
-        with open(ocds_index) as f:
-            body = json.load(f)
+    def create_index(self, name, settings='settings/ocds.json'):
+        logger.info("Create new index %s from %s", name, settings)
+        data = get_data(__name__, settings)
+        body = json.loads(data)
         self.engine.create_index(name, body=body)

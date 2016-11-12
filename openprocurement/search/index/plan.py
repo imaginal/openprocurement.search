@@ -30,10 +30,8 @@ class PlanIndex(BaseIndex):
             return datetime.now().isoweekday() >= self.reindex_day
         return False
 
-    def create_index(self, name):
-        plan_index = self.config['plan_index']
-        logger.info("Create new plans index %s from %s",
-            name, plan_index)
-        with open(plan_index) as f:
-            body = json.load(f)
+    def create_index(self, name, settings='settings/plan.json'):
+        logger.info("Create new index %s from %s", name, settings)
+        data = get_data(__name__, settings)
+        body = json.loads(data)
         self.engine.create_index(name, body=body)

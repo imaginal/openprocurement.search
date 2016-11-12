@@ -16,14 +16,6 @@ class OrgsIndex(BaseIndex):
             return True
         return False
 
-    def create_index(self, name):
-        orgs_index = self.config['orgs_index']
-        logger.info("Create new suggest index %s from %s",
-                    name, orgs_index)
-        with open(orgs_index) as f:
-            body = json.load(f)
-        self.engine.create_index(name, body=body)
-
     def index_item(self, index_name, item):
         try:
             return self.engine.index_item(index_name, item)
@@ -32,3 +24,9 @@ class OrgsIndex(BaseIndex):
                 return None
             if not self.test_exists(index_name, item['meta']):
                 raise e
+
+    def create_index(self, name, settings='settings/orgs.json'):
+        logger.info("Create new index %s from %s", name, settings)
+        data = get_data(__name__, settings)
+        body = json.loads(data)
+        self.engine.create_index(name, body=body)
