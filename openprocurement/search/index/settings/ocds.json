@@ -1,0 +1,231 @@
+{
+    "mappings": {
+      "ocds-tender": {
+        "include_in_all": false,
+        "properties": {
+          "awardCriteria": {
+            "analyzer": "whitespace",
+            "type": "string"
+          },
+          "awardPeriod": {
+            "properties": {
+              "endDate": {
+                "type": "date",
+                "format": "dateOptionalTime"
+              },
+              "startDate": {
+                "type": "date",
+                "format": "dateOptionalTime"
+              }
+            }
+          },
+          "dateModified": {
+            "type": "date",
+            "format": "dateOptionalTime"
+          },
+          "description": {
+            "include_in_all": true,
+            "type": "string"
+          },
+          "documents": {
+            "properties": {
+              "dateModified": {
+                "type": "date",
+                "format": "dateOptionalTime"
+              },
+              "datePublished": {
+                "type": "date",
+                "format": "dateOptionalTime"
+              },
+              "description": {
+                "include_in_all": true,
+                "type": "string"
+              },
+              "documentType": {
+                "type": "string"
+              },
+              "format": {
+                "type": "string"
+              },
+              "id": {
+                "type": "string"
+              },
+              "language": {
+                "type": "string"
+              },
+              "title": {
+                "include_in_all": true,
+                "type": "string"
+              },
+              "url": {
+                "type": "string"
+              }
+            }
+          },
+          "hasEnquiries": {
+            "type": "boolean"
+          },
+          "id": {
+            "analyzer": "whitespace",
+            "type": "string"
+          },
+          "items": {
+            "properties": {
+              "additionalClassifications": {
+                "properties": {
+                  "description": {
+                    "include_in_all": true,
+                    "type": "string"
+                  },
+                  "id": {
+                    "include_in_all": true,
+                    "analyzer": "whitespace",
+                    "type": "string"
+                  },
+                  "scheme": {
+                    "analyzer": "whitespace",
+                    "type": "string"
+                  }
+                }
+              },
+              "classification": {
+                "properties": {
+                  "description": {
+                    "include_in_all": true,
+                    "type": "string"
+                  },
+                  "id": {
+                    "include_in_all": true,
+                    "analyzer": "whitespace",
+                    "type": "string"
+                  },
+                  "scheme": {
+                    "type": "string"
+                  }
+                }
+              },
+              "description": {
+                "include_in_all": true,
+                "type": "string"
+              },
+              "id": {
+                "analyzer": "whitespace",
+                "type": "string"
+              }
+            }
+          },
+          "procurementMethod": {
+            "analyzer": "whitespace",
+            "type": "string"
+          },
+          "procuringEntity": {
+            "properties": {
+              "address": {
+                "properties": {
+                  "countryName": {
+                    "type": "string"
+                  },
+                  "postalCode": {
+                    "analyzer": "whitespace",
+                    "type": "string"
+                  },
+                  "region": {
+                    "type": "string"
+                  },
+                  "streetAddress": {
+                    "include_in_all": true,
+                    "type": "string"
+                  }
+                }
+              },
+              "contactPoint": {
+                "properties": {
+                  "email": {
+                    "include_in_all": true,
+                    "analyzer": "whitespace",
+                    "type": "string"
+                  },
+                  "faxNumber": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "include_in_all": true,
+                    "type": "string"
+                  },
+                  "telephone": {
+                    "type": "string"
+                  }
+                }
+              },
+              "identifier": {
+                "properties": {
+                  "id": {
+                    "analyzer": "whitespace",
+                    "type": "string"
+                  },
+                  "legalName": {
+                    "include_in_all": true,
+                    "type": "string"
+                  },
+                  "scheme": {
+                    "type": "string"
+                  }
+                }
+              },
+              "name": {
+                "include_in_all": true,
+                "type": "string"
+              }
+            }
+          },
+          "status": {
+            "analyzer": "whitespace",
+            "type": "string"
+          },
+          "tenderID": {
+            "analyzer": "whitespace",
+            "include_in_all": true,
+            "type": "string"
+          },
+          "tenderPeriod": {
+            "properties": {
+              "endDate": {
+                "type": "date",
+                "format": "dateOptionalTime"
+              },
+              "startDate": {
+                "type": "date",
+                "format": "dateOptionalTime"
+              }
+            }
+          },
+          "title": {
+            "include_in_all": true,
+            "type": "string"
+          },
+          "value": {
+            "properties": {
+              "amount": {
+                "type": "long"
+              },
+              "currency": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "settings": {
+        "index": {
+            "analysis": {
+                "analyzer": {
+                    "whitespace": {
+                        "type": "whitespace",
+                        "filter": "lowercase"
+                    }
+                }
+            }
+        }
+    }
+}

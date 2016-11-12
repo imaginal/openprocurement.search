@@ -1,0 +1,70 @@
+{
+  "mappings": {
+    "org": {
+      "_all": {
+        "index_analyzer": "nGram_analyzer",
+        "search_analyzer": "whitespace_analyzer"
+      },
+      "properties": {
+        "edrpou": {
+          "type": "string",
+          "index": "not_analyzed",
+          "include_in_all": true
+        },
+        "name": {
+          "type": "string",
+          "index": "no",
+          "include_in_all": true
+        },
+        "short": {
+          "type": "string",
+          "index": "no",
+          "include_in_all": true
+        },
+        "location": {
+          "type": "string",
+          "index": "no",
+          "include_in_all": false
+        },
+        "rank": {
+          "type": "integer",
+          "include_in_all": false
+        }
+      }
+    }
+  },
+  "settings": {
+    "index": {
+      "analysis": {
+        "filter": {
+          "nGram_filter": {
+            "token_chars": [
+              "letter",
+              "digit"
+            ],
+            "type": "nGram",
+            "min_gram": "2",
+            "max_gram": "20"
+          }
+        },
+        "analyzer": {
+          "nGram_analyzer": {
+            "filter": [
+              "lowercase",
+              "nGram_filter"
+            ],
+            "type": "custom",
+            "tokenizer": "whitespace"
+          },
+          "whitespace_analyzer": {
+            "filter": [
+              "lowercase"
+            ],
+            "type": "custom",
+            "tokenizer": "whitespace"
+          }
+        }
+      }
+    }
+  }
+}

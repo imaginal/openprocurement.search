@@ -1,0 +1,231 @@
+{
+  "mappings": {
+    "plan": {
+      "include_in_all": false,
+      "properties": {
+        "additionalClassifications": {
+          "include_in_all": true,
+          "properties": {
+            "description": {
+              "type": "string"
+            },
+            "id": {
+              "analyzer": "whitespace",
+              "type": "string"
+            },
+            "scheme": {
+              "type": "string"
+            }
+          }
+        },
+        "budget": {
+          "properties": {
+            "amount": {
+              "type": "double"
+            },
+            "amountNet": {
+              "type": "double"
+            },
+            "currency": {
+              "type": "string"
+            },
+            "description": {
+              "include_in_all": true,
+              "type": "string"
+            },
+            "description_en": {
+              "include_in_all": true,
+              "type": "string"
+            },
+            "id": {
+              "include_in_all": true,
+              "analyzer": "whitespace",
+              "type": "string"
+            },
+            "project": {
+              "include_in_all": true,
+              "properties": {
+                "id": {
+                  "analyzer": "whitespace",
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "name_en": {
+                  "type": "string"
+                },
+                "name_ru": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "classification": {
+          "include_in_all": true,
+          "properties": {
+            "description": {
+              "type": "string"
+            },
+            "id": {
+              "analyzer": "whitespace",
+              "type": "string"
+            },
+            "scheme": {
+              "type": "string"
+            }
+          }
+        },
+        "dateModified": {
+          "type": "date",
+          "format": "dateOptionalTime"
+        },
+        "id": {
+          "include_in_all": true,
+          "analyzer": "whitespace",
+          "type": "string"
+        },
+        "items": {
+          "properties": {
+            "additionalClassifications": {
+              "include_in_all": true,
+              "properties": {
+                "description": {
+                  "type": "string"
+                },
+                "id": {
+                  "analyzer": "whitespace",
+                  "type": "string"
+                },
+                "scheme": {
+                  "type": "string"
+                }
+              }
+            },
+            "classification": {
+              "include_in_all": true,
+              "properties": {
+                "description": {
+                  "type": "string"
+                },
+                "id": {
+                  "analyzer": "whitespace",
+                  "type": "string"
+                },
+                "scheme": {
+                  "type": "string"
+                }
+              }
+            },
+            "deliveryDate": {
+              "properties": {
+                "endDate": {
+                  "type": "date",
+                  "format": "dateOptionalTime"
+                }
+              }
+            },
+            "description": {
+              "include_in_all": true,
+              "type": "string"
+            },
+            "id": {
+              "include_in_all": true,
+              "analyzer": "whitespace",
+              "type": "string"
+            },
+            "quantity": {
+              "type": "long"
+            },
+            "unit": {
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "mode": {
+          "type": "string"
+        },
+        "planID": {
+		      "include_in_all": true,
+          "analyzer": "whitespace",
+          "type": "string"
+        },
+        "procuringEntity": {
+          "include_in_all": true,
+          "properties": {
+            "identifier": {
+              "properties": {
+                "id": {
+                  "analyzer": "whitespace",
+                  "type": "string"
+                },
+                "legalName": {
+                  "type": "string"
+                },
+                "scheme": {
+                  "type": "string"
+                },
+                "uri": {
+                  "type": "string"
+                }
+              }
+            },
+            "name": {
+              "type": "string"
+            },
+            "name_en": {
+              "type": "string"
+            }
+          }
+        },
+        "tender": {
+          "properties": {
+            "procurementMethod": {
+              "include_in_all": true,
+              "analyzer": "whitespace",
+              "type": "string"
+            },
+            "procurementMethodType": {
+              "include_in_all": true,
+              "analyzer": "whitespace",
+              "type": "string"
+            },
+            "tenderPeriod": {
+              "properties": {
+                "endDate": {
+                  "type": "date",
+                  "format": "dateOptionalTime"
+                },
+                "startDate": {
+                  "type": "date",
+                  "format": "dateOptionalTime"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "settings": {
+    "index": {
+      "analysis": {
+        "analyzer": {
+          "whitespace": {
+            "type": "whitespace",
+            "filter": "lowercase"
+          }
+        }
+      }
+    }
+  }
+}
+
