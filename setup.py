@@ -30,6 +30,7 @@ setup(name='openprocurement.search',
             'requests',
             'retrying',
             'simplejson',
+            'setuptools',
         ],
         entry_points={
             'console_scripts': [
