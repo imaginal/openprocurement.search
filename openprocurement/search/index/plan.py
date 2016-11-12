@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime
+from pkgutil import get_data
 import simplejson as json
 
 from openprocurement.search.index import BaseIndex, logger

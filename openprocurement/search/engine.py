@@ -10,7 +10,7 @@ from elasticsearch import Elasticsearch
 from elasticsearch.client import IndicesClient
 from elasticsearch.exceptions import ElasticsearchException, RequestError, NotFoundError
 
-from openprocurement.search import shdict
+from openprocurement.search.utils import SharedFileDict
 
 logger = getLogger(__name__)
 
@@ -36,7 +36,7 @@ class SearchEngine(object):
         if config:
             self.config.update(config)
             self.config['update_wait'] = int(self.config['update_wait'])
-        self.names_db = shdict.shdict(self.config.get('index_names'))
+        self.names_db = SharedFileDict(self.config.get('index_names'))
         self.elastic = Elasticsearch([self.config.get('elastic_host')])
         self.slave_mode = self.config.get('slave_mode') or None
         self.debug = self.config.get('debug', False)

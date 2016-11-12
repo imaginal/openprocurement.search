@@ -5,7 +5,7 @@ import yaml
 from time import time
 
 
-class shdict:
+class SharedFileDict(object):
     """dict shared between processes
     """
     def __init__(self, name, expire=1):

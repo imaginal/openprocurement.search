@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import simplejson as json
+from pkgutil import get_data
 
 from openprocurement.search.index import BaseIndex, logger
 
