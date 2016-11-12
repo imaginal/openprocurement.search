@@ -302,6 +302,8 @@ class IndexEngine(SearchEngine):
         allow_reindex = not self.slave_mode
         while not self.should_exit:
             for index in self.index_list:
+                if self.should_exit:
+                    break
                 index.process(allow_reindex)
             self.sleep(self.config['update_wait'])
         logger.info("Leave main loop")
