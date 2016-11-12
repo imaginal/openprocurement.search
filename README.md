@@ -1,6 +1,6 @@
 # OpenProcurement Search
 
-TODO: Write a project description
+Indexing and Search engine for OpenProcurement public API
 
 ## Installation
 
