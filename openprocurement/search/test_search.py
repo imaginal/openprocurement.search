@@ -43,6 +43,7 @@ class SearchTester(object):
         url = 'http://%s:%s/%s' % (
             self.search_config['host'],
             self.search_config['port'], path)
+        logger.debug("GET %s", url)
         req = urllib2.urlopen(url, timeout=10)
         code = req.getcode()
         resp = req.read()
