@@ -69,14 +69,14 @@ class TenderSource(BaseSource):
     def preload(self):
         preload_items = []
         while True:
-            if self.should_exit:
-                return []
             try:
                 items = self.client.get_tenders()
             except ResourceError as e:
                 logger.error("TenderSource.preload error %s", str(e))
                 self.reset()
                 break
+            if self.should_exit:
+                return []
             if not items:
                 break
 
@@ -99,6 +99,8 @@ class TenderSource(BaseSource):
             self.reset()
         self.last_skipped = None
         for tender in self.preload():
+            if self.should_exit:
+                raise StopIteration()
             if self.skip_until > tender['dateModified']:
                 self.last_skipped = tender['dateModified']
                 continue
@@ -114,11 +116,11 @@ class TenderSource(BaseSource):
             except ResourceError as e:
                 if retry_count > 3:
                     raise e
+                retry_count += 1
                 logger.error("TenderSource.get_tender %s error %s",
                     str(item['id']), str(e))
                 if retry_count > 1:
                     self.reset()
-                retry_count += 1
                 sleep(1)
         tender['meta'] = item
         return tender

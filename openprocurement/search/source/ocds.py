@@ -103,6 +103,8 @@ class OcdsSource(BaseSource):
         with open(fullname) as f:
             data = json.load(f)
         for r in data['releases']:
+            if self.should_exit:
+                raise StopIteration()
             item = r['tender']
             if 'tenderID' not in item:
                 item['tenderID'] = r['ocid']
