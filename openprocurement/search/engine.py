@@ -104,6 +104,8 @@ class SearchEngine(object):
             return {"error": "current index not found"}
         if not limit:
             limit = 10
+        if self.debug:
+            logger.debug("SEARCH %s %d %d %s", index, start, limit, body)
         try:
             res = self.elastic.search(index=index,
                 body=body, from_=start, size=limit)
@@ -182,13 +184,14 @@ class IndexEngine(SearchEngine):
         indices = IndicesClient(self.elastic)
         indices.create(index_name, body=body)
 
+    @retry(stop_max_attempt_number=5, wait_fixed=5000)
     def get_item(self, index_name, meta):
         try:
             found = self.elastic.get(index_name,
                 doc_type=meta.get('doc_type'),
                 id=meta['id'],
                 _source=True)
-        except ElasticsearchException:
+        except NotFoundError:
             return None
         return found
 
@@ -205,16 +208,26 @@ class IndexEngine(SearchEngine):
 
     def index_item(self, index_name, item):
         meta = item['meta']
-        if self.debug:
-            logger.debug("PUT index %s object %s version %ld",
-                index_name, meta['id'], meta['version'])
-        res = self.elastic.index(index_name,
-            doc_type=meta.get('doc_type'),
-            id=meta['id'],
-            version=meta['version'],
-            version_type='external',
-            body=item['data'])
-        return res
+        retry_count = 0
+        while True:
+            try:
+                res = self.elastic.index(index_name,
+                    doc_type=meta.get('doc_type'),
+                    id=meta['id'],
+                    version=meta['version'],
+                    version_type='external',
+                    body=item['data'])
+                return res
+            except ElasticsearchException as e:
+                if retry_count > 3:
+                    raise e
+                retry_count += 1
+                logger.error("[%s] Can't index %s error %s",
+                    index_name, str(meta), str(e))
+                self.sleep(self.config['error_wait'])
+                if self.test_exists(index_name, meta):
+                    return None
+        return None
 
     def index_by_type(self, doc_type, item):
         for index in self.index_list:
@@ -258,18 +271,20 @@ class IndexEngine(SearchEngine):
 
     def wait_for_backend(self):
         if self.config['start_wait']:
-            self.sleep(float(self.config['start_wait']))
-        retry_count = 0
+            self.sleep(self.config['start_wait'])
         alive = False
+        retry_count = 0
         while not alive:
             try:
                 alive = self.elastic.info()
             except ElasticsearchException as e:
-                if retry_count > 10:
+                if retry_count > 30:
                     raise e
                 retry_count += 1
                 logger.error(u"Failed get elastic info: %s", unicode(e))
-                self.sleep(int(self.config['error_wait']))
+                self.sleep(self.config['error_wait'])
+            if self.should_exit:
+                return
 
         info_string = "".join(["\n\t%-17s = %s" % (k, str(v))
                 for k,v in alive['version'].items()])
