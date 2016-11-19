@@ -26,9 +26,10 @@ search_config = dict(config_parser.items('search_engine'))
 
 search_engine = SearchEngine(search_config)
 
-TENDER_INDEX_KEYS = ['tenders', 'ocds']
-PLAN_INDEX_KEYS = ['plans']
+AUCTION_INDEX_KEYS = ['auction']
 ORGS_INDEX_KEYS = ['orgs']
+PLAN_INDEX_KEYS = ['plans']
+TENDER_INDEX_KEYS = ['tenders', 'ocds']
 
 
 def rename_index_names(config, list_of_lists):
@@ -44,7 +45,7 @@ def rename_index_names(config, list_of_lists):
     return total_renames
 
 rename_index_names(search_config, (ORGS_INDEX_KEYS,
-    TENDER_INDEX_KEYS, PLAN_INDEX_KEYS))
+    TENDER_INDEX_KEYS, PLAN_INDEX_KEYS, AUCTION_INDEX_KEYS))
 
 
 def match_query(query, field, type_=None, operator=None, analyzer=None):
@@ -103,20 +104,24 @@ def dates_query(query, args):
 
 
 prefix_map = {
+    'aid_like': 'auctionID',
+    'dgf_like': 'dgfID',
+    'tid_like': 'tenderID',
+    'pid_like': 'planID',
+    'cpv_like': 'items.classification.id',
+    'dkpp_like': 'items.additionalClassifications.id',
+    'plan_cpv_like': 'classification.id',
+    'plan_dkpp_like': 'additionalClassifications.id',
+}
+match_map = {
+    'aid': 'auctionID',
+    'dgf': 'dgfID',
     'tid': 'tenderID',
     'pid': 'planID',
     'cpv': 'items.classification.id',
     'dkpp': 'items.additionalClassifications.id',
     'plan_cpv': 'classification.id',
     'plan_dkpp': 'additionalClassifications.id',
-}
-match_map = {
-    'tid_exact': 'tenderID',
-    'pid_exact': 'planID',
-    'cpv_exact': 'items.classification.id',
-    'dkpp_exact': 'items.additionalClassifications.id',
-    'plan_cpv_exact': 'classification.id',
-    'plan_dkpp_exact': 'additionalClassifications.id',
     'edrpou': 'procuringEntity.identifier.id',
     'procedure': 'procurementMethod',
     'proc_type': 'procurementMethodType',
@@ -124,6 +129,7 @@ match_map = {
     'tender_proc_type': 'tender.procurementMethodType',
     'plan_procedure': 'tender.procurementMethod',
     'plan_proc_type': 'tender.procurementMethodType',
+    'award_criteria': 'awardCriteria',
     'status': 'status',
 }
 range_map = {
@@ -131,16 +137,16 @@ range_map = {
     'value': 'value.amount',
 }
 dates_map = {
-    'auction_start': ('gte', 'auctionPeriod.endDate'),
-    'auction_end':   ('lte', 'auctionPeriod.startDate'),
+    'auction_start': ('gte', 'auctionPeriod.startDate'),
+    'auction_end':   ('lt',  'auctionPeriod.startDate'),
     'award_start':   ('gte', 'awardPeriod.endDate'),
-    'award_end':     ('lte', 'awardPeriod.startDate'),
+    'award_end':     ('lt',  'awardPeriod.startDate'),
     'enquiry_start': ('gte', 'enquiryPeriod.endDate'),
-    'enquiry_end':   ('lte', 'enquiryPeriod.startDate'),
+    'enquiry_end':   ('lt',  'enquiryPeriod.startDate'),
     'tender_start':  ('gte', 'tenderPeriod.endDate'),
-    'tender_end':    ('lte', 'tenderPeriod.startDate'),
+    'tender_end':    ('lt',  'tenderPeriod.startDate'),
     'plan_tender_start':  ('gte', 'tender.tenderPeriod.startDate'),
-    'plan_tender_end':    ('lte', 'tender.tenderPeriod.startDate'),
+    'plan_tender_end':    ('lt',  'tender.tenderPeriod.startDate'),
 }
 ftext_map = {
     'query': '_all',
@@ -235,6 +241,20 @@ def search_plans():
     limit = min(max(1, limit), 100)
     res = search_engine.search(body, start, limit,
         index_keys=PLAN_INDEX_KEYS)
+    if search_server.debug:
+        res['body'] = body
+    return jsonify(res)
+
+
+@search_server.route('/auctions')
+def search_auctions():
+    args = request.args
+    body = prepare_search_body(args)
+    start = int(args.get('start') or 0)
+    # limit = int(args.get('limit') or 10)
+    # limit = min(max(1, limit), 100)
+    res = search_engine.search(body, start,
+        index_keys=AUCTION_INDEX_KEYS)
     if search_server.debug:
         res['body'] = body
     return jsonify(res)
