@@ -32,8 +32,8 @@ class PlanSource(BaseSource):
     def __init__(self, config={}):
         if config:
             self.config.update(config)
-        self.config['plan_limit'] = int(self.config['plan_limit']) or 100
-        self.config['plan_preload'] = int(self.config['plan_preload']) or 100
+        self.config['plan_limit'] = int(self.config['plan_limit'] or 0) or 100
+        self.config['plan_preload'] = int(self.config['plan_preload'] or 0) or 100
         self.client = None
 
     def procuring_entity(self, item):

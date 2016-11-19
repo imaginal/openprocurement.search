@@ -27,8 +27,8 @@ class OcdsIndex(BaseIndex):
     def need_reindex(self):
         if not self.current_index:
             return True
-        if self.index_age() > self.max_age:
-            return datetime.now().isoweekday() >= self.reindex_day
+        # if self.index_age() > self.max_age:
+        #     return datetime.now().isoweekday() >= self.reindex_day
         return False
 
     def create_index(self, name, settings='settings/ocds.json'):

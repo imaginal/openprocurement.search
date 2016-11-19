@@ -20,7 +20,7 @@ class PlanIndex(BaseIndex):
         return True
 
     def after_init(self):
-        reindex = self.config.get('plan_reindex', '20,7')
+        reindex = self.config.get('plan_reindex', '10,7')
         self.max_age, self.reindex_day = map(int, reindex.split(','))
         self.max_age *= 86400
 

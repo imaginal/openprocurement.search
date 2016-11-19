@@ -1,32 +1,44 @@
 {
   "mappings": {
     "plan": {
+      "_all": {
+        "enabled": true,
+        "index_analyzer": "index_ru",
+        "search_analyzer": "search_ru"
+      },
       "include_in_all": false,
       "properties": {
         "additionalClassifications": {
-          "include_in_all": true,
+          "include_in_all": false,
           "properties": {
             "description": {
+              "include_in_all": true,
               "type": "string"
             },
             "id": {
               "analyzer": "whitespace",
+              "include_in_all": true,
               "type": "string"
             },
             "scheme": {
+              "include_in_all": false,
               "type": "string"
             }
           }
         },
         "budget": {
+          "include_in_all": false,
           "properties": {
             "amount": {
+              "include_in_all": false,
               "type": "double"
             },
             "amountNet": {
+              "include_in_all": false,
               "type": "double"
             },
             "currency": {
+              "include_in_all": false,
               "type": "string"
             },
             "description": {
@@ -37,92 +49,176 @@
               "include_in_all": true,
               "type": "string"
             },
-            "id": {
+            "description_ru": {
               "include_in_all": true,
+              "type": "string"
+            },
+            "id": {
               "analyzer": "whitespace",
+              "include_in_all": true,
+              "type": "string"
+            },
+            "notes": {
+              "include_in_all": true,
               "type": "string"
             },
             "project": {
-              "include_in_all": true,
+              "include_in_all": false,
               "properties": {
                 "id": {
                   "analyzer": "whitespace",
+                  "include_in_all": true,
                   "type": "string"
                 },
                 "name": {
+                  "include_in_all": true,
                   "type": "string"
                 },
                 "name_en": {
+                  "include_in_all": true,
                   "type": "string"
                 },
                 "name_ru": {
+                  "include_in_all": true,
                   "type": "string"
                 }
               }
+            },
+            "year": {
+              "include_in_all": false,
+              "type": "long"
             }
           }
         },
         "classification": {
-          "include_in_all": true,
+          "include_in_all": false,
           "properties": {
             "description": {
+              "include_in_all": true,
               "type": "string"
             },
             "id": {
               "analyzer": "whitespace",
+              "include_in_all": true,
               "type": "string"
             },
             "scheme": {
+              "include_in_all": true,
               "type": "string"
             }
           }
         },
         "dateModified": {
-          "type": "date",
-          "format": "dateOptionalTime"
+          "format": "dateOptionalTime",
+          "include_in_all": false,
+          "type": "date"
+        },
+        "datePublished": {
+          "format": "dateOptionalTime",
+          "include_in_all": false,
+          "type": "date"
+        },
+        "documents": {
+          "include_in_all": false,
+          "properties": {
+            "dateModified": {
+              "format": "dateOptionalTime",
+              "include_in_all": false,
+              "type": "date"
+            },
+            "datePublished": {
+              "format": "dateOptionalTime",
+              "include_in_all": false,
+              "type": "date"
+            },
+            "documentOf": {
+              "include_in_all": false,
+              "type": "string"
+            },
+            "format": {
+              "include_in_all": false,
+              "type": "string"
+            },
+            "hash": {
+              "index": "no",
+              "include_in_all": false,
+              "type": "string"
+            },
+            "id": {
+              "index": "no",
+              "include_in_all": false,
+              "type": "string"
+            },
+            "title": {
+              "include_in_all": true,
+              "type": "string"
+            },
+            "title_en": {
+              "include_in_all": true,
+              "type": "string"
+            },
+            "title_ru": {
+              "include_in_all": true,
+              "type": "string"
+            },
+            "url": {
+              "index": "no",
+              "include_in_all": false,
+              "type": "string"
+            }
+          }
         },
         "id": {
-          "include_in_all": true,
           "analyzer": "whitespace",
+          "include_in_all": true,
           "type": "string"
         },
         "items": {
+          "include_in_all": false,
           "properties": {
             "additionalClassifications": {
-              "include_in_all": true,
+              "include_in_all": false,
               "properties": {
                 "description": {
+                  "include_in_all": true,
                   "type": "string"
                 },
                 "id": {
                   "analyzer": "whitespace",
+                  "include_in_all": true,
                   "type": "string"
                 },
                 "scheme": {
+                  "include_in_all": false,
                   "type": "string"
                 }
               }
             },
             "classification": {
-              "include_in_all": true,
+              "include_in_all": false,
               "properties": {
                 "description": {
+                  "include_in_all": true,
                   "type": "string"
                 },
                 "id": {
                   "analyzer": "whitespace",
+                  "include_in_all": true,
                   "type": "string"
                 },
                 "scheme": {
+                  "include_in_all": false,
                   "type": "string"
                 }
               }
             },
             "deliveryDate": {
+              "include_in_all": false,
               "properties": {
                 "endDate": {
-                  "type": "date",
-                  "format": "dateOptionalTime"
+                  "format": "dateOptionalTime",
+                  "include_in_all": false,
+                  "type": "date"
                 }
               }
             },
@@ -130,20 +226,32 @@
               "include_in_all": true,
               "type": "string"
             },
-            "id": {
+            "description_en": {
               "include_in_all": true,
+              "type": "string"
+            },
+            "description_ru": {
+              "include_in_all": true,
+              "type": "string"
+            },
+            "id": {
               "analyzer": "whitespace",
+              "include_in_all": true,
               "type": "string"
             },
             "quantity": {
+              "include_in_all": false,
               "type": "long"
             },
             "unit": {
+              "include_in_all": false,
               "properties": {
                 "code": {
+                  "include_in_all": false,
                   "type": "string"
                 },
                 "name": {
+                  "include_in_all": false,
                   "type": "string"
                 }
               }
@@ -151,62 +259,88 @@
           }
         },
         "mode": {
+          "analyzer": "whitespace",
+          "include_in_all": false,
+          "type": "string"
+        },
+        "owner": {
+          "analyzer": "whitespace",
+          "include_in_all": false,
           "type": "string"
         },
         "planID": {
-		      "include_in_all": true,
           "analyzer": "whitespace",
+          "include_in_all": true,
           "type": "string"
         },
         "procuringEntity": {
-          "include_in_all": true,
+          "include_in_all": false,
           "properties": {
             "identifier": {
+              "include_in_all": false,
               "properties": {
                 "id": {
                   "analyzer": "whitespace",
+                  "include_in_all": true,
                   "type": "string"
                 },
                 "legalName": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "legalName_en": {
+                  "include_in_all": true,
                   "type": "string"
                 },
                 "scheme": {
+                  "include_in_all": false,
                   "type": "string"
                 },
                 "uri": {
+                  "include_in_all": true,
                   "type": "string"
                 }
               }
             },
             "name": {
+              "include_in_all": true,
               "type": "string"
             },
             "name_en": {
+              "include_in_all": true,
+              "type": "string"
+            },
+            "name_ru": {
+              "include_in_all": true,
               "type": "string"
             }
           }
         },
         "tender": {
+          "include_in_all": false,
           "properties": {
             "procurementMethod": {
-              "include_in_all": true,
               "analyzer": "whitespace",
+              "include_in_all": false,
               "type": "string"
             },
             "procurementMethodType": {
-              "include_in_all": true,
               "analyzer": "whitespace",
+              "include_in_all": false,
               "type": "string"
             },
             "tenderPeriod": {
+              "include_in_all": false,
               "properties": {
                 "endDate": {
-                  "type": "date",
-                  "format": "dateOptionalTime"
+                  "format": "dateOptionalTime",
+                  "include_in_all": false,
+                  "type": "date"
                 },
                 "startDate": {
-                  "type": "date",
-                  "format": "dateOptionalTime"
+                  "format": "dateOptionalTime",
+                  "include_in_all": false,
+                  "type": "date"
                 }
               }
             }
@@ -219,13 +353,39 @@
     "index": {
       "analysis": {
         "analyzer": {
+          "index_ru": {
+            "filter": [
+              "standard",
+              "lowercase",
+              "light_russian"
+            ],
+            "tokenizer": "standard40"
+          },
+          "search_ru": {
+            "filter": [
+              "lowercase",
+              "light_russian"
+            ],
+            "tokenizer": "whitespace"
+          },
           "whitespace": {
-            "type": "whitespace",
-            "filter": "lowercase"
+            "filter": "lowercase",
+            "type": "whitespace"
+          }
+        },
+        "filter": {
+          "light_russian": {
+            "name": "light_russian",
+            "type": "stemmer"
+          }
+        },
+        "tokenizer": {
+          "standard40": {
+            "max_token_length": 40,
+            "type": "standard"
           }
         }
       }
     }
   }
 }
-

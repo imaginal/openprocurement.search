@@ -31,8 +31,8 @@ class TenderSource(BaseSource):
     def __init__(self, config={}):
         if config:
             self.config.update(config)
-        self.config['limit'] = int(self.config['limit']) or 100
-        self.config['preload'] = int(self.config['preload']) or 100
+        self.config['limit'] = int(self.config['limit'] or 0) or 100
+        self.config['preload'] = int(self.config['preload'] or 0) or 100
         self.client = None
 
     def procuring_entity(self, item):

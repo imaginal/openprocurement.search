@@ -26,6 +26,13 @@ class OrgsIndex(BaseIndex):
             if not self.test_exists(index_name, item['meta']):
                 raise e
 
+    def index_source(self, index_name=None, reset=False):
+        res = BaseIndex.index_source(self, index_name, reset)
+        # allow create empty index on reindex (only for orgs)
+        if res == 0 and reset:
+            return 1
+        return res
+
     def create_index(self, name, settings='settings/orgs.json'):
         logger.info("Create new index %s from %s", name, settings)
         data = get_data(__name__, settings)
