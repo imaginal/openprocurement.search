@@ -17,6 +17,9 @@ class OrgsIndex(BaseIndex):
             return True
         return False
 
+    def check_index(self, index_name):
+        return True
+
     def index_item(self, index_name, item):
         try:
             return self.engine.index_item(index_name, item)

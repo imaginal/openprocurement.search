@@ -81,7 +81,7 @@ def main():
         if config.get('orgs_db', None):
             source = OrgsSource(config)
             OrgsIndex(engine, source, config)
-        if config.get('api_url', None):
+        if config.get('tender_api_url', None):
             source = TenderSource(config)
             TenderIndex(engine, source, config)
         if config.get('ocds_dir', None):
@@ -90,7 +90,7 @@ def main():
         if config.get('plan_api_url', None):
             source = PlanSource(config)
             PlanIndex(engine, source, config)
-        if config.get('ea_api_url', None):
+        if config.get('auction_api_url', None):
             source = AuctionSource(config)
             AuctionIndex(engine, source, config)
         engine.run()

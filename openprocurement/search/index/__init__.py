@@ -2,7 +2,9 @@
 import os, sys
 from time import time, sleep
 from logging import getLogger
+from datetime import datetime, timedelta
 from multiprocessing import Process
+import simplejson as json
 
 logger = getLogger(__name__)
 
@@ -13,6 +15,7 @@ class BaseIndex(object):
     config = {
         'async_reindex': 0,
         'ignore_errors': 0,
+        'reindex_check': '1,1',
         'index_speed': 100,
         'error_wait': 10,
     }
@@ -27,14 +30,16 @@ class BaseIndex(object):
         if config:
             self.config.update(config)
             self.config['index_speed'] = float(self.config['index_speed'])
-        rename_index = 'rename_' + self.__index_name__
-        if rename_index in self.config:
-            self.__index_name__ = self.config[rename_index]
+        rename_key = 'rename_' + self.__index_name__
+        if rename_key in self.config:
+            self.__index_name__ = self.config[rename_key]
+        if self.allow_async_reindex:
+            self.allow_async_reindex = self.config['async_reindex']
+        self.set_reindex_options(self.config.get('reindex', ''),
+            self.config.get('reindex_check', ''))
         self.source = source
         self.engine = engine
         self.engine.add_index(self)
-        if self.allow_async_reindex:
-            self.allow_async_reindex = self.config['async_reindex']
         self.after_init()
 
     def __del__(self):
@@ -58,6 +63,16 @@ class BaseIndex(object):
             return time()
         prefix, suffix = name.rsplit('_', 1)
         return int(time() - int(suffix))
+
+    def set_reindex_options(self, reindex_period, reindex_check):
+        # reindex_period - two digits, first is age in days, seconds is weekday
+        if reindex_period:
+            self.max_age, self.reindex_day = map(int, reindex_period.split(','))
+            self.max_age *= 86400
+        # reindex_check - two digits, first is min docs count, second is max age of last doc
+        if reindex_check:
+            self.rc_mindocs, self.rc_max_age = map(int, reindex_check.split(','))
+            self.rc_max_age *= 86400
 
     def after_init(self):
         pass
@@ -206,9 +221,6 @@ class BaseIndex(object):
             elif not info:
                 break
 
-        if self.engine.should_exit:
-            return
-
         return index_count
 
     def stop_childs(self):
@@ -243,13 +255,42 @@ class BaseIndex(object):
         # close process
         self.reindex_process = None
 
+    def check_index(self, index_name):
+        """check index docs count afetr reindex"""
+        body = {"query": {"match_all": {}}, "sort": {"dateModified": {"order": "desc"}}}
+        res = self.engine.search(body, start=0, limit=1, index=index_name)
+        if not res['items']:
+            logger.error("[%s] Check failed: empty or corrupted index", index_name)
+            return False
+
+        logger.info("[%s] Total docs %d, last indexed %s",
+            index_name, res['total'], res['items'][0]['dateModified'])
+
+        if self.rc_mindocs and res['total'] < self.rc_mindocs:
+            logger.error("[%s] Check index failed: not enought docs %d, required %d", 
+                index_name, res['total'], self.rc_mindocs)
+            return False
+
+        if self.rc_max_age:
+            min_date = datetime.now() - timedelta(seconds=self.rc_max_age)
+            iso_min_date = min_date.isoformat()
+            last_indexed = res['items'][0]['dateModified']
+            if last_indexed < iso_min_date:
+                logger.error("[%s] Check index failed: last indexed is too old %s, "+
+                    "required %s", index_name, last_indexed, iso_min_date)
+                return False
+
+        return True
+
     def async_reindex(self):
         logger.info("*** Start Reindex-%s in subprocess",
             self.__index_name__)
         # reconnect elatic and prevent future stop_childs
-        self.engine.start_subprocess()
+        self.engine.start_in_subprocess()
 
-        if self.index_source(self.next_index_name, reset=True):
+        self.index_source(self.next_index_name, reset=True)
+
+        if self.check_index(self.next_index_name):
             exit_code = self.magic_exit_code
         else:
             exit_code = 1
@@ -258,10 +299,14 @@ class BaseIndex(object):
         logger.info("*** Exit subprocess")
         sys.exit(exit_code)
 
-    def reindex(self):
-        if self.engine.should_exit:
-            return
+    def do_reindex(self):
+        self.index_source(self.next_index_name, reset=True)
+        if self.check_index(self.next_index_name):
+            self.set_current(self.next_index_name)
+            return True
+        return False
 
+    def reindex(self):
         # check reindex process is alive
         if self.reindex_process and self.reindex_process.is_alive():
             return
@@ -272,9 +317,7 @@ class BaseIndex(object):
 
         # reindex in old-way sync mode
         if not self.allow_async_reindex:
-            if self.index_source(self.next_index_name, reset=True):
-                self.set_current(self.next_index_name)
-            return
+            return self.do_reindex()
 
         # reindex in async mode, start new reindex process
         proc_name = "Reindex-%s" % self.__index_name__

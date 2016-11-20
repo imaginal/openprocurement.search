@@ -13,16 +13,10 @@ class PlanIndex(BaseIndex):
 
     allow_async_reindex = True
 
-    def before_index_item(self, item):
-        entity = self.source.procuring_entity(item)
-        if entity:
-            self.engine.index_by_type('org', entity)
-        return True
-
     def after_init(self):
-        reindex = self.config.get('plan_reindex', '10,7')
-        self.max_age, self.reindex_day = map(int, reindex.split(','))
-        self.max_age *= 86400
+        self.set_reindex_options(
+            self.config.get('plan_reindex', '10,7'),
+            self.config.get('plan_check', '1,1'))
 
     def need_reindex(self):
         if not self.current_index:
@@ -30,6 +24,12 @@ class PlanIndex(BaseIndex):
         if self.index_age() > self.max_age:
             return datetime.now().isoweekday() >= self.reindex_day
         return False
+
+    def before_index_item(self, item):
+        entity = self.source.procuring_entity(item)
+        if entity:
+            self.engine.index_by_type('org', entity)
+        return True
 
     def create_index(self, name, settings='settings/plan.json'):
         logger.info("Create new index %s from %s", name, settings)

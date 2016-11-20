@@ -19,21 +19,21 @@ class AuctionSource(BaseSource):
     __doc_type__ = 'auction'
 
     config = {
-        'ea_api_key': '',
-        'ea_api_url': "",
-        'ea_api_version': '0',
-        'ea_resource': 'auctions',
-        'ea_api_mode': '',
-        'ea_skip_until': None,
-        'ea_limit': 1000,
-        'ea_preload': 500000,
+        'auction_api_key': '',
+        'auction_api_url': "",
+        'auction_api_version': '0',
+        'auction_resource': 'auctions',
+        'auction_api_mode': '',
+        'auction_skip_until': None,
+        'auction_limit': 1000,
+        'auction_preload': 500000,
         'timeout': 30,
     }
     def __init__(self, config={}):
         if config:
             self.config.update(config)
-        self.config['ea_limit'] = int(self.config['ea_limit'] or 0) or 100
-        self.config['ea_preload'] = int(self.config['ea_preload'] or 0) or 100
+        self.config['auction_limit'] = int(self.config['auction_limit'] or 0) or 100
+        self.config['auction_preload'] = int(self.config['auction_preload'] or 0) or 100
         self.client = None
 
     def procuring_entity(self, item):
@@ -53,22 +53,22 @@ class AuctionSource(BaseSource):
 
     @retry(stop_max_attempt_number=5, wait_fixed=15000)
     def reset(self):
-        logger.info("Reset auctions, ea_skip_until=%s",
-                    self.config['ea_skip_until'])
+        logger.info("Reset auctions, auction_skip_until=%s",
+                    self.config['auction_skip_until'])
         if self.config.get('timeout', None):
             setdefaulttimeout(float(self.config['timeout']))
         params = {}
-        if self.config['ea_api_mode']:
-            params['mode'] = self.config['ea_api_mode']
-        if self.config['ea_limit']:
-            params['limit'] = self.config['ea_limit']
+        if self.config['auction_api_mode']:
+            params['mode'] = self.config['auction_api_mode']
+        if self.config['auction_limit']:
+            params['limit'] = self.config['auction_limit']
         self.client = TendersClient(
-            key=self.config['ea_api_key'],
-            host_url=self.config['ea_api_url'],
-            api_version=self.config['ea_api_version'],
-            resource=self.config['ea_resource'],
+            key=self.config['auction_api_key'],
+            host_url=self.config['auction_api_url'],
+            api_version=self.config['auction_api_version'],
+            resource=self.config['auction_resource'],
             params=params)
-        self.skip_until = self.config.get('ea_skip_until', None)
+        self.skip_until = self.config.get('auction_skip_until', None)
         if self.skip_until and self.skip_until[:2] != '20':
             self.skip_until = None
 
@@ -95,7 +95,7 @@ class AuctionSource(BaseSource):
                     items[-1]['dateModified'])
             if len(items) < 10:
                 break
-            if len(preload_items) >= self.config['ea_preload']:
+            if len(preload_items) >= self.config['auction_preload']:
                 break
 
         return preload_items

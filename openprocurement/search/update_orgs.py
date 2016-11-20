@@ -167,14 +167,14 @@ def main():
             date = datetime.now() - timedelta(days=int(update_days))
             date = date.strftime("%Y-%m-%d")
             logger.warning("Set mandatory skip_until = %s", date)
-            config['skip_until'] = date
+            config['tender_skip_until'] = date
             config['plan_skip_until'] = date
             config['ocds_skip_until'] = date
         global engine
         engine = IndexOrgsEngine(config)
         source = OrgsSource(config)
         OrgsIndex(engine, source, config)
-        if config.get('api_url', None):
+        if config.get('tender_api_url', None):
             source = TenderSource(config)
             engine.process_source(source)
         if config.get('ocds_dir', None):

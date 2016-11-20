@@ -65,7 +65,7 @@ class SearchTester(object):
         logger.info("Search %s found %s", path, item['dateModified'])
 
     def test_tenders(self):
-        # self.engine_config['skip_until'] = ''
+        # self.engine_config['tender_skip_until'] = ''
 
         source = TenderSource(self.engine_config)
         index = TenderIndex(self.engine, source, self.engine_config)
@@ -86,11 +86,11 @@ class SearchTester(object):
 
         source.reset()
         source.client.params.update({'descending': 1, 'limit': limit})
-        source.config['preload'] = preload
+        source.config['tender_preload'] = preload
 
         logger.info("Client %s/api/%s mode=%s", 
-            source.config['api_url'], 
-            source.config['api_version'],
+            source.config['tender_api_url'], 
+            source.config['tender_api_version'],
             source.client.params.get('mode', ''))
         logger.info("Search %s:%s", 
             self.search_config['host'],
@@ -200,7 +200,7 @@ class SearchTester(object):
 
 
     def test(self):
-        if self.engine_config.get('api_url', None):
+        if self.engine_config.get('tender_api_url', None):
             self.test_tenders()
 
         if self.engine_config.get('plan_api_url', None):
@@ -249,7 +249,7 @@ def main():
     if '-i' in sys.argv:
         tester.ignore = True
     if '-nt' in sys.argv:
-        tester.engine_config['api_url'] = None
+        tester.engine_config['tender_api_url'] = None
     if '-np' in sys.argv:
         tester.engine_config['plan_api_url'] = None
 

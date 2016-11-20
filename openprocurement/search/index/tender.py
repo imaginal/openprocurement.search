@@ -13,6 +13,18 @@ class TenderIndex(BaseIndex):
     
     allow_async_reindex = True
 
+    def after_init(self):
+        self.set_reindex_options(
+            self.config.get('tender_reindex', '5,6'),
+            self.config.get('tender_check', '1,1'))
+
+    def need_reindex(self):
+        if not self.current_index:
+            return True
+        if self.index_age() > self.max_age:
+            return datetime.now().isoweekday() >= self.reindex_day
+        return False
+
     def before_index_item(self, item):
         entity = self.source.procuring_entity(item)
         if entity:
@@ -46,18 +58,6 @@ class TenderIndex(BaseIndex):
                 if item.data.status == 'draft.stage2':
                     return True
 
-        return False
-
-    def after_init(self):
-        reindex = self.config.get('tender_reindex', '10,6')
-        self.max_age, self.reindex_day = map(int, reindex.split(','))
-        self.max_age *= 86400
-
-    def need_reindex(self):
-        if not self.current_index:
-            return True
-        if self.index_age() > self.max_age:
-            return datetime.now().isoweekday() >= self.reindex_day
         return False
 
     def create_index(self, name, settings='settings/tender.json'):

@@ -18,21 +18,21 @@ class TenderSource(BaseSource):
     __doc_type__ = 'tender'
 
     config = {
-        'api_key': '',
-        'api_url': "",
-        'api_version': '0',
-        'api_mode': '',
-        'skip_until': None,
-        'limit': 1000,
-        'preload': 500000,
+        'tender_api_key': '',
+        'tender_api_url': "",
+        'tender_api_version': '0',
+        'tender_api_mode': '',
+        'tender_skip_until': None,
+        'tender_limit': 1000,
+        'tender_preload': 500000,
         'timeout': 30,
     }
 
     def __init__(self, config={}):
         if config:
             self.config.update(config)
-        self.config['limit'] = int(self.config['limit'] or 0) or 100
-        self.config['preload'] = int(self.config['preload'] or 0) or 100
+        self.config['tender_limit'] = int(self.config['tender_limit'] or 0) or 100
+        self.config['tender_preload'] = int(self.config['tender_preload'] or 0) or 100
         self.client = None
 
     def procuring_entity(self, item):
@@ -49,20 +49,20 @@ class TenderSource(BaseSource):
 
     @retry(stop_max_attempt_number=5, wait_fixed=15000)
     def reset(self):
-        logger.info("Reset tenders, skip_until=%s", self.config['skip_until'])
+        logger.info("Reset tenders, skip_until=%s", self.config['tender_skip_until'])
         if self.config.get('timeout', None):
             setdefaulttimeout(float(self.config['timeout']))
         params = {}
-        if self.config['api_mode']:
-            params['mode'] = self.config['api_mode']
-        if self.config['limit']:
-            params['limit'] = self.config['limit']
+        if self.config['tender_api_mode']:
+            params['mode'] = self.config['tender_api_mode']
+        if self.config['tender_limit']:
+            params['limit'] = self.config['tender_limit']
         self.client = TendersClient(
-            key=self.config['api_key'],
-            host_url=self.config['api_url'],
-            api_version=self.config['api_version'],
+            key=self.config['tender_api_key'],
+            host_url=self.config['tender_api_url'],
+            api_version=self.config['tender_api_version'],
             params=params)
-        self.skip_until = self.config.get('skip_until', None)
+        self.skip_until = self.config.get('tender_skip_until', None)
         if self.skip_until and self.skip_until[:2] != '20':
             self.skip_until = None
 
@@ -89,7 +89,7 @@ class TenderSource(BaseSource):
                     items[-1]['dateModified'])
             if len(items) < 10:
                 break
-            if len(preload_items) >= self.config['preload']:
+            if len(preload_items) >= self.config['tender_preload']:
                 break
 
         return preload_items

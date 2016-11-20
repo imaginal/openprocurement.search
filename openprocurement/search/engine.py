@@ -42,8 +42,10 @@ class SearchEngine(object):
         self.debug = self.config.get('debug', False)
         self.should_exit = False
 
-    def start_subprocess(self):
+    def start_in_subprocess(self):
+        # create copy of elastic connection
         self.elastic = Elasticsearch([self.config.get('elastic_host')])
+        # we're not master anymore, clear inherited reindex_process
         for index in self.index_list:
             if getattr(index, 'reindex_process', None):
                 index.reindex_process = None
@@ -96,6 +98,12 @@ class SearchEngine(object):
             except KeyError:
                 pass
         return stout
+
+    @retry(stop_max_attempt_number=5, wait_fixed=5000)
+    def index_stats(self, index_name):
+        indices = IndicesClient(self.elastic)
+        stats = indices.stats(index_name)
+        return stats['indices'][index_name]['total']
 
     def search(self, body, start=0, limit=0, index=None, index_keys=None):
         if not index:

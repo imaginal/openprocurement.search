@@ -13,16 +13,10 @@ class AuctionIndex(BaseIndex):
 
     allow_async_reindex = True
 
-    def before_index_item(self, item):
-        entity = self.source.procuring_entity(item)
-        if entity:
-            self.engine.index_by_type('org', entity)
-        return True
-
     def after_init(self):
-        reindex = self.config.get('auction_reindex', '5,6')
-        self.max_age, self.reindex_day = map(int, reindex.split(','))
-        self.max_age *= 86400
+        self.set_reindex_options(
+            self.config.get('auction_reindex', '5,6'),
+            self.config.get('auction_check', '1,1'))
 
     def need_reindex(self):
         if not self.current_index:
@@ -30,6 +24,12 @@ class AuctionIndex(BaseIndex):
         if self.index_age() > self.max_age:
             return datetime.now().isoweekday() >= self.reindex_day
         return False
+
+    def before_index_item(self, item):
+        entity = self.source.procuring_entity(item)
+        if entity:
+            self.engine.index_by_type('org', entity)
+        return True
 
     def create_index(self, name, settings='settings/auction.json'):
         logger.info("Create new index %s from %s", name, settings)
