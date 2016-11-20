@@ -125,10 +125,9 @@ class AuctionSource(BaseSource):
                 if retry_count > 3:
                     raise e
                 retry_count += 1
-                logger.error("AuctionSource.get_auction %s error %s",
-                    str(item['id']), str(e))
+                logger.error("get_auction %s error %s", str(item['id']), str(e))
                 if retry_count > 1:
                     self.reset()
-                sleep(1)
+                sleep(5)
         auction['meta'] = item
         return auction

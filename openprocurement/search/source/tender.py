@@ -117,10 +117,9 @@ class TenderSource(BaseSource):
                 if retry_count > 3:
                     raise e
                 retry_count += 1
-                logger.error("TenderSource.get_tender %s error %s",
-                    str(item['id']), str(e))
+                logger.error("get_tender %s error %s", str(item['id']), str(e))
                 if retry_count > 1:
                     self.reset()
-                sleep(1)
+                sleep(5)
         tender['meta'] = item
         return tender

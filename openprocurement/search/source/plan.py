@@ -120,10 +120,9 @@ class PlanSource(BaseSource):
                 if retry_count > 3:
                     raise e
                 retry_count += 1
-                logger.error("PlanSource.get_plan %s error %s",
-                    str(item['id']), str(e))
+                logger.error("get_plan %s error %s", str(item['id']), str(e))
                 if retry_count > 1:
                     self.reset()
-                sleep(1)
+                sleep(5)
         tender['meta'] = item
         return tender
