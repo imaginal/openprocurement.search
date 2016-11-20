@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from time import mktime
+from time import mktime, sleep
 from retrying import retry
 from iso8601 import parse_date
 from socket import setdefaulttimeout
@@ -29,6 +29,7 @@ class AuctionSource(BaseSource):
         'auction_preload': 500000,
         'timeout': 30,
     }
+
     def __init__(self, config={}):
         if config:
             self.config.update(config)

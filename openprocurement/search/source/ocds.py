@@ -23,6 +23,7 @@ class OcdsSource(BaseSource):
         'ocds_speed': 500,
         'ocds_skip_until': None,
     }
+
     def __init__(self, config={}):
         if config:
             self.config.update(config)
