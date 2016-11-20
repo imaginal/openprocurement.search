@@ -216,8 +216,9 @@ class BaseIndex(object):
                 self.indexing_stat(index_name, total_count, index_count,
                     iter_count, info.get('dateModified'))
             elif getattr(self.source, 'last_skipped', None):
+                last_skipped = self.source.last_skipped or ""
                 logger.info("[%s] Fetched %d, last_skipped %s",
-                    index_name, total_count, self.source.last_skipped)
+                    index_name, total_count, last_skipped)
             elif not info:
                 break
 

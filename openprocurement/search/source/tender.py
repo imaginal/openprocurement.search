@@ -83,10 +83,8 @@ class TenderSource(BaseSource):
             preload_items.extend(items)
 
             if len(preload_items) >= 100:
-                logger.info(
-                    "Preload %d tenders, last %s",
-                    len(preload_items),
-                    items[-1]['dateModified'])
+                logger.info("Preload %d tenders, last %s",
+                    len(preload_items), items[-1]['dateModified'])
             if len(items) < 10:
                 break
             if len(preload_items) >= self.config['tender_preload']:
