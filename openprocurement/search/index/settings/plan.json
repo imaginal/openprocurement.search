@@ -131,6 +131,18 @@
               "include_in_all": false,
               "type": "date"
             },
+            "description": {
+              "include_in_all": true,
+              "type": "string"
+            },
+            "description_en": {
+              "include_in_all": true,
+              "type": "string"
+            },
+            "description_ru": {
+              "include_in_all": true,
+              "type": "string"
+            },
             "documentOf": {
               "include_in_all": false,
               "type": "string"
@@ -140,13 +152,13 @@
               "type": "string"
             },
             "hash": {
-              "index": "no",
               "include_in_all": false,
+              "index": "no",
               "type": "string"
             },
             "id": {
-              "index": "no",
               "include_in_all": false,
+              "index": "no",
               "type": "string"
             },
             "title": {
@@ -162,8 +174,8 @@
               "type": "string"
             },
             "url": {
-              "index": "no",
               "include_in_all": false,
+              "index": "no",
               "type": "string"
             }
           }
@@ -216,6 +228,11 @@
               "include_in_all": false,
               "properties": {
                 "endDate": {
+                  "format": "dateOptionalTime",
+                  "include_in_all": false,
+                  "type": "date"
+                },
+                "startDate": {
                   "format": "dateOptionalTime",
                   "include_in_all": false,
                   "type": "date"
@@ -321,12 +338,12 @@
           "properties": {
             "procurementMethod": {
               "analyzer": "whitespace",
-              "include_in_all": false,
+              "include_in_all": true,
               "type": "string"
             },
             "procurementMethodType": {
               "analyzer": "whitespace",
-              "include_in_all": false,
+              "include_in_all": true,
               "type": "string"
             },
             "tenderPeriod": {
