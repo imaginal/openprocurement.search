@@ -21,6 +21,9 @@ class TenderIndex(BaseIndex):
     def need_reindex(self):
         if not self.current_index:
             return True
+        if self.force_next_reindex:
+            self.force_next_reindex = False
+            return True
         if self.index_age() > self.max_age:
             return datetime.now().isoweekday() >= self.reindex_day
         return False
@@ -64,4 +67,6 @@ class TenderIndex(BaseIndex):
         logger.info("Create new index %s from %s", name, settings)
         data = get_data(__name__, settings)
         body = json.loads(data)
+        for key in self.index_settings_keys:
+            body['settings']['index'][key] = self.config[key]
         self.engine.create_index(name, body=body)

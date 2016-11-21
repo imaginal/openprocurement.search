@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
-from time import mktime, sleep
+from time import mktime
 from retrying import retry
 from iso8601 import parse_date
 from socket import setdefaulttimeout
 from retrying import retry
-from restkit import ResourceError
 
 from openprocurement_client.client import TendersClient
 from openprocurement.search.source import BaseSource
@@ -78,7 +77,7 @@ class AuctionSource(BaseSource):
         while True:
             try:
                 items = self.client.get_tenders()
-            except ResourceError as e:
+            except Exception as e:
                 logger.error("AuctionSource.preload error %s", str(e))
                 self.reset()
                 break
@@ -111,7 +110,6 @@ class AuctionSource(BaseSource):
                 continue
             yield self.patch_version(auction)
 
-
     def get(self, item):
         auction = None
         retry_count = 0
@@ -119,13 +117,14 @@ class AuctionSource(BaseSource):
             try:
                 auction = self.client.get_tender(item['id'])
                 break
-            except ResourceError as e:
+            except Exception as e:
                 if retry_count > 3:
                     raise e
                 retry_count += 1
-                logger.error("get_auction %s error %s", str(item['id']), str(e))
+                logger.error("get_auction %s retry %d error %s", 
+                    str(item['id']), retry_count, str(e))
+                self.sleep(5)
                 if retry_count > 1:
                     self.reset()
-                sleep(5)
         auction['meta'] = item
         return auction

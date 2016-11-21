@@ -6,6 +6,21 @@
         "index_analyzer": "index_ru",
         "search_analyzer": "search_ru"
       },
+      "dynamic": false,
+      "date_detection": false,
+      "numeric_detection": false,
+      "dynamic_templates": [
+        {
+          "force_string" : {
+            "match" : "*",
+            "mapping" : {
+              "analyzer": "whitespace_auto",
+              "include_in_all": false,
+              "type" : "string"
+            }
+          }
+        }
+      ],
       "include_in_all": false,
       "properties": {
         "auctionPeriod": {
@@ -3512,6 +3527,10 @@
             "tokenizer": "whitespace"
           },
           "whitespace": {
+            "filter": "lowercase",
+            "type": "whitespace"
+          },
+          "whitespace_auto": {
             "filter": "lowercase",
             "type": "whitespace"
           }

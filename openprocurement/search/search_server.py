@@ -26,7 +26,7 @@ search_config = dict(config_parser.items('search_engine'))
 
 search_engine = SearchEngine(search_config)
 
-AUCTION_INDEX_KEYS = ['auction']
+AUCTION_INDEX_KEYS = ['auctions']
 ORGS_INDEX_KEYS = ['orgs']
 PLAN_INDEX_KEYS = ['plans']
 TENDER_INDEX_KEYS = ['tenders', 'ocds']
@@ -114,6 +114,7 @@ prefix_map = {
     'plan_dkpp_like': 'additionalClassifications.id',
 }
 match_map = {
+    'id': 'id',
     'aid': 'auctionID',
     'dgf': 'dgfID',
     'tid': 'tenderID',

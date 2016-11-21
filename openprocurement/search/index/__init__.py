@@ -16,11 +16,16 @@ class BaseIndex(object):
         'async_reindex': 0,
         'ignore_errors': 0,
         'reindex_check': '1,1',
+        'number_of_shards': 6,
         'index_speed': 100,
         'error_wait': 10,
     }
+    index_settings_keys = ['number_of_shards']
     allow_async_reindex = False
+    force_next_reindex = False
     magic_exit_code = 84
+    check_all_field = True
+    skip_check_count = False
     reindex_process = None
     next_index_name = None
     last_current_index = None
@@ -62,6 +67,10 @@ class BaseIndex(object):
         if not name:
             return time()
         prefix, suffix = name.rsplit('_', 1)
+        try:
+            suffix = int(suffix)
+        except:
+            suffix = 0
         return int(time() - int(suffix))
 
     def set_reindex_options(self, reindex_period, reindex_check):
@@ -91,14 +100,16 @@ class BaseIndex(object):
         current_index = self.current_index
         if current_index and name <= current_index:
             name = None
+        if name and not self.engine.index_exists(name):
+            name = None
         if name and self.index_age(name) > 5 * 24 * 3600:
             name = None
-        if not name:
+        if name:
+            logger.info("Use already created index %s", name)
+        else:
             name = "{}_{}".format(index_key, int(time()))
             self.create_index(name)
             self.engine.set_index(index_key_next, name)
-        else:
-            logger.info("Use already created index %s", name)
         # check current not same to new
         assert name != current_index, "same index name"
         return name
@@ -144,8 +155,7 @@ class BaseIndex(object):
     def indexing_stat(self, index_name, fetched, indexed, iter_count, last_date):
         last_date = last_date or ""
         pause = 1.0 * iter_count / self.config['index_speed']
-        logger.info(
-            "[%s] Fetched %d indexed %d last %s", # wait %1.1fs
+        logger.info("[%s] Fetched %d indexed %d last %s", # wait %1.1fs
             index_name, fetched, indexed, last_date)
         if pause > 0.01:
             self.engine.sleep(pause)
@@ -251,16 +261,45 @@ class BaseIndex(object):
                 self.next_index_name = None
             self.source.reset()
         else:
-            logger.error("Reindex subprocess fail, exitcode = %d",
-                self.reindex_process.exitcode)
+            logger.error("Reindex-%s subprocess fail, exitcode = %d",
+                self.__index_name__, self.reindex_process.exitcode)
         # close process
         self.reindex_process = None
 
     def check_index(self, index_name):
-        """check index docs count afetr reindex"""
-        body = {"query": {"match_all": {}}, "sort": {"dateModified": {"order": "desc"}}}
-        res = self.engine.search(body, start=0, limit=1, index=index_name)
-        if not res['items']:
+        if not index_name or self.engine.should_exit:
+            return False
+
+        # check index mappings by check _all field
+        if self.check_all_field:
+            try:
+                info = self.engine.index_info(index_name)
+            except Exception as e:
+                logger.error("[%s] Check index failed: index not found", index_name)
+                self.force_next_reindex = True
+                return False
+            doc_type = self.source.__doc_type__
+            if '_all' not in info['mappings'][doc_type]:
+                logger.error("[%s] Check index failed: _all field not found, please reindex!",
+                    index_name)
+                self.force_next_reindex = True
+                return False
+
+        if self.skip_check_count:
+            if self.check_all_field:
+                logger.info("[%s] Index is ok, docs count not tested", index_name)
+            return True
+
+        # check index docs count afetr reindex
+        body = {
+            "query": {"match_all": {}},
+            "sort": {"dateModified": {"order": "desc"}}
+            }
+        try:
+            res = self.engine.search(body, start=0, limit=1, index=index_name)
+        except:
+            res = None
+        if not res or not res['items']:
             logger.error("[%s] Check failed: empty or corrupted index", index_name)
             return False
 
@@ -282,6 +321,14 @@ class BaseIndex(object):
                 return False
 
         return True
+
+    def check_on_start(self):
+        if not self.current_index:
+            return True
+        if self.check_index(self.current_index):
+            return True
+        if not self.engine.index_exists(self.current_index):
+            self.set_current('')
 
     def async_reindex(self):
         logger.info("*** Start Reindex-%s in subprocess",
@@ -311,6 +358,10 @@ class BaseIndex(object):
         # check reindex process is alive
         if self.reindex_process and self.reindex_process.is_alive():
             return
+
+        # clear reindex flag
+        if self.force_next_reindex:
+            self.force_next_reindex = False
 
         logger.info("Need reindex %s", self.__index_name__)
         # create new index and save name

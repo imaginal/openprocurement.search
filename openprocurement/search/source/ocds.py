@@ -19,7 +19,8 @@ class OcdsSource(BaseSource):
 
     config = {
         'ocds_dir': 'ocds',
-        'ocds_mask': 'ocds-*.json',
+        'ocds_mask': 'ocds-tender-*.json',
+        'ocds_minsize': 1000,
         'ocds_speed': 500,
         'ocds_skip_until': None,
     }
@@ -75,9 +76,12 @@ class OcdsSource(BaseSource):
 
     def reset(self):
         files = []
+        ocds_minsize = int(self.config['ocds_minsize'])
         for name in listdir(self.config['ocds_dir']):
             if fnmatch(name, self.config['ocds_mask']):
-                files.append(name)
+                fullname = path.join(self.config['ocds_dir'], name)
+                if path.getsize(fullname) > ocds_minsize:
+                    files.append(name)
         self.files = sorted(files)
         self.last_reset_time = time()
         logger.info("Reset ocds, found %d files", len(self.files))
@@ -91,8 +95,8 @@ class OcdsSource(BaseSource):
             self.files = []
 
     def items(self):
-        if not self.files and self.since_last_reset() > 3600:
-            self.lazy_reset()
+        # if not self.files and self.since_last_reset() > 3600:
+        #     self.lazy_reset()
         if not self.files:
             return
         self.last_skipped = None

@@ -24,6 +24,7 @@ class SearchEngine(object):
         'elastic_host': 'localhost',
         'slave_mode': None,
         'slave_wakeup': 600,
+        'check_on_start': 1,
         'update_wait': 5,
         'error_wait': 10,
         'start_wait': 1,
@@ -64,7 +65,8 @@ class SearchEngine(object):
 
     def get_index(self, key):
         """Returns current index full name"""
-        return self.names_db.get(key)
+        name = self.names_db.get(key)
+        return name
 
     def set_index(self, key, name):
         self.names_db[key] = str(name)
@@ -98,6 +100,12 @@ class SearchEngine(object):
             except KeyError:
                 pass
         return stout
+
+    @retry(stop_max_attempt_number=5, wait_fixed=5000)
+    def index_info(self, index_name):
+        indices = IndicesClient(self.elastic)
+        info = indices.get(index_name)
+        return info[index_name]
 
     @retry(stop_max_attempt_number=5, wait_fixed=5000)
     def index_stats(self, index_name):
@@ -187,6 +195,13 @@ class IndexEngine(SearchEngine):
         ns = "\n\t".join(["%-17s = %s" % (k, v)
             for k, v in self.index_names_dict().items()])
         return ns or "(index_names is empty)"
+
+    def index_exists(self, index_name):
+        try:
+            self.index_info(index_name)
+        except:
+            return False
+        return True
 
     def create_index(self, index_name, body):
         indices = IndicesClient(self.elastic)
@@ -306,7 +321,15 @@ class IndexEngine(SearchEngine):
                     self.index_list, self.dump_index_names())
         if self.slave_mode:
             logger.info("Start in slave mode, wait for master...")
+
         self.wait_for_backend()
+
+        # check indexes before start
+        if self.config['check_on_start']:
+            for index in self.index_list:
+                index.check_on_start()
+
+        # start main loop
         allow_reindex = not self.slave_mode
         while not self.should_exit:
             for index in self.index_list:
@@ -314,4 +337,5 @@ class IndexEngine(SearchEngine):
                     break
                 index.process(allow_reindex)
             self.sleep(self.config['update_wait'])
+
         logger.info("Leave main loop")

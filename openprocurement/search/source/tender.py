@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
-from time import mktime, sleep
+from time import mktime
 from iso8601 import parse_date
 from socket import setdefaulttimeout
 from retrying import retry
-from restkit import ResourceError
 
 from openprocurement_client.client import TendersClient
 from openprocurement.search.source import BaseSource
@@ -49,7 +48,7 @@ class TenderSource(BaseSource):
 
     @retry(stop_max_attempt_number=5, wait_fixed=15000)
     def reset(self):
-        logger.info("Reset tenders, skip_until=%s", self.config['tender_skip_until'])
+        logger.info("Reset tenders, tender_skip_until=%s", self.config['tender_skip_until'])
         if self.config.get('timeout', None):
             setdefaulttimeout(float(self.config['timeout']))
         params = {}
@@ -71,7 +70,7 @@ class TenderSource(BaseSource):
         while True:
             try:
                 items = self.client.get_tenders()
-            except ResourceError as e:
+            except Exception as e:
                 logger.error("TenderSource.preload error %s", str(e))
                 self.reset()
                 break
@@ -111,13 +110,14 @@ class TenderSource(BaseSource):
             try:
                 tender = self.client.get_tender(item['id'])
                 break
-            except ResourceError as e:
+            except Exception as e:
                 if retry_count > 3:
                     raise e
                 retry_count += 1
-                logger.error("get_tender %s error %s", str(item['id']), str(e))
+                logger.error("get_tender %s retry %d error %s", 
+                    str(item['id']), retry_count, str(e))
+                self.sleep(5)
                 if retry_count > 1:
                     self.reset()
-                sleep(5)
         tender['meta'] = item
         return tender

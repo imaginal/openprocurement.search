@@ -16,6 +16,10 @@ from openprocurement.search.index.tender import TenderIndex
 from openprocurement.search.source.plan import PlanSource
 from openprocurement.search.index.plan import PlanIndex
 
+from openprocurement.search.source.auction import AuctionSource
+from openprocurement.search.index.auction import AuctionIndex
+
+
 LOG_FORMAT = '%(asctime)s %(levelname)s %(message)s'
 
 logger = logging.getLogger()
@@ -198,6 +202,72 @@ class SearchTester(object):
         if test_count < 5:
             raise RuntimeError("Not enough queries")
 
+    def test_auctions(self):
+        # self.engine_config['auction_skip_until'] = ''
+
+        source = AuctionSource(self.engine_config)
+        index = AuctionIndex(self.engine, source, self.engine_config)
+
+        offset = datetime.now() - timedelta(minutes=self.offset)
+        offset = offset.isoformat()
+
+        if self.full_test:
+            test_limit = 5000
+            skip_limit = 100
+            preload = 500000
+            limit = 1000
+        else:
+            test_limit = 5
+            skip_limit = 0
+            preload = 100
+            limit = 100
+
+        source.reset()
+        source.client.params.update({'descending': 1, 'limit': limit})
+        source.config['auction_preload'] = preload
+        source.skip_until = None
+
+        logger.info("Client %s/api/%s mode=%s", 
+            source.config['auction_api_url'], 
+            source.config['auction_api_version'],
+            source.client.params.get('mode', ''))
+        logger.info("Search %s:%s", 
+            self.search_config['host'],
+            self.search_config['port'])
+
+        test_count = 0
+        skip_count = skip_limit
+
+        while test_count < test_limit:
+            meta = None
+            for meta in source.items():
+                if meta.dateModified > offset:
+                    continue
+                if skip_count < skip_limit:
+                    skip_count += 1
+                    continue
+                try:
+                    tender = source.get(meta)
+                    if index.test_noindex(tender):
+                        continue
+                    if tender.data.dateModified > offset:
+                        continue
+                    self.do_search('auctions?aid=%(auctionID)s', tender.data)
+                except Exception as e:
+                    if self.ignore:
+                        logger.error("%s (ignored)", e)
+                        self.errors += 1
+                    else:
+                        raise
+                test_count += 1
+                skip_count = 0
+                if test_count >= test_limit:
+                    break
+            if not meta:
+                break
+
+        if test_count < 5:
+            raise RuntimeError("Not enough queries")
 
     def test(self):
         if self.engine_config.get('tender_api_url', None):
@@ -205,6 +275,9 @@ class SearchTester(object):
 
         if self.engine_config.get('plan_api_url', None):
             self.test_plans()        
+
+        if self.engine_config.get('auction_api_url', None):
+            self.test_auctions()
 
 
 def print_usage():
@@ -252,6 +325,8 @@ def main():
         tester.engine_config['tender_api_url'] = None
     if '-np' in sys.argv:
         tester.engine_config['plan_api_url'] = None
+    if '-na' in sys.argv:
+        tester.engine_config['auction_api_url'] = None
 
     logging.basicConfig(level=log_level, format=LOG_FORMAT)
     logger.info("Start with config %s", sys.argv[1])

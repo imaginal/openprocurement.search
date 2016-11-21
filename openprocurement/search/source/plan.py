@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
-from time import mktime, sleep
+from time import mktime
 from iso8601 import parse_date
 from socket import setdefaulttimeout
 from retrying import retry
-from restkit import ResourceError
 
 from openprocurement_client.client import TendersClient
 from openprocurement.search.source import BaseSource
@@ -74,7 +73,7 @@ class PlanSource(BaseSource):
         while True:
             try:
                 items = self.client.get_tenders()
-            except ResourceError as e:
+            except Exception as e:
                 logger.error("PlanSource.preload error %s", str(e))
                 self.reset()
                 break
@@ -114,13 +113,14 @@ class PlanSource(BaseSource):
             try:
                 tender = self.client.get_tender(item['id'])
                 break
-            except ResourceError as e:
+            except Exception as e:
                 if retry_count > 3:
                     raise e
                 retry_count += 1
-                logger.error("get_plan %s error %s", str(item['id']), str(e))
+                logger.error("get_plan %s retry %d error %s", 
+                    str(item['id']), retry_count, str(e))
+                self.sleep(5)
                 if retry_count > 1:
                     self.reset()
-                sleep(5)
         tender['meta'] = item
         return tender

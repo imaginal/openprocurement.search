@@ -10,6 +10,9 @@ from ConfigParser import ConfigParser
 
 from openprocurement.search.engine import IndexEngine
 
+from openprocurement.search.source.orgs import OrgsSource
+from openprocurement.search.index.orgs import OrgsIndex
+
 from openprocurement.search.source.tender import TenderSource
 from openprocurement.search.index.tender import TenderIndex
 
@@ -34,6 +37,10 @@ class IndexTester(object):
         self.errors = 0
 
     def init_engine(self):
+        if self.config.get('orgs_db', None):
+            source = OrgsSource(self.config)
+            OrgsIndex(self.engine, source, self.config)            
+
         if self.config.get('tender_api_url', None):
             source = TenderSource(self.config)
             TenderIndex(self.engine, source, self.config)
@@ -104,6 +111,8 @@ def main():
         tester.config['ocds_dir'] = None
     if '-na' in sys.argv:
         tester.config['auction_api_url'] = None
+    if '-ns' in sys.argv:
+        tester.config['orgs_db'] = None
 
     logging.basicConfig(level=log_level, format=LOG_FORMAT)
     logger.info("Start with config %s", sys.argv[1])

@@ -15,10 +15,15 @@ class OrgsIndex(BaseIndex):
     def need_reindex(self):
         if not self.current_index:
             return True
+        if self.force_next_reindex:
+            self.force_next_reindex = False
+            return True
         return False
 
     def check_index(self, index_name):
-        return True
+        self.check_all_field = True
+        self.skip_check_count = True
+        return super(OrgsIndex, self).check_index(index_name)
 
     def index_item(self, index_name, item):
         try:
@@ -40,4 +45,7 @@ class OrgsIndex(BaseIndex):
         logger.info("Create new index %s from %s", name, settings)
         data = get_data(__name__, settings)
         body = json.loads(data)
+        # for key in self.index_settings_keys:
+        #     body['settings']['index'][key] = self.config[key]
+        body['settings']['index']['number_of_shards'] = 1
         self.engine.create_index(name, body=body)
