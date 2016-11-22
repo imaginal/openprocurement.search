@@ -29,7 +29,12 @@ class SearchEngine(object):
         'error_wait': 10,
         'start_wait': 1,
     }
-
+    search_index_map = {
+        'tenders': ['tenders', 'tndocds'],
+        'plans': ['plans'],
+        'orgs': ['orgs'],
+        'auctions': ['auctions'],
+    }
     debug = False
 
     def __init__(self, config={}):
@@ -43,6 +48,26 @@ class SearchEngine(object):
         self.debug = self.config.get('debug', False)
         self.should_exit = False
 
+    def init_search_map(self, search_map={}):
+        if search_map:
+            self.search_index_map.update(search_map)
+        # update index_name from config.ini
+        for k in self.search_index_map.keys():
+            names = self.config.get('search_'+k)
+            if not names:
+                continue
+            names = [s.strip() for s in names.split(',') if s]
+            self.search_index_map[k] = names
+        # update index names from rename_xxx
+        for k,names in self.search_index_map.items():
+            for i,index in enumerate(names):
+                if hasattr(index, '__index_name__'):
+                    names[i] = index.__index_name__
+                rename = self.config.get('rename_'+names[i])
+                if rename:
+                    names[i] = index_key
+        logger.info("Search indexes %s", str(self.search_index_map))
+
     def start_in_subprocess(self):
         # create copy of elastic connection
         self.elastic = Elasticsearch([self.config.get('elastic_host')])
@@ -55,9 +80,6 @@ class SearchEngine(object):
         for index in self.index_list:
             if hasattr(index, 'stop_childs'):
                 index.stop_childs()
-
-    def perform_request(self, method, url, params=None, body=None):
-        return self.elastic.transport.perform_request(self, method, url, params, body)
 
     def add_index(self, index):
         if index not in self.index_list:
@@ -113,7 +135,9 @@ class SearchEngine(object):
         stats = indices.stats(index_name)
         return stats['indices'][index_name]['total']
 
-    def search(self, body, start=0, limit=0, index=None, index_keys=None):
+    def search(self, body, start=0, limit=0, index=None, index_keys=None, index_set=None):
+        if not index and index_set:
+            index_keys = self.search_index_map[index_set]
         if not index:
             index = self.get_current_indexes(index_keys)
         if not index:

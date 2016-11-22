@@ -8,7 +8,7 @@ from openprocurement.search.index import BaseIndex, logger
 class OrgsIndex(BaseIndex):
     """org-suggest index
     """
-    __index_name__ = 'orgsgst'
+    __index_name__ = 'orgs'
 
     allow_async_reindex = False
 

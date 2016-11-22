@@ -9,7 +9,7 @@ from openprocurement.search.index import BaseIndex, logger
 class OcdsIndex(BaseIndex):
     """OCDS old-tender Index
     """
-    __index_name__ = 'ocds'
+    __index_name__ = 'tndocds'
 
     allow_async_reindex = True
 

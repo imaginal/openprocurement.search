@@ -7,11 +7,6 @@ import sys
 from ConfigParser import ConfigParser
 from flask import Flask, request, jsonify, abort
 
-from openprocurement.search.index.auction import AuctionIndex
-from openprocurement.search.index.ocds import OcdsIndex
-from openprocurement.search.index.orgs import OrgsIndex
-from openprocurement.search.index.plan import PlanIndex
-from openprocurement.search.index.tender import TenderIndex
 from openprocurement.search.engine import SearchEngine
 
 # create Flask app
@@ -30,29 +25,7 @@ search_config = dict(config_parser.items('search_engine'))
 # create engine
 
 search_engine = SearchEngine(search_config)
-
-AUCTION_INDEX_KEYS = [AuctionIndex]
-ORGS_INDEX_KEYS = [OrgsIndex]
-PLAN_INDEX_KEYS = [PlanIndex]
-TENDER_INDEX_KEYS = [TenderIndex, OcdsIndex]
-
-def rename_index_keys(config, list_of_lists):
-    total_renames = 0
-    for index_list in list_of_lists:
-        for i, index in enumerate(index_list):
-            if hasattr(index, '__index_name__'):
-                index = index.__index_name__
-                index_list[i] = index
-            rename_key = 'rename_' + index
-            if rename_key in config:
-                index_list[i] = config[rename_key]
-                total_renames += 1
-    if search_server.debug:
-        search_server.logger.info("Use indexes %s", list_of_lists)
-    return total_renames
-
-rename_index_keys(search_config, (ORGS_INDEX_KEYS, TENDER_INDEX_KEYS,
-    PLAN_INDEX_KEYS, AUCTION_INDEX_KEYS))
+search_engine.init_search_map()
 
 
 def match_query(query, field, type_=None, operator=None, analyzer=None):
@@ -108,6 +81,19 @@ def dates_query(query, args):
             "time_zone": "+2:00",
         }}}
     return body
+
+
+def append_dates_query(body, query, args):
+    op, key = args
+    for q in body:
+        if "range" not in q:
+            continue
+        for rk,rv in q["range"].items():
+            if rk == key:
+                rv[op] = query
+                return
+    match = dates_query(query, args)
+    body.append(match)
 
 
 prefix_map = {
@@ -207,8 +193,7 @@ def prepare_search_body(args):
             continue
         field = dates_map[key]
         query = args.get(key)
-        match = dates_query(query, field)
-        body.append(match)
+        append_dates_query(body, query, field)
 
     # full-text search
     for key in fulltext_map.keys():
@@ -248,8 +233,7 @@ def search_tenders():
     start = int(args.get('start') or 0)
     limit = int(args.get('limit') or 10)
     limit = min(max(1, limit), 100)
-    res = search_engine.search(body, start, limit,
-        index_keys=TENDER_INDEX_KEYS)
+    res = search_engine.search(body, start, limit, index_set='tenders')
     if search_server.debug:
         res['body'] = body
     return jsonify(res)
@@ -262,8 +246,7 @@ def search_plans():
     start = int(args.get('start') or 0)
     limit = int(args.get('limit') or 10)
     limit = min(max(1, limit), 100)
-    res = search_engine.search(body, start, limit,
-        index_keys=PLAN_INDEX_KEYS)
+    res = search_engine.search(body, start, limit, index_set='plans')
     if search_server.debug:
         res['body'] = body
     return jsonify(res)
@@ -276,8 +259,7 @@ def search_auctions():
     start = int(args.get('start') or 0)
     limit = int(args.get('limit') or 10)
     limit = min(max(1, limit), 100)
-    res = search_engine.search(body, start, limit,
-        index_keys=AUCTION_INDEX_KEYS)
+    res = search_engine.search(body, start, limit, index_set='auctions')
     if search_server.debug:
         res['body'] = body
     return jsonify(res)
@@ -292,7 +274,7 @@ def orgsuggest():
             "size": 1,
             "query": {"match": {"edrpou": edrpou}}
         }
-        res = search_engine.search(body, index_keys=ORGS_INDEX_KEYS)
+        res = search_engine.search(body, index_set='orgs')
         return jsonify(res)
     # fulltext search
     query = request.args.get('query', '')
@@ -311,10 +293,10 @@ def orgsuggest():
         "query": {"match": {"_all": _all}},
         "sort": {"rank": {"order": "desc"}}
     }
-    res = search_engine.search(body, index_keys=ORGS_INDEX_KEYS)
+    res = search_engine.search(body, index_set='orgs')
     if not res.get('items'):
         _all["fuzziness"] += 1
-        res = search_engine.search(body, index_keys=ORGS_INDEX_KEYS)
+        res = search_engine.search(body, index_set='orgs')
     return jsonify(res)
 
 
