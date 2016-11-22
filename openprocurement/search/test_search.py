@@ -44,11 +44,11 @@ class SearchTester(object):
 
     def do_search(self, query, tender):
         path = query % tender
-        url = 'http://%s:%s/%s' % (
+        path = 'http://%s:%s/%s' % (
             self.search_config['host'],
             self.search_config['port'], path)
-        logger.debug("GET %s", url)
-        req = urllib2.urlopen(url, timeout=10)
+        logger.debug("GET %s", path)
+        req = urllib2.urlopen(path, timeout=10)
         code = req.getcode()
         resp = req.read()
         if code != 200:
@@ -92,13 +92,10 @@ class SearchTester(object):
         source.client.params.update({'descending': 1, 'limit': limit})
         source.config['tender_preload'] = preload
 
-        logger.info("Client %s/api/%s mode=%s", 
-            source.config['tender_api_url'], 
+        logger.info("Client %s/api/%s mode=%s",
+            source.config['tender_api_url'],
             source.config['tender_api_version'],
             source.client.params.get('mode', ''))
-        logger.info("Search %s:%s", 
-            self.search_config['host'],
-            self.search_config['port'])
 
         test_count = 0
         skip_count = skip_limit
@@ -160,11 +157,11 @@ class SearchTester(object):
         source.config['plan_preload'] = preload
         source.skip_until = None
 
-        logger.info("Client %s/api/%s mode=%s", 
-            source.config['plan_api_url'], 
+        logger.info("Client %s/api/%s mode=%s",
+            source.config['plan_api_url'],
             source.config['plan_api_version'],
             source.client.params.get('mode', ''))
-        logger.info("Search %s:%s", 
+        logger.info("Search %s:%s",
             self.search_config['host'],
             self.search_config['port'])
 
@@ -227,11 +224,11 @@ class SearchTester(object):
         source.config['auction_preload'] = preload
         source.skip_until = None
 
-        logger.info("Client %s/api/%s mode=%s", 
-            source.config['auction_api_url'], 
+        logger.info("Client %s/api/%s mode=%s",
+            source.config['auction_api_url'],
             source.config['auction_api_version'],
             source.client.params.get('mode', ''))
-        logger.info("Search %s:%s", 
+        logger.info("Search %s:%s",
             self.search_config['host'],
             self.search_config['port'])
 
@@ -274,7 +271,7 @@ class SearchTester(object):
             self.test_tenders()
 
         if self.engine_config.get('plan_api_url', None):
-            self.test_plans()        
+            self.test_plans()
 
         if self.engine_config.get('auction_api_url', None):
             self.test_auctions()
