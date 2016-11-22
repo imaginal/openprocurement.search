@@ -123,6 +123,8 @@ class TenderSource(BaseSource):
         while not self.should_exit:
             try:
                 tender = self.client.get_tender(item['id'])
+                assert tender['data']['id'] == item['id']
+                assert tender['data']['dateModified'] >= item['dateModified']
                 break
             except Exception as e:
                 if retry_count > 3:
@@ -133,6 +135,10 @@ class TenderSource(BaseSource):
                 self.sleep(5)
                 if retry_count > 1:
                     self.reset()
+        if item['dateModified'] != tender['data']['dateModified']:
+            logger.warning("tender.dateModified mismatch %s", item['id'])
+            item['dateModified'] = tender['data']['dateModified']
+            item = self.patch_version(item)
         tender['meta'] = item
         return self.patch_tender(tender)
 

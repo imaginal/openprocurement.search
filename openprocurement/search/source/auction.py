@@ -116,15 +116,21 @@ class AuctionSource(BaseSource):
         while not self.should_exit:
             try:
                 auction = self.client.get_tender(item['id'])
+                assert auction['data']['id'] == item['id']
+                assert auction['data']['dateModified'] >= item['dateModified']
                 break
             except Exception as e:
                 if retry_count > 3:
                     raise e
                 retry_count += 1
-                logger.error("get_auction %s retry %d error %s", 
+                logger.error("get_auction %s retry %d error %s",
                     str(item['id']), retry_count, str(e))
                 self.sleep(5)
                 if retry_count > 1:
                     self.reset()
+        if item['dateModified'] != auction['data']['dateModified']:
+            logger.warning("auction.dateModified mismatch %s", item['id'])
+            item['dateModified'] = auction['data']['dateModified']
+            item = self.patch_version(item)
         auction['meta'] = item
         return auction

@@ -98,29 +98,35 @@ class PlanSource(BaseSource):
         if not self.client:
             self.reset()
         self.last_skipped = None
-        for tender in self.preload():
+        for plan in self.preload():
             if self.should_exit:
                 raise StopIteration()
-            if self.skip_until > tender['dateModified']:
-                self.last_skipped = tender['dateModified']
+            if self.skip_until > plan['dateModified']:
+                self.last_skipped = plan['dateModified']
                 continue
-            yield self.patch_version(tender)
+            yield self.patch_version(plan)
 
     def get(self, item):
-        tender = {}
+        plan = {}
         retry_count = 0
         while not self.should_exit:
             try:
-                tender = self.client.get_tender(item['id'])
+                plan = self.client.get_tender(item['id'])
+                assert plan['data']['id'] == item['id']
+                assert plan['data']['dateModified'] >= item['dateModified']
                 break
             except Exception as e:
                 if retry_count > 3:
                     raise e
                 retry_count += 1
-                logger.error("get_plan %s retry %d error %s", 
+                logger.error("get_plan %s retry %d error %s",
                     str(item['id']), retry_count, str(e))
                 self.sleep(5)
                 if retry_count > 1:
                     self.reset()
-        tender['meta'] = item
-        return tender
+        if item['dateModified'] != plan['data']['dateModified']:
+            logger.warning("plan.dateModified mismatch %s", item['id'])
+            item['dateModified'] = plan['data']['dateModified']
+            item = self.patch_version(item)
+        plan['meta'] = item
+        return plan

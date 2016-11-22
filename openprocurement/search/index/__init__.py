@@ -167,10 +167,16 @@ class BaseIndex(object):
             self.engine.sleep(pause)
 
     def index_item(self, index_name, item):
+        if not item.get('meta') or not item.get('data'):
+            logger.error("[%s] No data %s", index_name, str(item))
+            return None
+        if item['meta']['dateModified'] != item['data']['dateModified']:
+            logger.error("[%s] dateModified mismatch %s", index_name, str(item))
+            return None
         if self.test_noindex(item):
             if self.engine.debug:
                 logger.debug("[%s] Noindex %s %s", index_name,
-                             item['data']['id'],
+                             item['data'].get('id', ''),
                              item['data'].get('tenderID', ''))
             return None
 
