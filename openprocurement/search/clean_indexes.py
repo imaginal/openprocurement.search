@@ -25,7 +25,7 @@ def delete_index(elastic_host, name):
 
 
 def process_all(elastic_host, index_list, index_yaml):
-    fresh_time = time.time() - (10*24*3600) # 10 days
+    fresh_time = time.time() - (15*24*3600) # 15 days
     candidates = list()
 
     current_keys  = index_yaml.keys()
