@@ -319,15 +319,16 @@ class IndexEngine(SearchEngine):
     def run(self):
         logger.info("Configured with indexes %s\n\t%s",
                     self.index_list, self.dump_index_names())
-        if self.slave_mode:
-            logger.info("Start in slave mode, wait for master...")
 
         self.wait_for_backend()
 
-        # check indexes before start
-        if self.config['check_on_start']:
-            for index in self.index_list:
-                index.check_on_start()
+        if not self.slave_mode:
+            logger.info("Check current indexes")
+            if self.config['check_on_start']:
+                for index in self.index_list:
+                    index.check_on_start()
+        else:
+            logger.info("* Start in slave mode")
 
         # start main loop
         allow_reindex = not self.slave_mode

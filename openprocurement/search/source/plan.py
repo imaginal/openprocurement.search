@@ -107,7 +107,7 @@ class PlanSource(BaseSource):
             yield self.patch_version(tender)
 
     def get(self, item):
-        tender = None
+        tender = {}
         retry_count = 0
         while not self.should_exit:
             try:

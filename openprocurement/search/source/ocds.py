@@ -107,6 +107,10 @@ class OcdsSource(BaseSource):
         fullname = path.join(self.config['ocds_dir'], name)
         with open(fullname) as f:
             data = json.load(f)
+        # test for empty json
+        if not data.get('releases') and self.files:
+            self.last_skipped = 'NOTSET'
+            return
         for r in data['releases']:
             if self.should_exit:
                 raise StopIteration()

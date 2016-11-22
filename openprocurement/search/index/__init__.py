@@ -56,6 +56,10 @@ class BaseIndex(object):
     def __repr__(self):
         return self.__index_name__
 
+    @classmethod
+    def name(klass):
+        return klass.__index_name__
+
     @property
     def current_index(self):
         key = self.__index_name__
@@ -128,6 +132,7 @@ class BaseIndex(object):
             logger.info("Change current %s index %s -> %s",
                         index_key, old_index, name)
             self.engine.set_index(index_key, name)
+            self.last_current_index = name
             # assert(self.current_index == name)
             if old_index:
                 self.delete_index(old_index)
@@ -153,21 +158,22 @@ class BaseIndex(object):
             raise exc_info[0], exc_info[1], exc_info[2]
 
     def indexing_stat(self, index_name, fetched, indexed, iter_count, last_date):
-        last_date = last_date or ""
+        if not last_date and fetched < 10 and indexed < 1:
+            return
         pause = 1.0 * iter_count / self.config['index_speed']
         logger.info("[%s] Fetched %d indexed %d last %s", # wait %1.1fs
             index_name, fetched, indexed, last_date)
-        if pause > 0.01:
+        if pause > 0.1:
             self.engine.sleep(pause)
 
     def index_item(self, index_name, item):
         if self.test_noindex(item):
             if self.engine.debug:
                 logger.debug("[%s] Noindex %s %s", index_name,
-                             item['data']['id'], 
+                             item['data']['id'],
                              item['data'].get('tenderID', ''))
             return None
-    
+
         self.before_index_item(item)
 
         return self.engine.index_item(index_name, item)
@@ -175,7 +181,7 @@ class BaseIndex(object):
     def index_source(self, index_name=None, reset=False):
         if not index_name:
             # also check maybe current index was changed
-            if self.current_index != self.last_current_index:
+            if self.last_current_index != self.current_index:
                 self.last_current_index = self.current_index
                 reset = True
             index_name = self.current_index
@@ -237,12 +243,12 @@ class BaseIndex(object):
     def stop_childs(self):
         if self.source:
             self.source.should_exit = True
-        if not self.reindex_process:
+        if not self.reindex_process or not self.reindex_process.pid:
             return
         if self.reindex_process.pid == os.getpid():
             return
-        logger.info("Terminate subprocess %s pid %d", 
-            self.reindex_process.name, self.reindex_process.pid)
+        logger.info("Terminate subprocess %s pid %s",
+            self.reindex_process.name, str(self.reindex_process.pid))
         try:
             self.reindex_process.terminate()
         except (AttributeError, OSError):
@@ -307,7 +313,7 @@ class BaseIndex(object):
             index_name, res['total'], res['items'][0]['dateModified'])
 
         if self.rc_mindocs and res['total'] < self.rc_mindocs:
-            logger.error("[%s] Check index failed: not enought docs %d, required %d", 
+            logger.error("[%s] Check index failed: not enought docs %d, required %d",
                 index_name, res['total'], self.rc_mindocs)
             return False
 
@@ -374,7 +380,7 @@ class BaseIndex(object):
         # reindex in async mode, start new reindex process
         proc_name = "Reindex-%s" % self.__index_name__
         self.reindex_process = Process(
-            target=self.async_reindex, 
+            target=self.async_reindex,
             name=proc_name)
         self.reindex_process.start()
         # wait for child
@@ -384,7 +390,7 @@ class BaseIndex(object):
             retry_count += 1
         # check child is alive
         if self.reindex_process.is_alive():
-            logger.info("Subprocess started %s pid %d", 
+            logger.info("Subprocess started %s pid %d",
                 self.reindex_process.name, self.reindex_process.pid)
         else:
             logger.error("Can't start subprocess")

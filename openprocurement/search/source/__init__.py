@@ -21,6 +21,10 @@ class BaseSource:
     def get(self, item):
         return item
 
+    def get_all(self, items):
+        out = [self.get(i) for i in items]
+        return out
+
     def sleep(self, seconds):
         if not isinstance(seconds, float):
             seconds = float(seconds)

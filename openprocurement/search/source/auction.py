@@ -111,7 +111,7 @@ class AuctionSource(BaseSource):
             yield self.patch_version(auction)
 
     def get(self, item):
-        auction = None
+        auction = {}
         retry_count = 0
         while not self.should_exit:
             try:

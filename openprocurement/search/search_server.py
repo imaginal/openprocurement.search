@@ -5,8 +5,13 @@ monkey.patch_all()
 import re
 import sys
 from ConfigParser import ConfigParser
-
 from flask import Flask, request, jsonify, abort
+
+from openprocurement.search.index.auction import AuctionIndex
+from openprocurement.search.index.ocds import OcdsIndex
+from openprocurement.search.index.orgs import OrgsIndex
+from openprocurement.search.index.plan import PlanIndex
+from openprocurement.search.index.tender import TenderIndex
 from openprocurement.search.engine import SearchEngine
 
 # create Flask app
@@ -26,17 +31,19 @@ search_config = dict(config_parser.items('search_engine'))
 
 search_engine = SearchEngine(search_config)
 
-AUCTION_INDEX_KEYS = ['auctions']
-ORGS_INDEX_KEYS = ['orgs']
-PLAN_INDEX_KEYS = ['plans']
-TENDER_INDEX_KEYS = ['tenders', 'ocds']
+AUCTION_INDEX_KEYS = [AuctionIndex]
+ORGS_INDEX_KEYS = [OrgsIndex]
+PLAN_INDEX_KEYS = [PlanIndex]
+TENDER_INDEX_KEYS = [TenderIndex, OcdsIndex]
 
-
-def rename_index_names(config, list_of_lists):
+def rename_index_keys(config, list_of_lists):
     total_renames = 0
     for index_list in list_of_lists:
-        for i, name in enumerate(index_list):
-            rename_key = 'rename_' + name
+        for i, index in enumerate(index_list):
+            if hasattr(index, '__index_name__'):
+                index = index.__index_name__
+                index_list[i] = index
+            rename_key = 'rename_' + index
             if rename_key in config:
                 index_list[i] = config[rename_key]
                 total_renames += 1
@@ -44,8 +51,8 @@ def rename_index_names(config, list_of_lists):
         search_server.logger.info("Use indexes %s", list_of_lists)
     return total_renames
 
-rename_index_names(search_config, (ORGS_INDEX_KEYS,
-    TENDER_INDEX_KEYS, PLAN_INDEX_KEYS, AUCTION_INDEX_KEYS))
+rename_index_keys(search_config, (ORGS_INDEX_KEYS, TENDER_INDEX_KEYS,
+    PLAN_INDEX_KEYS, AUCTION_INDEX_KEYS))
 
 
 def match_query(query, field, type_=None, operator=None, analyzer=None):
@@ -71,11 +78,11 @@ def prefix_query(query, field):
 
 
 def range_query(query, field):
-    double = bool(field == 'value.amount')
+    is_double = field in ('value.amount',)
     body = []
     for q in query:
         if q.find('-') < 0:
-            if double:
+            if is_double:
                 q = float(q)
                 res = {"range": {field: {"gte": q}}}
             else:
@@ -83,7 +90,7 @@ def range_query(query, field):
             body.append(res)
         else:
             beg, end = q.split('-', 1)
-            if double:
+            if is_double:
                 beg, end = float(beg), float(end)
             body.append({"range": {
                 field: {"gte": beg, "lte": end}
@@ -138,18 +145,26 @@ range_map = {
     'value': 'value.amount',
 }
 dates_map = {
+    # auctions may not set endDate, use only startDate
     'auction_start': ('gte', 'auctionPeriod.startDate'),
     'auction_end':   ('lt',  'auctionPeriod.startDate'),
-    'award_start':   ('gte', 'awardPeriod.endDate'),
-    'award_end':     ('lt',  'awardPeriod.startDate'),
-    'enquiry_start': ('gte', 'enquiryPeriod.endDate'),
+    # use custom filed activeDate (see source.patch_tender)
+    'award_start':   ('gte', 'awards.activeDate'),
+    'award_end':     ('lt',  'awards.activeDate'),
+    # use custom field activeDate (see source.patch_tender)
+    'contract_start':('gte', 'contracts.activeDate'),
+    'contract_end':  ('lt',  'contracts.activeDate'),
+    # for enquiry use only startDate
+    'enquiry_start': ('gte', 'enquiryPeriod.startDate'),
     'enquiry_end':   ('lt',  'enquiryPeriod.startDate'),
+    # tender period
     'tender_start':  ('gte', 'tenderPeriod.endDate'),
     'tender_end':    ('lt',  'tenderPeriod.startDate'),
+    # plans don't set tenderPeriod.endDate, use only startDate
     'plan_tender_start':  ('gte', 'tender.tenderPeriod.startDate'),
     'plan_tender_end':    ('lt',  'tender.tenderPeriod.startDate'),
 }
-ftext_map = {
+fulltext_map = {
     'query': '_all',
 }
 
@@ -196,24 +211,31 @@ def prepare_search_body(args):
         body.append(match)
 
     # full-text search
-    for key in ftext_map.keys():
+    for key in fulltext_map.keys():
         if not args.get(key):
             continue
-        field = ftext_map[key]
+        field = fulltext_map[key]
         query = args.getlist(key)
         match = match_query(query, field,
-            operator="and")
+            operator='and')
         body.append(match)
 
     if not body:
         return None
     elif len(body) == 1:
-        body = {"query": body[0]}
+        body = {'query': body[0]}
     else:
-        body = {"query": {"bool": {"must": body}}}
+        body = {'query': {'bool': {'must': body}}}
 
-    if args.get("sort", "date") == "date":
-        body["sort"] = {"dateModified": {"order": "desc"}}
+    sort = args.get('sort', 'date')
+
+    if sort == 'rank' and args.get('query'):
+        body.pop('sort') # default fulltext sort
+    elif sort == 'value':
+        body['sort'] = {'value.amount': {'order': 'desc'}}
+    else:
+        body['sort'] = {'dateModified': {'order': 'desc'}}
+
     return body
 
 
@@ -224,9 +246,9 @@ def search_tenders():
     if not body:
         return jsonify({"error": "empty query"})
     start = int(args.get('start') or 0)
-    # limit = int(args.get('limit') or 10)
-    # limit = min(max(1, limit), 100)
-    res = search_engine.search(body, start,
+    limit = int(args.get('limit') or 10)
+    limit = min(max(1, limit), 100)
+    res = search_engine.search(body, start, limit,
         index_keys=TENDER_INDEX_KEYS)
     if search_server.debug:
         res['body'] = body
@@ -252,9 +274,9 @@ def search_auctions():
     args = request.args
     body = prepare_search_body(args)
     start = int(args.get('start') or 0)
-    # limit = int(args.get('limit') or 10)
-    # limit = min(max(1, limit), 100)
-    res = search_engine.search(body, start,
+    limit = int(args.get('limit') or 10)
+    limit = min(max(1, limit), 100)
+    res = search_engine.search(body, start, limit,
         index_keys=AUCTION_INDEX_KEYS)
     if search_server.debug:
         res['body'] = body

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+#import gevent
 from time import mktime
 from iso8601 import parse_date
 from socket import setdefaulttimeout
@@ -24,6 +25,7 @@ class TenderSource(BaseSource):
         'tender_skip_until': None,
         'tender_limit': 1000,
         'tender_preload': 500000,
+        'concurrency': 5,
         'timeout': 30,
     }
 
@@ -32,6 +34,7 @@ class TenderSource(BaseSource):
             self.config.update(config)
         self.config['tender_limit'] = int(self.config['tender_limit'] or 0) or 100
         self.config['tender_preload'] = int(self.config['tender_preload'] or 0) or 100
+        self.config['concurrency'] = int(self.config['concurrency'] or 0)
         self.client = None
 
     def procuring_entity(self, item):
@@ -45,6 +48,17 @@ class TenderSource(BaseSource):
         version = 1e6 * mktime(dt.timetuple()) + dt.microsecond
         item['version'] = long(version)
         return item
+
+    def patch_tender(self, tender):
+        if 'awards' in tender['data']:
+            for award in tender['data']['awards']:
+                if award.get('status') == 'active':
+                    award['activeDate'] = award.get('date')
+        if 'contracts' in tender['data']:
+            for contract in tender['data']['contracts']:
+                if contract.get('status') == 'active':
+                    contract['activeDate'] = contract.get('date')
+        return tender
 
     @retry(stop_max_attempt_number=5, wait_fixed=15000)
     def reset(self):
@@ -104,7 +118,7 @@ class TenderSource(BaseSource):
             yield self.patch_version(tender)
 
     def get(self, item):
-        tender = None
+        tender = {}
         retry_count = 0
         while not self.should_exit:
             try:
@@ -114,10 +128,27 @@ class TenderSource(BaseSource):
                 if retry_count > 3:
                     raise e
                 retry_count += 1
-                logger.error("get_tender %s retry %d error %s", 
+                logger.error("get_tender %s retry %d error %s",
                     str(item['id']), retry_count, str(e))
                 self.sleep(5)
                 if retry_count > 1:
                     self.reset()
         tender['meta'] = item
-        return tender
+        return self.patch_tender(tender)
+
+    def get_all(self, items):
+        if len(items) < 10 or self.config['concurrency'] < 2:
+            for i in items:
+                yield self.get(i)
+            return
+
+        completed = 0
+        while items:
+            jobs = []
+            while items and len(jobs) < self.config['concurrency']:
+                jobs.append(gevent.spawn(self.get, items.pop()))
+            for res in gevent.joinall(jobs):
+                completed += 1
+                yield res.value
+            # logger.info("%s.GetAll %d jobs completed %d left",
+            #     self.__class__.__name__, completed, len(items))
