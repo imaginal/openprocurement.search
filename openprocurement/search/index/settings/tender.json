@@ -71,6 +71,11 @@
         "awards": {
           "include_in_all": false,
           "properties": {
+            "activeDate": {
+              "format": "dateOptionalTime",
+              "include_in_all": false,
+              "type": "date"
+            },
             "bid_id": {
               "analyzer": "whitespace",
               "include_in_all": false,
@@ -376,6 +381,11 @@
             "contracts": {
               "include_in_all": false,
               "properties": {
+                "activeDate": {
+                  "format": "dateOptionalTime",
+                  "include_in_all": false,
+                  "type": "date"
+                },
                 "awardID": {
                   "analyzer": "whitespace",
                   "include_in_all": true,
@@ -1678,6 +1688,11 @@
         "contracts": {
           "include_in_all": false,
           "properties": {
+            "activeDate": {
+              "format": "dateOptionalTime",
+              "include_in_all": false,
+              "type": "date"
+            },
             "awardID": {
               "analyzer": "whitespace",
               "include_in_all": true,
