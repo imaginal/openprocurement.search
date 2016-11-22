@@ -329,7 +329,6 @@ def main():
         tester.engine_config['auction_api_url'] = None
 
     logging.basicConfig(level=log_level, format=LOG_FORMAT)
-    logger.info("Start with config %s", sys.argv[1])
 
     try:
         tester.test()

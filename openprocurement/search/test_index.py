@@ -89,6 +89,7 @@ def main():
         if arg.startswith('-'):
             continue
         parser.read(arg)
+        break
 
     if not parser.has_section('search_engine'):
         print("Not a config.file")
@@ -115,7 +116,6 @@ def main():
         tester.config['orgs_db'] = None
 
     logging.basicConfig(level=log_level, format=LOG_FORMAT)
-    logger.info("Start with config %s", sys.argv[1])
 
     if log_level != logging.DEBUG:
         tracer = logging.getLogger('elasticsearch')
@@ -134,6 +134,38 @@ def main():
 
     logger.info("Test passed.")
     return 0
+
+
+def gevent_test():
+    # from gevent import monkey
+    # monkey.patch_all()
+    # from restkit.session import set_session
+    # set_session("gevent")
+
+    parser = ConfigParser()
+    parser.read(sys.argv[1])
+
+    logging.basicConfig(level=logging.INFO, format=LOG_FORMAT)
+
+    config = dict(parser.items('search_engine'))
+    config['tender_api_key'] = 'no'
+    config['tender_limit'] = 40
+    config['tender_preload'] = 40
+    config['tender_skip_until'] = ''
+    config['concurrency'] = 5
+
+    engine = IndexEngine(config)
+
+    source = TenderSource(config)
+    index = TenderIndex(engine, source, config)
+
+    items = list(source.items())
+    items = source.get_all(items)
+
+    for i in items:
+        print i.data.id
+
+    print "Done."
 
 
 if __name__ == '__main__':
