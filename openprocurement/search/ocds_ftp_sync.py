@@ -55,17 +55,22 @@ class FTPSyncApp(object):
 
         for origname in self.ftp.nlst(filematch):
             filename = origname.replace('?', '_').replace(' ', '_')
+            tmp_filename = "%s.tmp" % filename
             if os.path.exists(filename):
                 logger.info("EXISTS %s", filename)
                 continue
+            if os.path.exists(tmp_filename):
+                logger.warning("TEMP FILE EXISTS %s", tmp_filename)
+                os.unlink(tmp_filename)
             try:
-                fp = open(filename, 'wb')
+                fp = open(tmp_filename, 'wb')
                 logger.info("RETR %s", filename)
                 self.ftp.retrbinary('RETR ' + origname, fp.write)
                 fp.close()
+                os.rename(tmp_filename, filename)
             except Exception as e:
                 logger.error("Exception {}".format(e))
-                os.unlink(filename)
+                os.unlink(tmp_filename)
 
 
 def signal_handler(signo, frame):
