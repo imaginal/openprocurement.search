@@ -7,6 +7,12 @@ import sys
 from ConfigParser import ConfigParser
 from flask import Flask, request, jsonify, abort
 
+from openprocurement.search.index.auction import AuctionIndex
+from openprocurement.search.index.tender import TenderIndex
+from openprocurement.search.index.ocds import OcdsIndex
+from openprocurement.search.index.plan import PlanIndex
+from openprocurement.search.index.orgs import OrgsIndex
+
 from openprocurement.search.engine import SearchEngine
 
 # create Flask app
@@ -26,10 +32,10 @@ search_config = dict(config_parser.items('search_engine'))
 
 search_engine = SearchEngine(search_config)
 search_engine.init_search_map({
-    'tenders': ['tenders', 'ocdsten'],
-    'plans': ['plans'],
-    'orgs': ['orgs'],
-    'auctions': ['auctions'],
+    'auctions': [AuctionIndex],
+    'tenders': [TenderIndex, OcdsIndex],
+    'plans': [PlanIndex],
+    'orgs': [OrgsIndex],
 })
 
 # query fileds map
