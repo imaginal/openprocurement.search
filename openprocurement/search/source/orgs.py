@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import sqlite3
+import os.path
 from munch import munchify
 
 from openprocurement.search.source import BaseSource
@@ -22,10 +23,13 @@ class OrgsSource(BaseSource):
         if config:
             self.config.update(config)
         if self.config['orgs_db']:
-            logger.info("Open UA-EDR database %s", self.config['orgs_db'])
+            orgs_db_size = os.path.getsize(self.config['orgs_db'])
+            logger.info("Open UA-EDR database %s size %d kb",
+                self.config['orgs_db'], orgs_db_size/1024)
             self.db_conn = sqlite3.connect(self.config['orgs_db'])
             self.db_curs = self.db_conn.cursor()
         else:
+            logger.warning("No UA-EDR database, orgs will not decoded")
             self.db_conn = None
             self.db_curs = None
         self.queue_size = int(self.config['orgs_queue'])
