@@ -356,6 +356,6 @@ class IndexEngine(SearchEngine):
                 if self.should_exit:
                     break
                 index.process(allow_reindex)
-            self.sleep(self.config['update_wait'])
+                self.sleep(self.config['update_wait'])
 
         logger.info("Leave main loop")
