@@ -233,6 +233,8 @@ class BaseIndex(object):
                     self.engine.heartbeat(self.source)
                     iter_count = 0
 
+            if self.engine.should_exit:
+                return
             # break if nothing iterated
             if iter_count > 0:
                 self.indexing_stat(index_name, total_count, index_count,
