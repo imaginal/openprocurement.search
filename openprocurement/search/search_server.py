@@ -25,8 +25,74 @@ search_config = dict(config_parser.items('search_engine'))
 # create engine
 
 search_engine = SearchEngine(search_config)
-search_engine.init_search_map()
+search_engine.init_search_map({
+    'tenders': ['tenders', 'ocdsten'],
+    'plans': ['plans'],
+    'orgs': ['orgs'],
+    'auctions': ['auctions'],
+})
 
+# query fileds map
+
+prefix_map = {
+    'aid_like': 'auctionID',
+    'dgf_like': 'dgfID',
+    'tid_like': 'tenderID',
+    'pid_like': 'planID',
+    'cpv_like': 'items.classification.id',
+    'dkpp_like': 'items.additionalClassifications.id',
+    'plan_cpv_like': 'classification.id',
+    'plan_dkpp_like': 'additionalClassifications.id',
+}
+match_map = {
+    'id': 'id',
+    'aid': 'auctionID',
+    'dgf': 'dgfID',
+    'tid': 'tenderID',
+    'pid': 'planID',
+    'cpv': 'items.classification.id',
+    'dkpp': 'items.additionalClassifications.id',
+    'plan_cpv': 'classification.id',
+    'plan_dkpp': 'additionalClassifications.id',
+    'edrpou': 'procuringEntity.identifier.id',
+    'procedure': 'procurementMethod',
+    'proc_type': 'procurementMethodType',
+    'tender_procedure': 'tender.procurementMethod',
+    'tender_proc_type': 'tender.procurementMethodType',
+    'plan_procedure': 'tender.procurementMethod',
+    'plan_proc_type': 'tender.procurementMethodType',
+    'award_criteria': 'awardCriteria',
+    'status': 'status',
+}
+range_map = {
+    'region': 'procuringEntity.address.postalCode',
+    'value': 'value.amount',
+}
+dates_map = {
+    # auctions may not set endDate, use only startDate
+    'auction_start': ('gte', 'auctionPeriod.startDate'),
+    'auction_end':   ('lt',  'auctionPeriod.startDate'),
+    # use custom filed activeDate (see source.patch_tender)
+    'award_start':   ('gte', 'awards.activeDate'),
+    'award_end':     ('lt',  'awards.activeDate'),
+    # use custom field activeDate (see source.patch_tender)
+    'contract_start':('gte', 'contracts.activeDate'),
+    'contract_end':  ('lt',  'contracts.activeDate'),
+    # for enquiry use only startDate
+    'enquiry_start': ('gte', 'enquiryPeriod.startDate'),
+    'enquiry_end':   ('lt',  'enquiryPeriod.startDate'),
+    # tender period
+    'tender_start':  ('gte', 'tenderPeriod.endDate'),
+    'tender_end':    ('lt',  'tenderPeriod.startDate'),
+    # plans don't set tenderPeriod.endDate, use only startDate
+    'plan_tender_start':  ('gte', 'tender.tenderPeriod.startDate'),
+    'plan_tender_end':    ('lt',  'tender.tenderPeriod.startDate'),
+}
+fulltext_map = {
+    'query': '_all',
+}
+
+# build query helper functions
 
 def match_query(query, field, type_=None, operator=None, analyzer=None):
     qtext = " ".join(query)
@@ -95,65 +161,7 @@ def append_dates_query(body, query, args):
     match = dates_query(query, args)
     body.append(match)
 
-
-prefix_map = {
-    'aid_like': 'auctionID',
-    'dgf_like': 'dgfID',
-    'tid_like': 'tenderID',
-    'pid_like': 'planID',
-    'cpv_like': 'items.classification.id',
-    'dkpp_like': 'items.additionalClassifications.id',
-    'plan_cpv_like': 'classification.id',
-    'plan_dkpp_like': 'additionalClassifications.id',
-}
-match_map = {
-    'id': 'id',
-    'aid': 'auctionID',
-    'dgf': 'dgfID',
-    'tid': 'tenderID',
-    'pid': 'planID',
-    'cpv': 'items.classification.id',
-    'dkpp': 'items.additionalClassifications.id',
-    'plan_cpv': 'classification.id',
-    'plan_dkpp': 'additionalClassifications.id',
-    'edrpou': 'procuringEntity.identifier.id',
-    'procedure': 'procurementMethod',
-    'proc_type': 'procurementMethodType',
-    'tender_procedure': 'tender.procurementMethod',
-    'tender_proc_type': 'tender.procurementMethodType',
-    'plan_procedure': 'tender.procurementMethod',
-    'plan_proc_type': 'tender.procurementMethodType',
-    'award_criteria': 'awardCriteria',
-    'status': 'status',
-}
-range_map = {
-    'region': 'procuringEntity.address.postalCode',
-    'value': 'value.amount',
-}
-dates_map = {
-    # auctions may not set endDate, use only startDate
-    'auction_start': ('gte', 'auctionPeriod.startDate'),
-    'auction_end':   ('lt',  'auctionPeriod.startDate'),
-    # use custom filed activeDate (see source.patch_tender)
-    'award_start':   ('gte', 'awards.activeDate'),
-    'award_end':     ('lt',  'awards.activeDate'),
-    # use custom field activeDate (see source.patch_tender)
-    'contract_start':('gte', 'contracts.activeDate'),
-    'contract_end':  ('lt',  'contracts.activeDate'),
-    # for enquiry use only startDate
-    'enquiry_start': ('gte', 'enquiryPeriod.startDate'),
-    'enquiry_end':   ('lt',  'enquiryPeriod.startDate'),
-    # tender period
-    'tender_start':  ('gte', 'tenderPeriod.endDate'),
-    'tender_end':    ('lt',  'tenderPeriod.startDate'),
-    # plans don't set tenderPeriod.endDate, use only startDate
-    'plan_tender_start':  ('gte', 'tender.tenderPeriod.startDate'),
-    'plan_tender_end':    ('lt',  'tender.tenderPeriod.startDate'),
-}
-fulltext_map = {
-    'query': '_all',
-}
-
+# build query body
 
 def prepare_search_body(args):
     body = list()
