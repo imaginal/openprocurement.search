@@ -63,6 +63,7 @@ class OcdsSource(BaseSource):
         meta = {
             'id': item['id'],
             'doc_type': item.pop('doc_type'),
+            'dateModified': item['dateModified'],
             'version': item.pop('version'),
             }
         data = {
