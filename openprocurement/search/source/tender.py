@@ -136,7 +136,9 @@ class TenderSource(BaseSource):
                 if retry_count > 1:
                     self.reset()
         if item['dateModified'] != tender['data']['dateModified']:
-            logger.warning("tender.dateModified mismatch %s", item['id'])
+            logger.warning("TenderSource dateModified mismatch %s %s %s",
+                item['id'], item['dateModified'],
+                tender['data']['dateModified'])
             item['dateModified'] = tender['data']['dateModified']
             item = self.patch_version(item)
         tender['meta'] = item

@@ -125,7 +125,9 @@ class PlanSource(BaseSource):
                 if retry_count > 1:
                     self.reset()
         if item['dateModified'] != plan['data']['dateModified']:
-            logger.warning("plan.dateModified mismatch %s", item['id'])
+            logger.warning("PlanSource dateModified mismatch %s %s %s",
+                item['id'], item['dateModified'],
+                plan['data']['dateModified'])
             item['dateModified'] = plan['data']['dateModified']
             item = self.patch_version(item)
         plan['meta'] = item
