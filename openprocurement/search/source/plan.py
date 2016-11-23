@@ -125,7 +125,7 @@ class PlanSource(BaseSource):
                 if retry_count > 1:
                     self.reset()
         if item['dateModified'] != plan['data']['dateModified']:
-            logger.warning("Plan dateModified mismatch %s %s %s",
+            logger.debug("Plan dateModified mismatch %s %s %s",
                 item['id'], item['dateModified'],
                 plan['data']['dateModified'])
             item['dateModified'] = plan['data']['dateModified']
