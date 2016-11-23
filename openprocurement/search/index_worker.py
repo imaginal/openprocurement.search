@@ -84,12 +84,12 @@ def main():
         if config.get('tender_api_url', None):
             source = TenderSource(config)
             TenderIndex(engine, source, config)
-        if config.get('plan_api_url', None):
-            source = PlanSource(config)
-            PlanIndex(engine, source, config)
         if config.get('ocds_dir', None):
             source = OcdsSource(config)
             OcdsIndex(engine, source, config)
+        if config.get('plan_api_url', None):
+            source = PlanSource(config)
+            PlanIndex(engine, source, config)
         if config.get('auction_api_url', None):
             source = AuctionSource(config)
             AuctionIndex(engine, source, config)

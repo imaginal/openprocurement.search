@@ -29,12 +29,7 @@ class SearchEngine(object):
         'error_wait': 10,
         'start_wait': 1,
     }
-    search_index_map = {
-        'tenders': ['tenders', 'tndocds'],
-        'plans': ['plans'],
-        'orgs': ['orgs'],
-        'auctions': ['auctions'],
-    }
+    search_index_map = {}
     debug = False
 
     def __init__(self, config={}):
