@@ -16,7 +16,7 @@ class BaseIndex(object):
         'async_reindex': 0,
         'ignore_errors': 0,
         'reindex_check': '1,1',
-        'number_of_shards': 6,
+        'number_of_shards': 4,
         'index_speed': 100,
         'error_wait': 10,
     }
