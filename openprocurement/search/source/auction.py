@@ -129,7 +129,7 @@ class AuctionSource(BaseSource):
                 if retry_count > 1:
                     self.reset()
         if item['dateModified'] != auction['data']['dateModified']:
-            logger.warning("AuctionSource dateModified mismatch %s %s %s",
+            logger.warning("Auction dateModified mismatch %s %s %s",
                 item['id'], item['dateModified'],
                 auction['data']['dateModified'])
             item['dateModified'] = auction['data']['dateModified']
