@@ -26,7 +26,7 @@ class PlanSource(BaseSource):
         'plan_skip_until': None,
         'plan_limit': 1000,
         'plan_preload': 500000,
-        'plan_resethours': [2],
+        'plan_resethours': [23],
         'timeout': 30,
     }
 

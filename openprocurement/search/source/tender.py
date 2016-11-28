@@ -26,7 +26,7 @@ class TenderSource(BaseSource):
         'tender_skip_until': None,
         'tender_limit': 1000,
         'tender_preload': 500000,
-        'tender_resethours': [1],
+        'tender_resethours': [22],
         'concurrency': 5,
         'timeout': 30,
     }
