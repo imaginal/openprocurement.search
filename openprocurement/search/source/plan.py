@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from time import mktime
+from time import time, mktime
 from iso8601 import parse_date
 from socket import setdefaulttimeout
 from retrying import retry
@@ -25,6 +25,7 @@ class PlanSource(BaseSource):
         'plan_skip_until': None,
         'plan_limit': 1000,
         'plan_preload': 500000,
+        'plan_resethours': [2],
         'timeout': 30,
     }
 
@@ -47,6 +48,10 @@ class PlanSource(BaseSource):
         item['version'] = long(version)
         return item
 
+    def need_reset(self):
+        if time() - self.last_reset_time > 4000:
+            return datetime.now().hour in self.config['plan_resethours']
+
     @retry(stop_max_attempt_number=5, wait_fixed=15000)
     def reset(self):
         logger.info("Reset plans, plan_skip_until=%s",
@@ -67,6 +72,7 @@ class PlanSource(BaseSource):
         self.skip_until = self.config.get('plan_skip_until', None)
         if self.skip_until and self.skip_until[:2] != '20':
             self.skip_until = None
+        self.last_reset_time = time()
 
     def preload(self):
         preload_items = []

@@ -10,7 +10,7 @@ class OcdsIndex(BaseIndex):
     """OCDS old-tender Index
     """
 
-    __index_name__ = 'tns-ocds'
+    __index_name__ = 'tn-ocds'
 
     allow_async_reindex = True
 

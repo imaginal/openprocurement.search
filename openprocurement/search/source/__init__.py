@@ -7,10 +7,14 @@ class BaseSource:
     """Data Source Interface
     """
     should_exit = False
+    last_reset_time = 0
 
     @property
     def doc_type(self):
         return self.__doc_type__
+
+    def need_reset(self):
+        return False
 
     def reset(self):
         pass

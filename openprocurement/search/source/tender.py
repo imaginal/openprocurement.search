@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 #import gevent
-from time import mktime
+from time import time, mktime
 from iso8601 import parse_date
+from datetime import datetime
 from socket import setdefaulttimeout
 from retrying import retry
 
@@ -25,6 +26,7 @@ class TenderSource(BaseSource):
         'tender_skip_until': None,
         'tender_limit': 1000,
         'tender_preload': 500000,
+        'tender_resethours': [1],
         'concurrency': 5,
         'timeout': 30,
     }
@@ -60,6 +62,10 @@ class TenderSource(BaseSource):
                     contract['activeDate'] = contract.get('date')
         return tender
 
+    def need_reset(self):
+        if time() - self.last_reset_time > 4000:
+            return datetime.now().hour in self.config['tender_resethours']
+
     @retry(stop_max_attempt_number=5, wait_fixed=15000)
     def reset(self):
         logger.info("Reset tenders, tender_skip_until=%s", self.config['tender_skip_until'])
@@ -78,6 +84,7 @@ class TenderSource(BaseSource):
         self.skip_until = self.config.get('tender_skip_until', None)
         if self.skip_until and self.skip_until[:2] != '20':
             self.skip_until = None
+        self.last_reset_time = time()
 
     def preload(self):
         preload_items = []

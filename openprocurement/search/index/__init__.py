@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
-import os, sys
-from time import time, sleep
-from logging import getLogger
+import os
+import sys
+import time
 from datetime import datetime, timedelta
 from multiprocessing import Process
+from logging import getLogger
 import simplejson as json
 
 logger = getLogger(__name__)
+
+SUFFIX_FORMAT = "%Y-%m-%d-%H%M%S"
 
 
 class BaseIndex(object):
@@ -60,6 +63,16 @@ class BaseIndex(object):
     def name(klass):
         return klass.__index_name__
 
+    @staticmethod
+    def index_created_time(name):
+        prefix, suffix = name.rsplit('_', 1)
+        try:
+            s_time = time.strptime(suffix, SUFFIX_FORMAT)
+            suffix = time.mktime(s_time)
+        except:
+            suffix = 0
+        return suffix
+
     @property
     def current_index(self):
         key = self.__index_name__
@@ -69,13 +82,9 @@ class BaseIndex(object):
         if not name:
             name = self.current_index
         if not name:
-            return time()
-        prefix, suffix = name.rsplit('_', 1)
-        try:
-            suffix = int(suffix)
-        except:
-            suffix = 0
-        return int(time() - int(suffix))
+            return time.time()
+        suffix = BaseIndex.index_created_time(name)
+        return int(time.time() - int(suffix))
 
     def set_reindex_options(self, reindex_period, reindex_check):
         # reindex_period - two digits, first is age in days, seconds is weekday
@@ -111,7 +120,8 @@ class BaseIndex(object):
         if name:
             logger.info("Use already created index %s", name)
         else:
-            name = "{}_{}".format(index_key, int(time()))
+            suffix = time.strftime(SUFFIX_FORMAT)
+            name = "{}_{}".format(index_key, suffix)
             self.create_index(name)
             self.engine.set_index(index_key_next, name)
         # check current not same to new
@@ -202,7 +212,7 @@ class BaseIndex(object):
                 logger.warning("No current index for %s", repr(self))
             return
 
-        if reset:
+        if reset or self.source.need_reset():
             self.source.reset()
 
         index_count = 0

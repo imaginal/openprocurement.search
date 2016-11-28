@@ -6,10 +6,13 @@ import yaml
 import logging
 import urllib2
 import simplejson as json
+from openprocurement.search.index import BaseIndex
+
 from ConfigParser import ConfigParser
 
 FORMAT='%(asctime)-15s %(levelname)s %(message)s'
 logger=logging.getLogger(__name__)
+
 
 
 def delete_index(elastic_host, name):
@@ -33,7 +36,7 @@ def process_all(elastic_host, index_list, index_yaml):
 
     for index in sorted(index_list):
         name = index['index']
-        prefix, created = name.rsplit('_', 1)
+        prefix, _ = name.rsplit('_', 1)
         if prefix not in current_keys:
             logger.debug("Skip prefix %s", name)
             continue
@@ -41,9 +44,12 @@ def process_all(elastic_host, index_list, index_yaml):
             logger.info("Skip current %s", name)
             continue
         try:
-            created_time = int(created)
-        except ValueError:
+            created_time = BaseIndex.index_created_time(name)
+        except:
             logger.info("Skip unknown %s", name)
+            continue
+        if created_time < 1e10:
+            logger.info("Skip bad suffix %s", name)
             continue
         if created_time > fresh_time:
             logger.info("Skip fresh %s", name)
