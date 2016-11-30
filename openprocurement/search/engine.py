@@ -58,9 +58,9 @@ class SearchEngine(object):
             for i,index in enumerate(names):
                 if hasattr(index, '__index_name__'):
                     names[i] = index.__index_name__
-                rename = self.config.get('rename_'+names[i])
-                if rename:
-                    names[i] = index_key
+                new_name = self.config.get('rename_'+names[i])
+                if new_name:
+                    names[i] = new_name
         logger.info("Search indexes %s", str(self.search_index_map))
 
     def start_in_subprocess(self):
