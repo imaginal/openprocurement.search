@@ -39,7 +39,7 @@ class IndexTester(object):
     def init_engine(self):
         if self.config.get('orgs_db', None):
             source = OrgsSource(self.config)
-            OrgsIndex(self.engine, source, self.config)            
+            OrgsIndex(self.engine, source, self.config)
 
         if self.config.get('tender_api_url', None):
             source = TenderSource(self.config)
@@ -80,7 +80,7 @@ def print_usage():
 
 
 def main():
-    if len(sys.argv) < 2:
+    if len(sys.argv) < 2 or '-h' in sys.argv:
         print_usage()
         sys.exit(1)
 
@@ -134,38 +134,6 @@ def main():
 
     logger.info("Test passed.")
     return 0
-
-
-def gevent_test():
-    # from gevent import monkey
-    # monkey.patch_all()
-    # from restkit.session import set_session
-    # set_session("gevent")
-
-    parser = ConfigParser()
-    parser.read(sys.argv[1])
-
-    logging.basicConfig(level=logging.INFO, format=LOG_FORMAT)
-
-    config = dict(parser.items('search_engine'))
-    config['tender_api_key'] = 'no'
-    config['tender_limit'] = 40
-    config['tender_preload'] = 40
-    config['tender_skip_until'] = ''
-    config['concurrency'] = 5
-
-    engine = IndexEngine(config)
-
-    source = TenderSource(config)
-    index = TenderIndex(engine, source, config)
-
-    items = list(source.items())
-    items = source.get_all(items)
-
-    for i in items:
-        print i.data.id
-
-    print "Done."
 
 
 if __name__ == '__main__':

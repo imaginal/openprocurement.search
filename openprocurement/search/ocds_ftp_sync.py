@@ -78,7 +78,7 @@ def signal_handler(signo, frame):
 
 
 def main():
-    if len(sys.argv) < 2:
+    if len(sys.argv) < 2 or '-h' in sys.argv:
         print("Usage: %s config.ini" % sys.argv[0])
         sys.exit(1)
 

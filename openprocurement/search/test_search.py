@@ -289,7 +289,7 @@ def print_usage():
 
 
 def main():
-    if len(sys.argv) < 2:
+    if len(sys.argv) < 2 or '-h' in sys.argv:
         print_usage()
         sys.exit(1)
 

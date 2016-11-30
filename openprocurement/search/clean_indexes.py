@@ -101,9 +101,9 @@ def process_config(config):
 
 
 def main():
-    if len(sys.argv) < 2:
+    if len(sys.argv) < 2 or '-h' in sys.argv:
         print "usage: clean_indexes search.ini [other.ini ...]"
-        return
+        sys.exit(1)
 
     logging.basicConfig(level=logging.INFO, format=FORMAT)
 
