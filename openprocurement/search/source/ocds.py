@@ -86,6 +86,7 @@ class OcdsSource(BaseSource):
         self.files = sorted(files)
         self.last_reset_time = time()
         logger.info("Reset ocds, found %d files", len(self.files))
+        self.should_reset = False
 
     def lazy_reset(self):
         self.reset()

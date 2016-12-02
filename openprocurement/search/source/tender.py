@@ -63,7 +63,7 @@ class TenderSource(BaseSource):
         return tender
 
     def need_reset(self):
-        if getattr(self, 'should_reset', False):
+        if self.should_reset:
             return True
         if time() - self.last_reset_time > 4000:
             return datetime.now().hour in self.config['tender_resethours']
@@ -87,6 +87,7 @@ class TenderSource(BaseSource):
         if self.skip_until and self.skip_until[:2] != '20':
             self.skip_until = None
         self.last_reset_time = time()
+        self.should_reset = False
 
     def preload(self):
         preload_items = []
