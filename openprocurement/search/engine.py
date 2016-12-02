@@ -189,17 +189,20 @@ class SearchEngine(object):
         try:
             r = request(self.slave_mode, timeout=5)
             data = json.loads(r.body_string())
+            # log result
+            hv = data['heartbeat']
+            lag = time() - hv
+            logger.info("Master heartbeat %s lag %s sec",
+                strftime('%H:%M:%S', localtime(hv)), int(lag/60))
         except Exception as e:
-            logger.error("Can't check heartbeat %s", unicode(e))
+            logger.error("Can't check heartbeat %s %s",
+                type(e).__name__, unicode(e))
             # if request failed accept last successed value
             data = {'heartbeat': self.last_heartbeat_value}
         if 'index_names' in data:
             self.names_db.update(data['index_names'])
         self.last_heartbeat_check = time()
         self.last_heartbeat_value = int(data.get('heartbeat') or 0)
-        lag = self.last_heartbeat_check - self.last_heartbeat_value
-        logger.info("Master heartbeat %s lag %d min", strftime('%H:%M:%S',
-                localtime(self.last_heartbeat_value)), int(lag/60))
         return self.last_heartbeat_value
 
 
