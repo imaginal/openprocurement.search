@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from logging import getLogger
-from time import time, sleep
+from time import time, sleep, strftime
 
 import simplejson as json
 from restkit import request
@@ -163,13 +163,17 @@ class SearchEngine(object):
     def master_heartbeat(self, value=None):
         filename = "%s.heartbeat" % self.config.get('index_names')
         if value:
+            if value - getattr(self, 'last_saved_heartbeat', 0) < 10:
+                return value
+            self.last_saved_heartbeat = value
             fp = open(filename, "w")
             fp.write("%d\n" % value)
+            fp.close()
         else:
             fp = open(filename)
             value = fp.read() or 0
             value = int(value)
-        fp.close()
+            fp.close()
         if self.debug:
             logger.debug("Heartbeat %s", str(value))
         return value
@@ -195,7 +199,8 @@ class SearchEngine(object):
         self.last_heartbeat_check = time()
         self.last_heartbeat_value = int(data.get('heartbeat') or 0)
         lag = self.last_heartbeat_check - self.last_heartbeat_value
-        logger.info("Master heartbeat lag %d min", int(lag/60))
+        logger.info("Master heartbeat %s lag %d min",
+            strftime('%H:%M:%S', self.last_heartbeat_value), int(lag/60))
         return self.last_heartbeat_value
 
 
@@ -299,9 +304,9 @@ class IndexEngine(SearchEngine):
             heartbeat_value = self.test_heartbeat()
             heartbeat_diff = time() - heartbeat_value
             if heartbeat_diff > int(self.config['slave_wakeup']):
-                logger.warning("Master died %d min ago",
-                    int(heartbeat_diff / 60))
                 if source and getattr(source, 'should_reset', False):
+                    logger.warning("* Master died %d min ago, start slave",
+                        int(heartbeat_diff / 60))
                     source.should_reset = False
                     source.reset()
             else:

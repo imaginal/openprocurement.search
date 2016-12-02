@@ -7,6 +7,7 @@ class BaseSource:
     """Data Source Interface
     """
     should_exit = False
+    should_reset = False
     last_reset_time = 0
 
     @property

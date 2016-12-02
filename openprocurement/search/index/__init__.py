@@ -197,6 +197,10 @@ class BaseIndex(object):
         return self.engine.index_item(index_name, item)
 
     def index_source(self, index_name=None, reset=False):
+        if self.engine.slave_mode:
+            if not self.engine.heartbeat(self.source):
+                return
+
         if not index_name:
             # also check maybe current index was changed
             if self.last_current_index != self.current_index:
@@ -204,9 +208,7 @@ class BaseIndex(object):
                 reset = True
             index_name = self.current_index
 
-        if not index_name and self.engine.slave_mode:
-            if not self.engine.heartbeat(self.source):
-                return
+        if not index_name:
             index_name = self.current_index
 
         if not index_name:

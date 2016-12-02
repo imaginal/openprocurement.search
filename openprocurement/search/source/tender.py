@@ -63,6 +63,8 @@ class TenderSource(BaseSource):
         return tender
 
     def need_reset(self):
+        if getattr(self, 'should_reset', False):
+            return True
         if time() - self.last_reset_time > 4000:
             return datetime.now().hour in self.config['tender_resethours']
 
