@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 from logging import getLogger
-from time import time, sleep, strftime
-
-import simplejson as json
+from time import time, sleep, localtime, strftime
 from restkit import request
 from retrying import retry
+import simplejson as json
 
 from elasticsearch import Elasticsearch
 from elasticsearch.client import IndicesClient
@@ -199,8 +198,8 @@ class SearchEngine(object):
         self.last_heartbeat_check = time()
         self.last_heartbeat_value = int(data.get('heartbeat') or 0)
         lag = self.last_heartbeat_check - self.last_heartbeat_value
-        logger.info("Master heartbeat %s lag %d min",
-            strftime('%H:%M:%S', self.last_heartbeat_value), int(lag/60))
+        logger.info("Master heartbeat %s lag %d min", strftime('%H:%M:%S',
+                localtime(self.last_heartbeat_value)), int(lag/60))
         return self.last_heartbeat_value
 
 
