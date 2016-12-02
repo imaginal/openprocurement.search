@@ -113,7 +113,7 @@ class SearchEngine(object):
         for k,v in self.index_names_dict().items():
             try:
                 k += '_docs_count'
-                stout[k] = stin['indices'][v]['total']['docs']['count']
+                stout[k] = stin['indices'][v]['primaries']['docs']['count']
             except KeyError:
                 pass
         return stout
@@ -128,7 +128,7 @@ class SearchEngine(object):
     def index_stats(self, index_name):
         indices = IndicesClient(self.elastic)
         stats = indices.stats(index_name)
-        return stats['indices'][index_name]['total']
+        return stats['indices'][index_name]['primaries']
 
     def search(self, body, start=0, limit=0, index=None, index_keys=None, index_set=None):
         if not index and index_set:
@@ -178,9 +178,9 @@ class SearchEngine(object):
         # set initial heartbeat_value to current time
         if getattr(self, 'last_heartbeat_check', None) is None:
             self.last_heartbeat_check = 0
-            self.last_heartbeat_value = int(time()) - 30
+            self.last_heartbeat_value = int(time()) - 60
         # cache response value for 30 sec
-        if time() - self.last_heartbeat_check < 30:
+        if time() - self.last_heartbeat_check < 60:
             return self.last_heartbeat_value
         # ... or get from master
         try:
@@ -191,10 +191,11 @@ class SearchEngine(object):
             # if request failed accept last successed value
             data = {'heartbeat': self.last_heartbeat_value}
         if 'index_names' in data:
-            for key, name in data['index_names'].items():
-                self.set_index(key, name)
+            self.names_db.update(data['index_names'])
         self.last_heartbeat_check = time()
         self.last_heartbeat_value = int(data.get('heartbeat') or 0)
+        lag = self.last_heartbeat_check - self.last_heartbeat_value
+        logger.info("Master heartbeat lag %d min", int(lag/60))
         return self.last_heartbeat_value
 
 
@@ -288,8 +289,15 @@ class IndexEngine(SearchEngine):
         """
         if self.should_exit:
             return False
+
+        try:
+            self.master_heartbeat(int(time()))
+        except Exception as e:
+            logger.error("Can't update heartbeat %s", str(e))
+
         if self.slave_mode:
-            heartbeat_diff = time() - self.test_heartbeat()
+            heartbeat_value = self.test_heartbeat()
+            heartbeat_diff = time() - heartbeat_value
             if heartbeat_diff > int(self.config['slave_wakeup']):
                 logger.warning("Master died %d min ago",
                     int(heartbeat_diff / 60))
@@ -301,7 +309,6 @@ class IndexEngine(SearchEngine):
                     source.should_reset = True
                 return False
 
-        self.master_heartbeat(int(time()))
         return True
 
     def sleep(self, seconds):

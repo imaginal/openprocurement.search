@@ -37,6 +37,10 @@ class SharedFileDict(object):
     def pop(self, key, default=None):
         return self.cache.pop(key, default)
 
+    def update(self, items):
+        self.cache = dict(items)
+        self.write(reread=False)
+
     def is_expired(self):
         return time() - self.lastsync > self.expire
 
@@ -48,13 +52,14 @@ class SharedFileDict(object):
         except (IOError, ValueError):
             pass
 
-    def write(self, pop_key=None):
+    def write(self, pop_key=None, reread=True):
         tmp_file = self.filename+'.tmp'
         with open(tmp_file, 'w') as fp:
             fcntl.lockf(fp, fcntl.LOCK_EX)
-            tmp_cache = self.cache
-            self.read()
-            self.cache.update(tmp_cache)
+            if reread:
+                tmp_cache = self.cache
+                self.read()
+                self.cache.update(tmp_cache)
             if pop_key:
                 self.cache.pop(pop_key)
             yaml.dump(self.cache, fp,

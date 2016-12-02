@@ -111,6 +111,8 @@ class BaseIndex(object):
         # try restore last index (in case of crash)
         name = self.engine.get_index(index_key_next)
         current_index = self.current_index
+        if not name.startswith(index_key):
+            name = None
         if current_index and name <= current_index:
             name = None
         if name and not self.engine.index_exists(name):
@@ -323,7 +325,7 @@ class BaseIndex(object):
             res = self.engine.search(body, start=0, limit=1, index=index_name)
         except:
             res = None
-        if not res or not res['items']:
+        if not res or not res.get('items'):
             logger.error("[%s] Check failed: empty or corrupted index", index_name)
             return False
 
