@@ -241,7 +241,8 @@ class BaseIndex(object):
                     self.indexing_stat(
                         index_name, total_count, index_count,
                         iter_count, info.get('dateModified'))
-                    self.engine.heartbeat(self.source)
+                    if not self.engine.heartbeat(self.source):
+                        break
                     iter_count = 0
 
             if self.engine.should_exit:

@@ -308,9 +308,8 @@ class IndexEngine(SearchEngine):
             heartbeat_diff = time() - heartbeat_value
             if heartbeat_diff > self.slave_wakeup:
                 if source and source.should_reset:
-                    logger.warning("* Master died %d min ago, start slave",
+                    logger.warning("* Master died %d min ago, wakeup slave",
                         int(heartbeat_diff / 60))
-                    source.reset()
                 return True
             else:
                 if source:
