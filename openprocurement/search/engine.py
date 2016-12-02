@@ -39,6 +39,7 @@ class SearchEngine(object):
         self.names_db = SharedFileDict(self.config.get('index_names'))
         self.elastic = Elasticsearch([self.config.get('elastic_host')])
         self.slave_mode = self.config.get('slave_mode') or None
+        self.slave_wakeup = int(self.config['slave_wakeup'] or 600)
         self.debug = self.config.get('debug', False)
         self.should_exit = False
 
@@ -192,7 +193,7 @@ class SearchEngine(object):
             # log result
             hv = data['heartbeat']
             lag = time() - hv
-            logger.info("Master heartbeat %s lag %s sec",
+            logger.info("Master heartbeat %s lag %s min",
                 strftime('%H:%M:%S', localtime(hv)), int(lag/60))
         except Exception as e:
             logger.error("Can't check heartbeat %s %s",
@@ -305,7 +306,7 @@ class IndexEngine(SearchEngine):
         if self.slave_mode:
             heartbeat_value = self.test_heartbeat()
             heartbeat_diff = time() - heartbeat_value
-            if heartbeat_diff > int(self.config['slave_wakeup']):
+            if heartbeat_diff > self.slave_wakeup:
                 if source and source.should_reset:
                     logger.warning("* Master died %d min ago, start slave",
                         int(heartbeat_diff / 60))
