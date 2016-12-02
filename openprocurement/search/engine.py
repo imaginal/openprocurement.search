@@ -179,10 +179,10 @@ class SearchEngine(object):
 
     def test_heartbeat(self):
         # set initial heartbeat_value to current time
-        if getattr(self, 'last_heartbeat_check', None) is None:
-            self.last_heartbeat_check = 0
-            self.last_heartbeat_value = int(time()) - 60
-        # cache response value for 30 sec
+        if not getattr(self, 'last_heartbeat_check', None):
+            self.last_heartbeat_check = 1
+            self.last_heartbeat_value = time()
+        # cache response value for 60 sec
         if time() - self.last_heartbeat_check < 60:
             return self.last_heartbeat_value
         # ... or get from master
@@ -328,6 +328,7 @@ class IndexEngine(SearchEngine):
         alive = False
         retry_count = 0
         while not alive:
+            self.heartbeat()
             try:
                 alive = self.elastic.info()
             except ElasticsearchException as e:
@@ -352,13 +353,13 @@ class IndexEngine(SearchEngine):
 
         self.wait_for_backend()
 
-        if not self.slave_mode:
+        if self.slave_mode:
+            logger.info("* Start in slave mode")
+        else:
             logger.info("Check current indexes")
             if self.config['check_on_start']:
                 for index in self.index_list:
                     index.check_on_start()
-        else:
-            logger.info("* Start in slave mode")
 
         # start main loop
         allow_reindex = not self.slave_mode

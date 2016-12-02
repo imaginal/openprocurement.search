@@ -209,9 +209,6 @@ class BaseIndex(object):
             index_name = self.current_index
 
         if not index_name:
-            index_name = self.current_index
-
-        if not index_name:
             if not self.reindex_process:
                 logger.warning("No current index for %s", repr(self))
             return
