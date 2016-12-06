@@ -26,7 +26,7 @@ class AuctionSource(BaseSource):
         'auction_api_mode': '',
         'auction_skip_until': None,
         'auction_limit': 1000,
-        'auction_preload': 500000,
+        'auction_preload': 10000,
         'auction_resethour': 23,
         'timeout': 30,
     }
