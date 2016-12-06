@@ -124,7 +124,7 @@ class PlanSource(BaseSource):
                 if not len(items):
                     raise ValueError()
                 preload_items.extend(items)
-                logger.info("FastPreload %d plans, last %s",
+                logger.info("FastPre %d plans, last %s",
                     len(preload_items), items[-1]['dateModified'])
             except:
                 pass

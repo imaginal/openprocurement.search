@@ -132,7 +132,7 @@ class TenderSource(BaseSource):
                 if not len(items):
                     raise ValueError()
                 preload_items.extend(items)
-                logger.info("FastPreload %d tenders, last %s",
+                logger.info("FastPre %d tenders, last %s",
                     len(preload_items), items[-1]['dateModified'])
             except:
                 pass
