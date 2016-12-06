@@ -25,9 +25,9 @@ class TenderSource(BaseSource):
         'tender_api_mode': '',
         'tender_skip_until': None,
         'tender_limit': 1000,
-        'tender_preload': 500000,
-        'tender_resethours': [22],
-        'concurrency': 5,
+        'tender_preload': 10000,
+        'tender_resethour': 22,
+        'tender_fast_client': False,
         'timeout': 30,
     }
 
@@ -36,7 +36,8 @@ class TenderSource(BaseSource):
             self.config.update(config)
         self.config['tender_limit'] = int(self.config['tender_limit'] or 0) or 100
         self.config['tender_preload'] = int(self.config['tender_preload'] or 0) or 100
-        self.config['concurrency'] = int(self.config['concurrency'] or 0)
+        self.config['tender_resethour'] = int(self.config['tender_resethour'] or 0)
+        self.fast_client = None
         self.client = None
 
     def procuring_entity(self, item):
@@ -65,8 +66,8 @@ class TenderSource(BaseSource):
     def need_reset(self):
         if self.should_reset:
             return True
-        if time() - self.last_reset_time > 4000:
-            return datetime.now().hour in self.config['tender_resethours']
+        if time() - self.last_reset_time > 3600:
+            return datetime.now().hour == int(self.config['tender_resethour'])
 
     @retry(stop_max_attempt_number=5, wait_fixed=15000)
     def reset(self):
@@ -83,6 +84,17 @@ class TenderSource(BaseSource):
             host_url=self.config['tender_api_url'],
             api_version=self.config['tender_api_version'],
             params=params)
+        if self.config['tender_fast_client']:
+            fast_params = dict(params)
+            fast_params['descending'] = 1
+            self.fast_client = TendersClient(
+                key=self.config['tender_api_key'],
+                host_url=self.config['tender_api_url'],
+                api_version=self.config['tender_api_version'],
+                params=fast_params)
+            self.fast_client.get_tenders()
+            self.fast_client.params.pop('descending')
+            # fast forward client is ready
         self.skip_until = self.config.get('tender_skip_until', None)
         if self.skip_until and self.skip_until[:2] != '20':
             self.skip_until = None
@@ -109,9 +121,21 @@ class TenderSource(BaseSource):
                 logger.info("Preload %d tenders, last %s",
                     len(preload_items), items[-1]['dateModified'])
             if len(items) < 10:
+                self.fast_client = None
                 break
             if len(preload_items) >= self.config['tender_preload']:
                 break
+
+        if self.fast_client:
+            try:
+                items = self.fast_client.get_tenders()
+                if not len(items):
+                    raise ValueError()
+                preload_items.extend(items)
+                logger.info("FastPreload %d tenders, last %s",
+                    len(preload_items), items[-1]['dateModified'])
+            except:
+                pass
 
         return preload_items
 
@@ -153,20 +177,3 @@ class TenderSource(BaseSource):
             item = self.patch_version(item)
         tender['meta'] = item
         return self.patch_tender(tender)
-
-    def get_all(self, items):
-        if len(items) < 10 or self.config['concurrency'] < 2:
-            for i in items:
-                yield self.get(i)
-            return
-
-        completed = 0
-        while items:
-            jobs = []
-            while items and len(jobs) < self.config['concurrency']:
-                jobs.append(gevent.spawn(self.get, items.pop()))
-            for res in gevent.joinall(jobs):
-                completed += 1
-                yield res.value
-            # logger.info("%s.GetAll %d jobs completed %d left",
-            #     self.__class__.__name__, completed, len(items))

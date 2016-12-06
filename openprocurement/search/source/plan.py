@@ -25,8 +25,9 @@ class PlanSource(BaseSource):
         'plan_api_mode': '',
         'plan_skip_until': None,
         'plan_limit': 1000,
-        'plan_preload': 500000,
-        'plan_resethours': [23],
+        'plan_preload': 10000,
+        'plan_resethour': 23,
+        'plan_fast_client': False,
         'timeout': 30,
     }
 
@@ -35,6 +36,8 @@ class PlanSource(BaseSource):
             self.config.update(config)
         self.config['plan_limit'] = int(self.config['plan_limit'] or 0) or 100
         self.config['plan_preload'] = int(self.config['plan_preload'] or 0) or 100
+        self.config['plan_resethour'] = int(self.config['plan_resethour'] or 0)
+        self.fast_client = None
         self.client = None
 
     def procuring_entity(self, item):
@@ -52,8 +55,8 @@ class PlanSource(BaseSource):
     def need_reset(self):
         if self.should_reset:
             return True
-        if time() - self.last_reset_time > 4000:
-            return datetime.now().hour in self.config['plan_resethours']
+        if time() - self.last_reset_time > 3600:
+            return datetime.now().hour == int(self.config['plan_resethour'])
 
     @retry(stop_max_attempt_number=5, wait_fixed=15000)
     def reset(self):
@@ -72,6 +75,18 @@ class PlanSource(BaseSource):
             api_version=self.config['plan_api_version'],
             resource=self.config['plan_resource'],
             params=params)
+        if self.config['plan_fast_client']:
+            fast_params = dict(params)
+            fast_params['descending'] = 1
+            self.fast_client = TendersClient(
+                key=self.config['plan_api_key'],
+                host_url=self.config['plan_api_url'],
+                api_version=self.config['plan_api_version'],
+                resource=self.config['plan_resource'],
+                params=fast_params)
+            self.fast_client.get_tenders()
+            self.fast_client.params.pop('descending')
+            # fast forward client is ready
         self.skip_until = self.config.get('plan_skip_until', None)
         if self.skip_until and self.skip_until[:2] != '20':
             self.skip_until = None
@@ -98,9 +113,21 @@ class PlanSource(BaseSource):
                 logger.info("Preload %d plans, last %s",
                     len(preload_items), items[-1]['dateModified'])
             if len(items) < 10:
+                self.fast_client = None
                 break
             if len(preload_items) >= self.config['plan_preload']:
                 break
+
+        if self.fast_client:
+            try:
+                items = self.fast_client.get_tenders()
+                if not len(items):
+                    raise ValueError()
+                preload_items.extend(items)
+                logger.info("FastPreload %d plans, last %s",
+                    len(preload_items), items[-1]['dateModified'])
+            except:
+                pass
 
         return preload_items
 

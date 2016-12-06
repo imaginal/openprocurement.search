@@ -174,7 +174,7 @@ class BaseIndex(object):
             return
         pause = 1.0 * iter_count / self.config['index_speed']
         logger.info("[%s] Fetched %d indexed %d last %s", # wait %1.1fs
-            index_name, fetched, indexed, last_date)
+            index_name, fetched, indexed, last_date or '-')
         if pause > 0.1:
             self.engine.sleep(pause)
 
@@ -240,7 +240,7 @@ class BaseIndex(object):
                 if iter_count >= 100:
                     self.indexing_stat(
                         index_name, total_count, index_count,
-                        iter_count, info.get('dateModified'))
+                        iter_count, info.get('dateModified', '-'))
                     if not self.engine.heartbeat(self.source):
                         break
                     iter_count = 0
@@ -250,11 +250,11 @@ class BaseIndex(object):
             # break if nothing iterated
             if iter_count > 0:
                 self.indexing_stat(index_name, total_count, index_count,
-                    iter_count, info.get('dateModified'))
+                    iter_count, info.get('dateModified', '-'))
             elif getattr(self.source, 'last_skipped', None):
                 last_skipped = self.source.last_skipped or ""
                 logger.info("[%s] Fetched %d, last_skipped %s",
-                    index_name, total_count, last_skipped)
+                    index_name, total_count, last_skipped or '-')
             elif not info:
                 break
 
