@@ -103,6 +103,18 @@ class TenderSource(BaseSource):
 
     def preload(self):
         preload_items = []
+        # try prelaod last tenders first
+        if self.fast_client:
+            try:
+                items = self.fast_client.get_tenders()
+                if not len(items):
+                    raise ValueError()
+                preload_items.extend(items)
+                logger.info("Preload fast %d tenders, last %s",
+                    len(preload_items), items[-1]['dateModified'])
+            except:
+                pass
+
         while True:
             try:
                 items = self.client.get_tenders()
@@ -125,17 +137,6 @@ class TenderSource(BaseSource):
                 break
             if len(preload_items) >= self.config['tender_preload']:
                 break
-
-        if self.fast_client:
-            try:
-                items = self.fast_client.get_tenders()
-                if not len(items):
-                    raise ValueError()
-                preload_items.extend(items)
-                logger.info("FastPre %d tenders, last %s",
-                    len(preload_items), items[-1]['dateModified'])
-            except:
-                pass
 
         return preload_items
 
