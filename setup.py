@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-version = '0.6a1'
+version = '0.6a3'
 
 setup(name='openprocurement.search',
         version=version,
