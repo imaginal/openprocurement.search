@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from os import path, listdir
-from time import mktime, time
+from time import mktime, time, sleep
 from fnmatch import fnmatch
 from iso8601 import parse_date
 from munch import munchify
@@ -125,6 +125,8 @@ class OcdsSource(BaseSource):
                 self.last_skipped = item['dateModified']
                 continue
             yield self.patch_version(item)
+            # limit ocds iterator to 1000 r/s
+            sleep(1.0/float(self.config['ocds_speed']))
 
     def get(self, item):
         return self.patch_tender(item)
