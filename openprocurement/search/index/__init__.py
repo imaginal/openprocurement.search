@@ -402,6 +402,7 @@ class BaseIndex(object):
         self.reindex_process = Process(
             target=self.async_reindex,
             name=proc_name)
+        self.reindex_process.daemon = True
         self.reindex_process.start()
         # wait for child
         retry_count = 0
