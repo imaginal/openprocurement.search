@@ -15,6 +15,10 @@ from openprocurement.search.index.orgs import OrgsIndex
 
 from openprocurement.search.engine import SearchEngine
 
+# Flas config
+
+JSONIFY_PRETTYPRINT_REGULAR = False
+
 # create Flask app
 
 search_server = Flask(__name__)
