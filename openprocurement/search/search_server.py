@@ -290,6 +290,16 @@ def orgsuggest():
         }
         res = search_engine.search(body, index_set='orgs')
         return jsonify(res)
+    # generate static top-orgs json
+    toporgs = request.args.get('toporgs', '')
+    if toporgs and int(toporgs) < 1000:
+        body = {
+            "size": int(toporgs),
+            "query": {"match_all": {}},
+            "sort": {"rank": {"order": "desc"}},
+        }
+        res = search_engine.search(body, index_set='orgs')
+        return jsonify(res)
     # fulltext search
     query = request.args.get('query', '')
     if not query or len(query) > 50:
@@ -305,7 +315,7 @@ def orgsuggest():
     body = {
         "size": 5,
         "query": {"match": {"_all": _all}},
-        "sort": {"rank": {"order": "desc"}}
+        "sort": {"rank": {"order": "desc"}},
     }
     res = search_engine.search(body, index_set='orgs')
     if not res.get('items'):
