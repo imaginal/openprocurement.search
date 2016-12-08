@@ -285,20 +285,19 @@ def orgsuggest():
     edrpou = request.args.get('edrpou', '')
     if edrpou and len(edrpou) < 10:
         body = {
-            "size": 1,
-            "query": {"match": {"edrpou": edrpou}}
+            "query": {"match": {"edrpou": edrpou}},
         }
-        res = search_engine.search(body, index_set='orgs')
+        res = search_engine.search(body, limit=1, index_set='orgs')
         return jsonify(res)
     # generate static top-orgs json
     toporgs = request.args.get('toporgs', '')
     if toporgs and int(toporgs) < 1000:
         body = {
-            "size": int(toporgs),
             "query": {"match_all": {}},
             "sort": {"rank": {"order": "desc"}},
         }
-        res = search_engine.search(body, index_set='orgs')
+        limit = int(toporgs)
+        res = search_engine.search(body, limit=limit, index_set='orgs')
         return jsonify(res)
     # fulltext search
     query = request.args.get('query', '')
@@ -313,14 +312,13 @@ def orgsuggest():
         "fuzziness": fuzziness
     }
     body = {
-        "size": 5,
         "query": {"match": {"_all": _all}},
         "sort": {"rank": {"order": "desc"}},
     }
-    res = search_engine.search(body, index_set='orgs')
+    res = search_engine.search(body, limit=5, index_set='orgs')
     if not res.get('items'):
         _all["fuzziness"] += 1
-        res = search_engine.search(body, index_set='orgs')
+        res = search_engine.search(body, limit=5, index_set='orgs')
     return jsonify(res)
 
 
