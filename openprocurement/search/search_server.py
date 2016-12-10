@@ -4,6 +4,7 @@ monkey.patch_all()
 
 import re
 import sys
+import simplejson as json
 from ConfigParser import ConfigParser
 from flask import Flask, request, jsonify, abort
 
@@ -17,7 +18,7 @@ from openprocurement.search.engine import SearchEngine
 
 # Flas config
 
-#JSONIFY_PRETTYPRINT_REGULAR = False
+JSONIFY_PRETTYPRINT_REGULAR = False
 
 # create Flask app
 
@@ -341,7 +342,9 @@ def heartbeat():
         data['index_stats'] = search_engine.index_docs_count()
     elif key:
         abort(403)
-    return jsonify(data)
+    if not request.args.get('pretty', ''):
+        return jsonify(data)
+    return json.dumps(data, sort_keys=True, indent=4)
 
 
 def make_app(global_conf, **kwargs):
