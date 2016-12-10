@@ -17,7 +17,7 @@ from openprocurement.search.engine import SearchEngine
 
 # Flas config
 
-JSONIFY_PRETTYPRINT_REGULAR = False
+#JSONIFY_PRETTYPRINT_REGULAR = False
 
 # create Flask app
 
@@ -302,6 +302,12 @@ def orgsuggest():
         }
         limit = int(toporgs)
         res = search_engine.search(body, limit=limit, index_set='orgs')
+        if request.args.get('plain', '')
+            items = dict()
+            for i in res['items']:
+                edrpou = i['edrpou']
+                items[edrpou] = i['name']
+            return jsonify(items)
         return jsonify(res)
     # fulltext search
     query = request.args.get('query', '')

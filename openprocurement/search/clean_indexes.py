@@ -42,17 +42,18 @@ def process_all(elastic_host, index_list, index_yaml):
             continue
         if name in current_names:
             logger.info("Skip current %s", name)
-            continue
+            #continue
         try:
             created_time = BaseIndex.index_created_time(name)
         except:
             logger.info("Skip unknown %s", name)
             continue
-        if created_time < 1e10:
-            logger.info("Skip bad suffix %s", name)
+        if created_time < 1e9:
+            logger.info("Skip bad name %s time %f", name, created_time)
             continue
         if created_time > fresh_time:
-            logger.info("Skip fresh %s", name)
+            days = (time.time() - created_time) / 86400
+            logger.info("Skip fresh %s (%1.1f days)", name, days)
             continue
         candidates.append(name)
 
