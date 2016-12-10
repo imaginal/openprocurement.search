@@ -342,10 +342,10 @@ def heartbeat():
         data['index_stats'] = search_engine.index_docs_count()
     elif key:
         abort(403)
-    if not request.args.get('pretty', ''):
-        return jsonify(data)
-    return json.dumps(data, sort_keys=True, indent=4)
-
+    res = jsonify(data)
+    if request.args.get('pretty', ''):
+        res.set_data(json.dumps(data, sort_keys=True, indent=4))
+    return res
 
 def make_app(global_conf, **kwargs):
     class config:
