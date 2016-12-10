@@ -303,7 +303,7 @@ def orgsuggest():
         }
         limit = int(toporgs)
         res = search_engine.search(body, limit=limit, index_set='orgs')
-        if request.args.get('plain', '')
+        if request.args.get('plain', ''):
             items = dict()
             for i in res['items']:
                 edrpou = i['edrpou']
