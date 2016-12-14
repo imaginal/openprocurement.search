@@ -86,7 +86,8 @@ class PlanSource(BaseSource):
                 params=fast_params)
             self.fast_client.get_tenders()
             self.fast_client.params.pop('descending')
-            # fast forward client is ready
+        else:
+            self.fast_client = None
         self.skip_until = self.config.get('plan_skip_until', None)
         if self.skip_until and self.skip_until[:2] != '20':
             self.skip_until = None

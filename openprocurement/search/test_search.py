@@ -70,6 +70,7 @@ class SearchTester(object):
 
     def test_tenders(self):
         # self.engine_config['tender_skip_until'] = ''
+        self.engine_config['tender_fast_client'] = False
 
         source = TenderSource(self.engine_config)
         index = TenderIndex(self.engine, source, self.engine_config)
@@ -134,6 +135,7 @@ class SearchTester(object):
 
     def test_plans(self):
         # self.engine_config['plan_skip_until'] = ''
+        self.engine_config['plan_fast_client'] = False
 
         source = PlanSource(self.engine_config)
         index = PlanIndex(self.engine, source, self.engine_config)
@@ -201,6 +203,7 @@ class SearchTester(object):
 
     def test_auctions(self):
         # self.engine_config['auction_skip_until'] = ''
+        self.engine_config['auction_fast_client'] = False
 
         source = AuctionSource(self.engine_config)
         index = AuctionIndex(self.engine, source, self.engine_config)
