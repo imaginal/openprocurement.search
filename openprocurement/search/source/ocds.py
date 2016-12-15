@@ -97,11 +97,11 @@ class OcdsSource(BaseSource):
             self.files = []
 
     def items(self):
+        self.last_skipped = None
         # if not self.files and self.since_last_reset() > 3600:
         #     self.lazy_reset()
         if not self.files:
             return
-        self.last_skipped = None
         skip_until = self.config.get('ocds_skip_until', None)
         if skip_until and skip_until[:2] != '20':
             skip_until = None

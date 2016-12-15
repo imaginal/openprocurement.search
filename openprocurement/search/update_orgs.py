@@ -80,7 +80,7 @@ class IndexOrgsEngine(IndexEngine):
                 logger.exception("Can't process_source: %s", str(e))
                 break
             # prevent stop by skip_until before first 100 processed
-            if items_count < 100 and source.last_skipped:
+            if items_count < 100 and getattr(source, 'last_skipped', None):
                 logger.info(
                     "[%s] Processed %d last_skipped %s",
                     source.doc_type, items_count, source.last_skipped)
