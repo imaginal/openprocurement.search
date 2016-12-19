@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-version = '0.6a3'
+version = '0.6'
 
 setup(name='openprocurement.search',
         version=version,
@@ -23,7 +23,7 @@ setup(name='openprocurement.search',
         zip_safe=False,
         install_requires=[
             'elasticsearch==1.9.0',
-            'openprocurement_client',
+            'openprocurement_client==1.0b3',
             'Flask',
             'iso8601',
             'PyYAML',
