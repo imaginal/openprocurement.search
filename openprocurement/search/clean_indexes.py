@@ -14,6 +14,9 @@ FORMAT='%(asctime)-15s %(levelname)s %(message)s'
 logger=logging.getLogger(__name__)
 
 
+class Options:
+    fresh_age = 15
+
 
 def delete_index(elastic_host, name):
     url = "http://%s/%s" % (elastic_host, name)
@@ -21,14 +24,17 @@ def delete_index(elastic_host, name):
     opener = urllib2.build_opener(urllib2.HTTPHandler)
     request = urllib2.Request(url)
     request.get_method = lambda: 'DELETE'
-    resp = opener.open(request)
-    data = resp.read()
-    if resp.getcode() != 200:
-        logger.error("%d %s", resp.getcode(), data)
+    try:
+        resp = opener.open(request)
+        data = resp.read()
+        if resp.getcode() != 200:
+            logger.error("%d %s", resp.getcode(), data)
+    except Exception as e:
+        logger.error("Got exception %s", e)
 
 
 def process_all(elastic_host, index_list, index_yaml):
-    fresh_time = time.time() - (15*24*3600) # 15 days
+    fresh_time = time.time() - (Options.fresh_age * 86400)
     candidates = list()
 
     current_keys  = index_yaml.keys()
@@ -42,7 +48,7 @@ def process_all(elastic_host, index_list, index_yaml):
             continue
         if name in current_names:
             logger.info("Skip current %s", name)
-            #continue
+            continue
         try:
             created_time = BaseIndex.index_created_time(name)
         except:
@@ -89,6 +95,8 @@ def process_config(config):
     elhost = parser.get('search_engine', 'elastic_host')
     index_list = get_indexes(elhost)
 
+    logger.info("Found %d indexes on %s", len(index_list), elhost)
+
     yafile = parser.get('search_engine', 'index_names')
     with open("%s.yaml" % yafile) as f:
         index_yaml = yaml.load(f)
@@ -103,10 +111,24 @@ def process_config(config):
 
 def main():
     if len(sys.argv) < 2 or '-h' in sys.argv:
-        print "usage: clean_indexes search.ini [other.ini ...]"
+        print "usage: clean_indexes [options] search.ini"
+        print "\noptions:"
+        print "\t--all\t\tdelete all existing indexes"
+        print "\t--age=<days>\tchange min index age (default 15 days)"
         sys.exit(1)
 
+    if '--all' in sys.argv:
+        answer = raw_input("Confirm delete all indexes (yes/no): ")
+        if answer != "yes":
+            print "Not confirmed, exit."
+            sys.exit(1)
+
     logging.basicConfig(level=logging.INFO, format=FORMAT)
+
+    for option in sys.argv[1:]:
+        if option.startswith('--age='):
+            Options.fresh_age = int(option[6:])
+            logger.info("Set min index age = %d days", Options.fresh_age)
 
     for config in sys.argv[1:]:
         if config.startswith('--'):
