@@ -44,7 +44,7 @@ def process_all(elastic_host, index_list, index_yaml):
         name = index['index']
         prefix, _ = name.rsplit('_', 1)
         if prefix not in current_keys:
-            logger.debug("Skip prefix %s", name)
+            logger.info("Skip by prefix %s", name)
             continue
         if name in current_names:
             logger.info("Skip current %s", name)
