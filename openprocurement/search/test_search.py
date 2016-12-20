@@ -97,6 +97,11 @@ class SearchTester(object):
             source.config['tender_api_url'],
             source.config['tender_api_version'],
             source.client.params.get('mode', ''))
+        logger.info("Offset %s (%s minutes)",
+            offset, self.offset)
+        logger.info("Search %s:%s",
+            self.search_config['host'],
+            self.search_config['port'])
 
         test_count = 0
         skip_count = skip_limit
@@ -163,6 +168,8 @@ class SearchTester(object):
             source.config['plan_api_url'],
             source.config['plan_api_version'],
             source.client.params.get('mode', ''))
+        logger.info("Offset %s (%s minutes)",
+            offset, self.offset)
         logger.info("Search %s:%s",
             self.search_config['host'],
             self.search_config['port'])
@@ -231,6 +238,8 @@ class SearchTester(object):
             source.config['auction_api_url'],
             source.config['auction_api_version'],
             source.client.params.get('mode', ''))
+        logger.info("Offset %s (%s minutes)",
+            offset, self.offset)
         logger.info("Search %s:%s",
             self.search_config['host'],
             self.search_config['port'])
