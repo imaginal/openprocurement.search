@@ -8,6 +8,7 @@ from retrying import retry
 
 from openprocurement_client.client import TendersClient
 from openprocurement.search.source import BaseSource
+from openprocurement.search.utils import restkit_error
 
 from logging import getLogger
 logger = getLogger(__name__)
@@ -79,7 +80,7 @@ class AuctionSource(BaseSource):
             api_version=self.config['auction_api_version'],
             resource=self.config['auction_resource'],
             params=params)
-        self.client.headers['user-agent'] = self.client_user_agent
+        self.client.headers['User-Agent'] = self.client_user_agent
         self.skip_until = self.config.get('auction_skip_until', None)
         if self.skip_until and self.skip_until[:2] != '20':
             self.skip_until = None
@@ -92,7 +93,7 @@ class AuctionSource(BaseSource):
             try:
                 items = self.client.get_tenders()
             except Exception as e:
-                logger.error("AuctionSource.preload error %s", str(e))
+                logger.error("AuctionSource.preload error %s", restkit_error(e))
                 self.reset()
                 break
             if self.should_exit:
@@ -138,7 +139,7 @@ class AuctionSource(BaseSource):
                     raise e
                 retry_count += 1
                 logger.error("get_auction %s retry %d error %s",
-                    str(item['id']), retry_count, str(e))
+                    str(item['id']), retry_count, restkit_error(e))
                 self.sleep(5)
                 if retry_count > 1:
                     self.reset()

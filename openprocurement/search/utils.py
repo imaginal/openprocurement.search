@@ -6,6 +6,19 @@ import time
 import logging
 
 
+def restkit_error(e):
+    out = str(e)
+    try:
+        response = getattr(e, 'response', None)
+        headers = getattr(response, 'headers', None)
+        if headers:
+            out += " Status:"+str(response.status_int)
+            out += " Headers:"+str(headers)
+    except:
+        pass
+    return out
+
+
 class InfoFilter(logging.Filter):
     def filter(self, rec):
         return rec.levelno < logging.WARNING

@@ -8,6 +8,7 @@ from retrying import retry
 
 from openprocurement_client.client import TendersClient
 from openprocurement.search.source import BaseSource
+from openprocurement.search.utils import restkit_error
 
 from logging import getLogger
 logger = getLogger(__name__)
@@ -86,7 +87,7 @@ class TenderSource(BaseSource):
             host_url=self.config['tender_api_url'],
             api_version=self.config['tender_api_version'],
             params=params)
-        self.client.headers['user-agent'] = self.client_user_agent
+        self.client.headers['User-Agent'] = self.client_user_agent
         if self.config['tender_fast_client']:
             fast_params = dict(params)
             fast_params['descending'] = 1
@@ -97,7 +98,7 @@ class TenderSource(BaseSource):
                 params=fast_params)
             self.fast_client.get_tenders()
             self.fast_client.params.pop('descending')
-            self.fast_client.headers['user-agent'] = self.client_user_agent + " fast_client"
+            self.fast_client.headers['User-Agent'] = self.client_user_agent + " fast_client"
         else:
             self.fast_client = None
         self.skip_until = self.config.get('tender_skip_until', None)
@@ -124,7 +125,7 @@ class TenderSource(BaseSource):
             try:
                 items = self.client.get_tenders()
             except Exception as e:
-                logger.error("TenderSource.preload error %s", str(e))
+                logger.error("TenderSource.preload error %s", restkit_error(e))
                 self.reset()
                 break
             if self.should_exit:
@@ -171,7 +172,7 @@ class TenderSource(BaseSource):
                     raise e
                 retry_count += 1
                 logger.error("get_tender %s retry %d error %s",
-                    str(item['id']), retry_count, str(e))
+                    str(item['id']), retry_count, restkit_error(e))
                 self.sleep(5)
                 if retry_count > 1:
                     self.reset()
