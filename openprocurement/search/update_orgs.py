@@ -166,11 +166,13 @@ def main():
             update_days = parser.get('update_orgs', 'update_days')
             date = datetime.now() - timedelta(days=int(update_days))
             date = date.strftime("%Y-%m-%d")
-            logger.info("Set mandatory skip_until = %s", date)
+            logger.info("Use update_days = %s to set skip_until = %s",
+                update_days, date)
             config['tender_skip_until'] = date
             config['plan_skip_until'] = date
             config['ocds_skip_until'] = date
         # disable fast_client mode
+        logger.info("Disable fast_client mode")
         if 'tender_fast_client' in config:
             config['tender_fast_client'] = False
         if 'plan_fast_client' in config:
