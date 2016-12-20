@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 from time import sleep
-from logging import getLogger
+from socket import setdefaulttimeout
 from ..version import __version__
 
 from openprocurement_client import client
 
+from logging import getLogger
 logger = getLogger(__name__)
 
 class BaseSource:
@@ -49,9 +50,9 @@ class TendersClient(client.TendersClient):
         self.user_agent = kwargs.pop('user_agent', None)
         self.timeout = kwargs.pop('timeout', 300)
         if self.timeout: setdefaulttimeout(self.timeout)
-        super(MyTendersClient, self).__init__(*args, **kwargs)
+        super(TendersClient, self).__init__(*args, **kwargs)
 
     def request(self, *args, **kwargs):
         if 'User-Agent' not in self.headers and self.user_agent:
             self.headers['User-Agent'] = self.user_agent
-        return super(MyTendersClient, self).request(*args, **kwargs)
+        return super(TendersClient, self).request(*args, **kwargs)

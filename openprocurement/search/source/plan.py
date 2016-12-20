@@ -60,7 +60,7 @@ class PlanSource(BaseSource):
         if time() - self.last_reset_time > 3600:
             return datetime.now().hour == int(self.config['plan_resethour'])
 
-    @retry(stop_max_attempt_number=5, wait_fixed=15000)
+    @retry(stop_max_attempt_number=5, wait_fixed=5000)
     def reset(self):
         logger.info("Reset plans, plan_skip_until=%s",
                     self.config['plan_skip_until'])

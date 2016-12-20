@@ -71,7 +71,7 @@ class TenderSource(BaseSource):
         if time() - self.last_reset_time > 3600:
             return datetime.now().hour == int(self.config['tender_resethour'])
 
-    @retry(stop_max_attempt_number=5, wait_fixed=15000)
+    @retry(stop_max_attempt_number=5, wait_fixed=5000)
     def reset(self):
         logger.info("Reset tenders, tender_skip_until=%s", self.config['tender_skip_until'])
         if self.config.get('timeout', None):
