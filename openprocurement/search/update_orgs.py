@@ -166,7 +166,7 @@ def main():
             update_days = parser.get('update_orgs', 'update_days')
             date = datetime.now() - timedelta(days=int(update_days))
             date = date.strftime("%Y-%m-%d")
-            logger.warning("Set mandatory skip_until = %s", date)
+            logger.info("Set mandatory skip_until = %s", date)
             config['tender_skip_until'] = date
             config['plan_skip_until'] = date
             config['ocds_skip_until'] = date
