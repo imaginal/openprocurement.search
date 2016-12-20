@@ -170,6 +170,11 @@ def main():
             config['tender_skip_until'] = date
             config['plan_skip_until'] = date
             config['ocds_skip_until'] = date
+        # disable fast_client mode
+        if 'tender_fast_client' in config:
+            config['tender_fast_client'] = False
+        if 'plan_fast_client' in config:
+            config['plan_fast_client'] = False
         global engine
         engine = IndexOrgsEngine(config)
         source = OrgsSource(config)
