@@ -6,8 +6,7 @@ from iso8601 import parse_date
 from socket import setdefaulttimeout
 from retrying import retry
 
-from openprocurement_client.client import TendersClient
-from openprocurement.search.source import BaseSource
+from openprocurement.search.source import BaseSource, TendersClient
 from openprocurement.search.utils import restkit_error
 
 from logging import getLogger
@@ -79,8 +78,9 @@ class AuctionSource(BaseSource):
             host_url=self.config['auction_api_url'],
             api_version=self.config['auction_api_version'],
             resource=self.config['auction_resource'],
-            params=params)
-        self.client.headers['User-Agent'] = self.client_user_agent
+            params=params,
+            timeout=float(self.config['timeout']),
+            user_agent=self.client_user_agent)
         self.skip_until = self.config.get('auction_skip_until', None)
         if self.skip_until and self.skip_until[:2] != '20':
             self.skip_until = None

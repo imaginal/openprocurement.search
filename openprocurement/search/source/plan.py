@@ -5,8 +5,7 @@ from iso8601 import parse_date
 from socket import setdefaulttimeout
 from retrying import retry
 
-from openprocurement_client.client import TendersClient
-from openprocurement.search.source import BaseSource
+from openprocurement.search.source import BaseSource, TendersClient
 from openprocurement.search.utils import restkit_error
 
 from logging import getLogger
@@ -77,8 +76,9 @@ class PlanSource(BaseSource):
             host_url=self.config['plan_api_url'],
             api_version=self.config['plan_api_version'],
             resource=self.config['plan_resource'],
-            params=params)
-        self.client.headers['User-Agent'] = self.client_user_agent
+            params=params,
+            timeout=float(self.config['timeout']),
+            user_agent=self.client_user_agent)
         if self.config['plan_fast_client']:
             fast_params = dict(params)
             fast_params['descending'] = 1
@@ -87,10 +87,11 @@ class PlanSource(BaseSource):
                 host_url=self.config['plan_api_url'],
                 api_version=self.config['plan_api_version'],
                 resource=self.config['plan_resource'],
-                params=fast_params)
+                params=fast_params,
+                timeout=float(self.config['timeout']),
+                user_agent=self.client_user_agent+" fast_client")
             self.fast_client.get_tenders()
             self.fast_client.params.pop('descending')
-            self.fast_client.headers['User-Agent'] = self.client_user_agent + " fast_client"
         else:
             self.fast_client = None
         self.skip_until = self.config.get('plan_skip_until', None)

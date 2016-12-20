@@ -3,6 +3,8 @@ from time import sleep
 from logging import getLogger
 from ..version import __version__
 
+from openprocurement_client import client
+
 logger = getLogger(__name__)
 
 class BaseSource:
@@ -39,3 +41,17 @@ class BaseSource:
         while not self.should_exit and seconds > 0:
             sleep(0.1 if seconds > 0.1 else seconds)
             seconds -= 0.1
+
+
+
+class TendersClient(client.TendersClient):
+    def __init__(self, *args, **kwargs):
+        self.user_agent = kwargs.pop('user_agent', None)
+        self.timeout = kwargs.pop('timeout', 300)
+        if self.timeout: setdefaulttimeout(self.timeout)
+        super(MyTendersClient, self).__init__(*args, **kwargs)
+
+    def request(self, *args, **kwargs):
+        if 'User-Agent' not in self.headers and self.user_agent:
+            self.headers['User-Agent'] = self.user_agent
+        return super(MyTendersClient, self).request(*args, **kwargs)

@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 
 from ConfigParser import ConfigParser
 
+from openprocurement.search.version import __version__
 from openprocurement.search.engine import IndexEngine, logger
 
 from openprocurement.search.index.orgs import OrgsIndex
@@ -152,6 +153,9 @@ def main():
     config = dict(parser.items('search_engine'))
 
     logging.config.fileConfig(sys.argv[1])
+
+    logger.info("Starting openprocurement.search.update_orgs v%s", __version__)
+    logger.info("Copyright (c) 2015-2016 Volodymyr Flonts <flyonts@gmail.com>")
 
     # try get exclusive lock to prevent second start
     lock_filename = parser.get('update_orgs', 'pidfile')
