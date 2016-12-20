@@ -239,7 +239,7 @@ def prepare_search_body(args):
     elif sort == 'value':
         body['sort'] = {'value.amount': {'order': 'desc'}}
     else:
-        body['sort'] = {'dateModified': {'order': 'desc'}}
+        body['sort'] = {'date': {'order': 'desc'}}
 
     return body
 
