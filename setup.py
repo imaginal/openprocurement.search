@@ -1,9 +1,9 @@
 from setuptools import setup, find_packages
 
-version = '0.6'
+execfile('openprocurement/search/version.py')
 
 setup(name='openprocurement.search',
-        version=version,
+        version=__version__,
         description="OpenProcurement search service",
         long_description=open("README.md").read(),
         # Get more strings from
