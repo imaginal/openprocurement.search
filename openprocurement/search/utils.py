@@ -2,7 +2,19 @@
 import os
 import fcntl
 import yaml
-from time import time
+import time
+import logging
+
+
+class InfoFilter(logging.Filter):
+    def filter(self, rec):
+        return rec.levelno < logging.WARNING
+
+
+class InfoHandler(logging.StreamHandler):
+    def __init__(self, *args, **kwargs):
+        logging.StreamHandler.__init__(self, *args, **kwargs)
+        self.addFilter(InfoFilter())
 
 
 class SharedFileDict(object):
@@ -42,13 +54,13 @@ class SharedFileDict(object):
         self.write(reread=False)
 
     def is_expired(self):
-        return time() - self.lastsync > self.expire
+        return time.time() - self.lastsync > self.expire
 
     def read(self):
         try:
             with open(self.filename) as fp:
                 self.cache = yaml.load(fp) or {}
-            self.lastsync = time()
+            self.lastsync = time.time()
         except (IOError, ValueError):
             pass
 
@@ -66,4 +78,4 @@ class SharedFileDict(object):
                 default_flow_style=False)
             fcntl.lockf(fp, fcntl.LOCK_UN)
         os.rename(tmp_file, self.filename)
-        # self.lastsync = time()
+        # self.lastsync = time.time()
