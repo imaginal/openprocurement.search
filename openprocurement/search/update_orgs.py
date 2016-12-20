@@ -16,6 +16,7 @@ from openprocurement.search.source.orgs import OrgsSource
 from openprocurement.search.source.tender import TenderSource
 from openprocurement.search.source.ocds import OcdsSource
 from openprocurement.search.source.plan import PlanSource
+from openprocurement.search.source.auction import AuctionSource
 
 
 engine = type('engine', (), {})()
@@ -54,6 +55,7 @@ class IndexOrgsEngine(IndexEngine):
 
     def process_source(self, source):
         logger.info("Process source [%s]", source.doc_type)
+        source.client_user_agent += " update_orgs"
         items_list = True
         items_count = 0
         while True:
@@ -189,6 +191,9 @@ def main():
             engine.process_source(source)
         if config.get('plan_api_url', None):
             source = PlanSource(config)
+            engine.process_source(source)
+        if config.get('auction_api_url', None):
+            source = AuctionSource(config)
             engine.process_source(source)
         engine.flush_orgs_map()
     except Exception as e:

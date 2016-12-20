@@ -28,6 +28,7 @@ class PlanSource(BaseSource):
         'plan_preload': 10000,
         'plan_resethour': 23,
         'plan_fast_client': False,
+        'plan_user_agent': '',
         'timeout': 30,
     }
 
@@ -37,6 +38,7 @@ class PlanSource(BaseSource):
         self.config['plan_limit'] = int(self.config['plan_limit'] or 0) or 100
         self.config['plan_preload'] = int(self.config['plan_preload'] or 0) or 100
         self.config['plan_resethour'] = int(self.config['plan_resethour'] or 0)
+        self.client_user_agent += " (plans) " + self.config['plan_user_agent']
         self.fast_client = None
         self.client = None
 
@@ -75,6 +77,7 @@ class PlanSource(BaseSource):
             api_version=self.config['plan_api_version'],
             resource=self.config['plan_resource'],
             params=params)
+        self.client.headers['user-agent'] = self.client_user_agent
         if self.config['plan_fast_client']:
             fast_params = dict(params)
             fast_params['descending'] = 1
@@ -86,6 +89,7 @@ class PlanSource(BaseSource):
                 params=fast_params)
             self.fast_client.get_tenders()
             self.fast_client.params.pop('descending')
+            self.fast_client.headers['user-agent'] = self.client_user_agent + " fast_client"
         else:
             self.fast_client = None
         self.skip_until = self.config.get('plan_skip_until', None)

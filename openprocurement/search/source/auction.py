@@ -28,6 +28,7 @@ class AuctionSource(BaseSource):
         'auction_limit': 1000,
         'auction_preload': 10000,
         'auction_resethour': 23,
+        'auction_user_agent': '',
         'timeout': 30,
     }
 
@@ -37,6 +38,7 @@ class AuctionSource(BaseSource):
         self.config['auction_limit'] = int(self.config['auction_limit'] or 0) or 100
         self.config['auction_preload'] = int(self.config['auction_preload'] or 0) or 100
         self.config['auction_resethour'] = int(self.config['auction_resethour'] or 0)
+        self.client_user_agent += " (auctions) " + self.config['auction_user_agent']
         self.client = None
 
     def procuring_entity(self, item):
@@ -77,6 +79,7 @@ class AuctionSource(BaseSource):
             api_version=self.config['auction_api_version'],
             resource=self.config['auction_resource'],
             params=params)
+        self.client.headers['user-agent'] = self.client_user_agent
         self.skip_until = self.config.get('auction_skip_until', None)
         if self.skip_until and self.skip_until[:2] != '20':
             self.skip_until = None

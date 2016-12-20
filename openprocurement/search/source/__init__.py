@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 from time import sleep
 from logging import getLogger
+from ..version import __version__
+
 logger = getLogger(__name__)
 
 class BaseSource:
@@ -9,6 +11,7 @@ class BaseSource:
     should_exit = False
     should_reset = False
     last_reset_time = 0
+    client_user_agent = 'Search-Tenders/%s' % __version__
 
     @property
     def doc_type(self):

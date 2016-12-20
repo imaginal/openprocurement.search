@@ -28,6 +28,7 @@ class TenderSource(BaseSource):
         'tender_preload': 10000,
         'tender_resethour': 22,
         'tender_fast_client': False,
+        'tender_user_agent': '',
         'timeout': 30,
     }
 
@@ -37,6 +38,7 @@ class TenderSource(BaseSource):
         self.config['tender_limit'] = int(self.config['tender_limit'] or 0) or 100
         self.config['tender_preload'] = int(self.config['tender_preload'] or 0) or 100
         self.config['tender_resethour'] = int(self.config['tender_resethour'] or 0)
+        self.client_user_agent += " (tenders) " + self.config['tender_user_agent']
         self.fast_client = None
         self.client = None
 
@@ -84,6 +86,7 @@ class TenderSource(BaseSource):
             host_url=self.config['tender_api_url'],
             api_version=self.config['tender_api_version'],
             params=params)
+        self.client.headers['user-agent'] = self.client_user_agent
         if self.config['tender_fast_client']:
             fast_params = dict(params)
             fast_params['descending'] = 1
@@ -94,6 +97,7 @@ class TenderSource(BaseSource):
                 params=fast_params)
             self.fast_client.get_tenders()
             self.fast_client.params.pop('descending')
+            self.fast_client.headers['user-agent'] = self.client_user_agent + " fast_client"
         else:
             self.fast_client = None
         self.skip_until = self.config.get('tender_skip_until', None)

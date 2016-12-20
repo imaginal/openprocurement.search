@@ -89,6 +89,7 @@ class SearchTester(object):
             preload = 100
             limit = 100
 
+        source.client_user_agent += " test_search"
         source.reset()
         source.client.params.update({'descending': 1, 'limit': limit})
         source.config['tender_preload'] = preload
@@ -159,6 +160,7 @@ class SearchTester(object):
             preload = 100
             limit = 100
 
+        source.client_user_agent += " test_search"
         source.reset()
         source.client.params.update({'descending': 1, 'limit': limit})
         source.config['plan_preload'] = preload
@@ -229,6 +231,7 @@ class SearchTester(object):
             preload = 100
             limit = 100
 
+        source.client_user_agent += " test_search"
         source.reset()
         source.client.params.update({'descending': 1, 'limit': limit})
         source.config['auction_preload'] = preload
