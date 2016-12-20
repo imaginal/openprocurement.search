@@ -54,6 +54,13 @@ class PlanSource(BaseSource):
         item['version'] = long(version)
         return item
 
+    def patch_plan(self, plan):
+        if 'date' not in plan['data']:
+            planID = plan['data']['planID']
+            pos = planID.find('-20')
+            plan['data']['date'] = planID[pos+1:pos+11]
+        return plan
+
     def need_reset(self):
         if self.should_reset:
             return True
@@ -176,4 +183,4 @@ class PlanSource(BaseSource):
             item['dateModified'] = plan['data']['dateModified']
             item = self.patch_version(item)
         plan['meta'] = item
-        return plan
+        return self.patch_plan(plan)

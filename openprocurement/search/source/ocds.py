@@ -118,7 +118,9 @@ class OcdsSource(BaseSource):
                 raise StopIteration()
             item = r['tender']
             if 'tenderID' not in item:
-                item['tenderID'] = r['ocid']
+                item['tenderID'] = 'UA-OCDS-%s-%s' % (r['date'][:10], item['id'])
+            if 'date' not in item:
+                item['date'] = r['date']
             if 'dateModified' not in item:
                 item['dateModified'] = r['date']
             if skip_until and skip_until > item['dateModified']:

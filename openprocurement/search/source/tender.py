@@ -55,6 +55,10 @@ class TenderSource(BaseSource):
         return item
 
     def patch_tender(self, tender):
+        if 'date' not in tender['data']:
+            tenderID = tender['data']['tenderID']
+            pos = tenderID.find('-20')
+            tender['data']['date'] = tenderID[pos+1:pos+11]
         if 'awards' in tender['data']:
             for award in tender['data']['awards']:
                 if award.get('status') == 'active':

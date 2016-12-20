@@ -56,6 +56,13 @@ class AuctionSource(BaseSource):
         item['version'] = long(version)
         return item
 
+    def patch_auction(self, auction):
+        if 'date' not in auction['data']:
+            auctionID = auction['data']['auctionID']
+            pos = auctionID.find('-20')
+            plan['data']['date'] = auctionID[pos+1:pos+11]
+        return auction
+
     def need_reset(self):
         if self.should_reset:
             return True
