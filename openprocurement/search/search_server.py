@@ -26,11 +26,6 @@ JSONIFY_PRETTYPRINT_REGULAR = False
 search_server = Flask(__name__)
 search_server.config.from_object(__name__)
 
-# greetings
-
-search_server.logger.info("Starting ProZorro search_server v%s", __version__)
-search_server.logger.info("Copyright (c) 2016 Volodymyr Flonts")
-
 # load config
 
 config_parser = ConfigParser()
