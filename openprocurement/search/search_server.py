@@ -234,8 +234,8 @@ def prepare_search_body(args):
 
     sort = args.get('sort', 'date')
 
-    if sort == 'rank' and args.get('query'):
-        body.pop('sort') # default fulltext sort
+    if sort == '_score' and args.get('query'):
+        body.pop('sort', None) # default fulltext sort
     elif sort == 'value':
         body['sort'] = {'value.amount': {'order': 'desc'}}
     else:
