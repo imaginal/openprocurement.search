@@ -90,6 +90,12 @@ dates_map = {
     # use custom field activeDate (see source.patch_tender)
     'contract_start':('gte', 'contracts.activeDate'),
     'contract_end':  ('lt',  'contracts.activeDate'),
+    # tender.date
+    'date_start':    ('gte', 'date'),
+    'date_end':      ('lt',  'date'),
+    # tender.dateModified
+    'datemod_start': ('gte', 'dateModified'),
+    'datemod_end':   ('lt',  'dateModified'),
     # for enquiry use only startDate
     'enquiry_start': ('gte', 'enquiryPeriod.startDate'),
     'enquiry_end':   ('lt',  'enquiryPeriod.startDate'),
@@ -234,10 +240,16 @@ def prepare_search_body(args):
 
     sort = args.get('sort', 'date')
 
-    if sort == '_score' and args.get('query'):
+    if not sort or sort == 'date':
+        body['sort'] = {'date': {'order': 'desc'}}
+    elif sort == '_score' and args.get('query'):
         body.pop('sort', None) # default fulltext sort
     elif sort == 'value':
         body['sort'] = {'value.amount': {'order': 'desc'}}
+    elif sort == 'value_asc':
+        body['sort'] = {'value.amount': {'order': 'asc'}}
+    elif sort == 'dateModified':
+        body['sort'] = {'dateModified': {'order': 'desc'}}
     else:
         body['sort'] = {'date': {'order': 'desc'}}
 
