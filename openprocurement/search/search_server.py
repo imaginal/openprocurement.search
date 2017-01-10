@@ -347,10 +347,10 @@ def orgsuggest():
         "query": {"match": {"_all": _all}},
         "sort": {"rank": {"order": "desc"}},
     }
-    res = search_engine.search(body, limit=5, index_set='orgs')
+    res = search_engine.search(body, limit=10, index_set='orgs')
     if not res.get('items'):
         _all["fuzziness"] += 1
-        res = search_engine.search(body, limit=5, index_set='orgs')
+        res = search_engine.search(body, limit=10, index_set='orgs')
     return jsonify(res)
 
 
