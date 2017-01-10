@@ -15,7 +15,8 @@ class OcdsIndex(BaseIndex):
     allow_async_reindex = True
 
     def after_init(self):
-        self.set_reindex_options('', # don't reindex
+        self.set_reindex_options(
+            self.config.get('ocds_reindex', '6,6'),
             self.config.get('ocds_check', '100000,0'))
 
     def need_reindex(self):
@@ -24,8 +25,8 @@ class OcdsIndex(BaseIndex):
         if self.force_next_reindex:
             self.force_next_reindex = False
             return True
-        # if self.index_age() > self.max_age:
-        #     return datetime.now().isoweekday() >= self.reindex_day
+        if self.index_age() > self.max_age:
+            return datetime.now().isoweekday() >= self.reindex_day
         return False
 
     def before_index_item(self, item):
