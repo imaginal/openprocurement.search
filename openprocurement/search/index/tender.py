@@ -10,7 +10,7 @@ class TenderIndex(BaseIndex):
     """OpenProcurement Tenders Index
     """
     __index_name__ = 'tenders'
-    
+
     allow_async_reindex = True
 
     def after_init(self):

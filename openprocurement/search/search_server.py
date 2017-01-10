@@ -96,6 +96,9 @@ dates_map = {
     # tender.dateModified
     'datemod_start': ('gte', 'dateModified'),
     'datemod_end':   ('lt',  'dateModified'),
+     # plan.datePublished
+    'datepub_start': ('gte', 'datePublished'),
+    'datepub_end':   ('lt',  'datePublished'),
     # for enquiry use only startDate
     'enquiry_start': ('gte', 'enquiryPeriod.startDate'),
     'enquiry_end':   ('lt',  'enquiryPeriod.startDate'),
@@ -108,6 +111,13 @@ dates_map = {
 }
 fulltext_map = {
     'query': '_all',
+}
+sorting_map = {
+    'date': 'date',
+    'dateModified': 'dateModified',
+    'datePublished': 'datePublished',
+    'value': 'value.amount',
+    'budget': 'budget.amount'
 }
 
 # build query helper functions
@@ -181,7 +191,7 @@ def append_dates_query(body, query, args):
 
 # build query body
 
-def prepare_search_body(args):
+def prepare_search_body(args, default_sort='dateModified'):
     body = list()
 
     # hierarchical classifiers
@@ -238,20 +248,18 @@ def prepare_search_body(args):
     else:
         body = {'query': {'bool': {'must': body}}}
 
-    sort = args.get('sort', 'date')
+    sort = args.get('sort') or default_sort
+    order = args.get('order')
 
-    if not sort or sort == 'date':
-        body['sort'] = {'date': {'order': 'desc'}}
+    if order != 'asc':
+        order = 'desc'
+
+    if sort in sorting_map:
+        body['sort'] = {sorting_map[sort]: {'order': order}}
     elif sort == '_score' and args.get('query'):
-        body.pop('sort', None) # default fulltext sort
-    elif sort == 'value':
-        body['sort'] = {'value.amount': {'order': 'desc'}}
-    elif sort == 'value_asc':
-        body['sort'] = {'value.amount': {'order': 'asc'}}
-    elif sort == 'dateModified':
-        body['sort'] = {'dateModified': {'order': 'desc'}}
+        body.pop('sort')
     else:
-        body['sort'] = {'date': {'order': 'desc'}}
+        body['sort'] = {default_sort: {'order': 'desc'}}
 
     return body
 
@@ -259,7 +267,7 @@ def prepare_search_body(args):
 @search_server.route('/tenders')
 def search_tenders():
     args = request.args
-    body = prepare_search_body(args)
+    body = prepare_search_body(args, default_sort='date')
     if not body:
         return jsonify({"error": "empty query"})
     start = int(args.get('start') or 0)
@@ -274,7 +282,7 @@ def search_tenders():
 @search_server.route('/plans')
 def search_plans():
     args = request.args
-    body = prepare_search_body(args)
+    body = prepare_search_body(args, default_sort='datePublished')
     start = int(args.get('start') or 0)
     limit = int(args.get('limit') or 10)
     limit = min(max(1, limit), 100)
@@ -287,7 +295,7 @@ def search_plans():
 @search_server.route('/auctions')
 def search_auctions():
     args = request.args
-    body = prepare_search_body(args)
+    body = prepare_search_body(args, default_sort='date')
     start = int(args.get('start') or 0)
     limit = int(args.get('limit') or 10)
     limit = min(max(1, limit), 100)

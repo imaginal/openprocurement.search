@@ -123,6 +123,11 @@
             }
           }
         },
+        "date": {
+          "format": "dateOptionalTime",
+          "include_in_all": false,
+          "type": "date"
+        },
         "dateModified": {
           "format": "dateOptionalTime",
           "include_in_all": false,

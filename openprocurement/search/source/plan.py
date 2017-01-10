@@ -56,9 +56,12 @@ class PlanSource(BaseSource):
 
     def patch_plan(self, plan):
         if 'date' not in plan['data']:
-            planID = plan['data']['planID']
-            pos = planID.find('-20')
-            plan['data']['date'] = planID[pos+1:pos+11]
+            if 'datePublished' in plan['data']:
+                plan['data']['date'] = plan['data']['datePublished']
+            else:
+                planID = plan['data']['planID']
+                pos = planID.find('-20')
+                plan['data']['date'] = planID[pos+1:pos+11]
         return plan
 
     def need_reset(self):
