@@ -376,7 +376,6 @@ def make_app(global_conf, **kwargs):
     search_server.config.from_object(config)
     return search_server
 
-
 def main():
     search_server.debug = True
     search_server.logger.info("Start in debug mode with secret_key='%s'",

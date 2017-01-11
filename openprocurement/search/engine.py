@@ -61,7 +61,7 @@ class SearchEngine(object):
                 new_name = self.config.get('rename_'+names[i])
                 if new_name:
                     names[i] = new_name
-        logger.info("Search indexes %s", str(self.search_index_map))
+        logger.debug("Search indexes %s", str(self.search_index_map))
 
     def start_in_subprocess(self):
         # create copy of elastic connection
