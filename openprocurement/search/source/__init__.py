@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 from time import sleep
 from socket import setdefaulttimeout
-from ..version import __version__
-
+from openprocurement.search import __version__
 from openprocurement_client import client
 
 from logging import getLogger

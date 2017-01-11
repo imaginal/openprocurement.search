@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-execfile('openprocurement/search/version.py')
+execfile('openprocurement/search/__init__.py')
 
 setup(name='openprocurement.search',
         version=__version__,
