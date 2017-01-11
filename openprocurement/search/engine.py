@@ -145,8 +145,13 @@ class SearchEngine(object):
             res = self.elastic.search(index=index,
                 body=body, from_=start, size=limit)
         except ElasticsearchException as e:
-            res = {"error": unicode(e)}
+            logger.error("elastic.search %s", str(e))
+            res = {"error": unicode(e), "items": []}
         if 'hits' not in res:
+            if 'error' in res:
+                return res
+            logger.error("elastic.search bad response")
+            res = {"error": "bad response", "items": []}
             return res
         hits = res['hits']
         items = []
