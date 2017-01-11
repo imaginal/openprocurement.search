@@ -8,7 +8,7 @@ import simplejson as json
 from ConfigParser import ConfigParser
 from flask import Flask, request, jsonify, abort
 
-from openprocurement.search.version import __version__
+from openprocurement.search import __version__
 from openprocurement.search.index.auction import AuctionIndex
 from openprocurement.search.index.tender import TenderIndex
 from openprocurement.search.index.ocds import OcdsIndex

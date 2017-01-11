@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 
 from ConfigParser import ConfigParser
 
-from openprocurement.search.version import __version__
+from openprocurement.search import __version__
 from openprocurement.search.engine import IndexEngine, logger
 
 from openprocurement.search.index.orgs import OrgsIndex
