@@ -33,9 +33,8 @@ class OrgsDecoder(object):
             return (row[0], row[1], row[2])
         if len(self.q_cache) > 10000:
             for k, v in self.q_cache.items():
-                if v[1] < 3:
+                if v[1] < 5:
                     self.q_cache.pop(k)
-            min_hits += 1
         try:
             self.db_curs.execute("SELECT name,short,loc FROM uo WHERE code=?", (code,))
             row = self.db_curs.fetchone()
