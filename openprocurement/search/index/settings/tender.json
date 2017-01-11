@@ -1222,6 +1222,28 @@
                 "name_ru": {
                   "include_in_all": true,
                   "type": "string"
+                },
+                "registryRecord": {
+                  "include_in_all": true,
+                  "properties": {
+                    "edrpou": {
+                      "type": "string",
+                      "analyzer": "whitespace",
+                      "include_in_all": true
+                    },
+                    "location": {
+                      "type": "string",
+                      "include_in_all": true
+                    },
+                    "name": {
+                      "type": "string",
+                      "include_in_all": true
+                    },
+                    "shortName": {
+                      "type": "string",
+                      "include_in_all": true
+                    }
+                  }
                 }
               }
             },
@@ -2822,6 +2844,28 @@
             "name_ru": {
               "include_in_all": true,
               "type": "string"
+            },
+            "registryRecord": {
+              "include_in_all": true,
+              "properties": {
+                "edrpou": {
+                  "type": "string",
+                  "analyzer": "whitespace",
+                  "include_in_all": true
+                },
+                "location": {
+                  "type": "string",
+                  "include_in_all": true
+                },
+                "name": {
+                  "type": "string",
+                  "include_in_all": true
+                },
+                "shortName": {
+                  "type": "string",
+                  "include_in_all": true
+                }
+              }
             }
           }
         },

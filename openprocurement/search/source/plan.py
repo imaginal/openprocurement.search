@@ -6,6 +6,7 @@ from socket import setdefaulttimeout
 from retrying import retry
 
 from openprocurement.search.source import BaseSource, TendersClient
+from openprocurement.search.source.orgs import OrgsDecoder
 from openprocurement.search.utils import restkit_error
 
 from logging import getLogger
@@ -27,6 +28,7 @@ class PlanSource(BaseSource):
         'plan_limit': 1000,
         'plan_preload': 10000,
         'plan_resethour': 23,
+        'plan_decode_orgs': False,
         'plan_fast_client': False,
         'plan_user_agent': '',
         'timeout': 30,
@@ -41,6 +43,9 @@ class PlanSource(BaseSource):
         self.client_user_agent += " (plans) " + self.config['plan_user_agent']
         self.fast_client = None
         self.client = None
+        self.orgs_db = None
+        if self.config['plan_decode_orgs']:
+            self.orgs_db = OrgsDecoder(self.config)
 
     def procuring_entity(self, item):
         return item.data.get('procuringEntity', None)
@@ -62,6 +67,10 @@ class PlanSource(BaseSource):
                 planID = plan['data']['planID']
                 pos = planID.find('-20')
                 plan['data']['date'] = planID[pos+1:pos+11]
+        # decode official org name from EDRPOU registry
+        if self.config['plan_decode_orgs']:
+            if 'procuringEntity' in plan['data']:
+                self.orgs_db.patch_entity(plan['data']['procuringEntity'])
         return plan
 
     def need_reset(self):

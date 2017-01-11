@@ -7,6 +7,7 @@ from socket import setdefaulttimeout
 from retrying import retry
 
 from openprocurement.search.source import BaseSource, TendersClient
+from openprocurement.search.source.orgs import OrgsDecoder
 from openprocurement.search.utils import restkit_error
 
 from logging import getLogger
@@ -27,6 +28,7 @@ class TenderSource(BaseSource):
         'tender_limit': 1000,
         'tender_preload': 10000,
         'tender_resethour': 22,
+        'tender_decode_orgs': False,
         'tender_fast_client': False,
         'tender_user_agent': '',
         'timeout': 30,
@@ -41,6 +43,9 @@ class TenderSource(BaseSource):
         self.client_user_agent += " (tenders) " + self.config['tender_user_agent']
         self.fast_client = None
         self.client = None
+        self.orgs_db = None
+        if self.config['tender_decode_orgs']:
+            self.orgs_db = OrgsDecoder(self.config)
 
     def procuring_entity(self, item):
         return item.data.get('procuringEntity', None)
@@ -67,6 +72,15 @@ class TenderSource(BaseSource):
             for contract in tender['data']['contracts']:
                 if contract.get('status') == 'active':
                     contract['activeDate'] = contract.get('date')
+        # decode official org name from EDRPOU registry
+        if self.config['tender_decode_orgs']:
+            if 'procuringEntity' in tender['data']:
+                self.orgs_db.patch_entity(tender['data']['procuringEntity'])
+            if 'bids' in tender['data']:
+                for bid in tender['data']['bids']:
+                    if 'tenderers' in bid:
+                        for tenderer in bid['tenderers']:
+                            self.orgs_db.patch_entity(tenderer)
         return tender
 
     def need_reset(self):
