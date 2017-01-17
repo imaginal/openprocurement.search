@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import sys
 import argparse
 import logging
 import simplejson as json
@@ -41,13 +42,10 @@ def worker():
         args = list()
         # full text query
         if key == 'query':
-            word = ''
-            while len(word) < 3:
-                code = choice(g_dict[key].keys())
-                name = g_dict[key][code]
-                word = choice(name.split(' '))
-                word = word.replace('"', '').encode('utf-8')
-            args.append((key, word))
+            code = choice(g_dict[key].keys())
+            query = g_dict[key][code]
+            query = query.encode('utf-8')
+            args.append((key, query))
         elif key == 'cpv' or key == 'dkpp':
             code = choice(g_dict[key].keys())
             like = 5 if key == 'dkpp' else 6
@@ -93,9 +91,11 @@ def worker():
             n_errors += 1
         if n_notfnd >= max_notf:
             logging.error('Exit by max not_found reached (%d requests)', requests)
+            sys.exit(1)
             return
         if n_errors >= max_errs:
             logging.error('Exit by max error occurred (%d requests)', requests)
+            sys.exit(2)
             return
 
     total_time = time() - start_time
@@ -124,8 +124,8 @@ def prepare():
     parser.add_argument('-v', metavar='verbosity', help='[10,20,30,40]',
         type=int, default=logging.INFO)
     parser.add_argument('--log', metavar='output.log', nargs=1)
-    parser.add_argument('--tid', metavar='tenderID.json', nargs=1)
-    parser.add_argument('--pid', metavar='planID.json', nargs=1)
+    parser.add_argument('--tid', metavar='tender_id.json', nargs=1)
+    parser.add_argument('--pid', metavar='plan_id.json', nargs=1)
     parser.add_argument('--cpv', metavar='cpv.json', nargs=1)
     parser.add_argument('--dkpp', metavar='dkpp.json', nargs=1)
     parser.add_argument('--date', metavar='date.json', nargs=1)
@@ -165,14 +165,23 @@ def main():
         p.start()
 
     logger.info('Waiting for workers')
+    errors = 0
     for p in process_list:
         p.join()
+        if p.exitcode:
+            errors += 1
 
     total_time = time() - start_time
     query_rate = 1.0 * g_args.n * g_args.c / total_time
     logger.info('Total %d x %d queries in %1.3f sec %1.1f r/s',
         g_args.c, g_args.n, total_time, query_rate)
 
+    if errors:
+        logger.error("But %d of %d childs failed", errors, g_args.c)
+        sys.exit(1)
+
+    return 0
+
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main())
