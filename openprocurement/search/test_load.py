@@ -9,13 +9,14 @@ from random import choice, randint
 from multiprocessing import Process
 from time import time, sleep
 
-FORMAT='%(asctime)-15s %(levelname)s %(processName)s %(message)s'
-g_args=None
-g_dict={}
+g_dict = {}
+g_args = None
+logger = logging.getLogger('test_load')
+FORMAT = '%(asctime)-15s %(levelname)s %(processName)s %(message)s'
 
 
 def worker():
-    logging.debug('Starting process')
+    logger.debug('Starting process')
 
     base_url = g_args.api_url[0]
     if base_url.find('/') < 0:
@@ -83,7 +84,7 @@ def worker():
                 total = data['total']
                 if not items or not total:
                     n_notfnd += 1
-                logging.debug("%d %d %s total %d", code, len(resp), url, total)
+                logger.debug("%d %d %s total %d", code, len(resp), url, total)
             else:
                 logging.error("%d %d %s", code, len(resp), url)
                 n_errors += 1
@@ -100,7 +101,7 @@ def worker():
     total_time = time() - start_time
     query_rate = 1.0 * requests / total_time
 
-    logging.info('Leaving process, %d requests, %d not found, %d errors, %1.1f r/s',
+    logger.info('Leaving process, %d requests, %d not found, %d errors, %1.1f r/s',
                  requests, n_notfnd, n_errors, query_rate)
 
 
@@ -120,9 +121,11 @@ def prepare():
     parser.add_argument('-z', metavar='max_not_found', type=int, default=100)
     parser.add_argument('-n', metavar='requests', type=int, default=100)
     parser.add_argument('-t', metavar='timeout', type=int, default=10)
-    parser.add_argument('-v', metavar='verbosity', type=int, default=logging.INFO)
-    parser.add_argument('--tid', metavar='tender_id.json', nargs=1)
-    parser.add_argument('--pid', metavar='plan_id.json', nargs=1)
+    parser.add_argument('-v', metavar='verbosity', help='[10,20,30,40]',
+        type=int, default=logging.INFO)
+    parser.add_argument('--log', metavar='output.log', nargs=1)
+    parser.add_argument('--tid', metavar='tenderID.json', nargs=1)
+    parser.add_argument('--pid', metavar='planID.json', nargs=1)
     parser.add_argument('--cpv', metavar='cpv.json', nargs=1)
     parser.add_argument('--dkpp', metavar='dkpp.json', nargs=1)
     parser.add_argument('--date', metavar='date.json', nargs=1)
@@ -133,12 +136,16 @@ def prepare():
     parser.add_argument('api_url', metavar='http://api.host[:port]/resource', nargs=1)
     g_args = parser.parse_args()
 
-    logging.basicConfig(level=g_args.v, format=FORMAT)
+    log_kw = {'level': g_args.v, 'format': FORMAT}
+    if g_args.log:
+        log_kw['filename'] = g_args.log[0]
+    logging.basicConfig(**log_kw)
+
     for key in ['tid', 'pid', 'cpv', 'dkpp', 'date', 'edrpou', 'region', 'status', 'query']:
         args_list = getattr(g_args, key, None)
         if isinstance(args_list, list):
             for filename in args_list:
-                logging.debug('Load %s from %s', key, filename)
+                logger.debug('Load %s from %s', key, filename)
                 g_dict[key] = load_json(filename)
 
     if not g_dict:
@@ -148,7 +155,7 @@ def prepare():
 def main():
     prepare()
 
-    logging.info('Starting %d workers', g_args.c)
+    logger.info('Starting %d workers', g_args.c)
     process_list = list()
     start_time = time()
     for i in range(g_args.c):
@@ -157,13 +164,13 @@ def main():
         p.daemon = True
         p.start()
 
-    logging.info('Waiting for workers')
+    logger.info('Waiting for workers')
     for p in process_list:
         p.join()
 
     total_time = time() - start_time
     query_rate = 1.0 * g_args.n * g_args.c / total_time
-    logging.info('Total %d x %d queries in %1.3f sec %1.1f r/s',
+    logger.info('Total %d x %d queries in %1.3f sec %1.1f r/s',
         g_args.c, g_args.n, total_time, query_rate)
 
 

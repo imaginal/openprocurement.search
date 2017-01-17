@@ -317,7 +317,7 @@ def orgsuggest():
         return jsonify(res)
     # generate static top-orgs json
     toporgs = request.args.get('toporgs', '')
-    if toporgs and int(toporgs) < 1000:
+    if toporgs and int(toporgs) <= 1000:
         body = {
             "query": {"match_all": {}},
             "sort": {"rank": {"order": "desc"}},
