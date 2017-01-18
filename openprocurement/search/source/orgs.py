@@ -29,6 +29,8 @@ class OrgsDecoder(object):
             return
         if type(code) != str:
             code = str(code)
+        while len(code) < 8:
+            code = "0" + code
         if code in self.q_cache:
             # get cached row and increase hits count
             row = self.q_cache[code][0]
@@ -40,10 +42,10 @@ class OrgsDecoder(object):
                     self.q_cache.pop(k)
             logger.info("Purge orgs cache, new len %d", len(self.q_cache))
         try:
-            self.db_curs.execute("SELECT name,short,loc FROM uo WHERE code=?", (code,))
+            self.db_curs.execute("SELECT code,name,short,loc FROM uo WHERE code=?", (code,))
             row = self.db_curs.fetchone()
             if row and len(row) > 2:
-                row = (row[0], row[1], row[2])
+                row = (row[0], row[1], row[2], row[3])
                 self.q_cache[code] = [row, 1]
                 return row
         except Exception as e:
@@ -52,22 +54,27 @@ class OrgsDecoder(object):
         return
 
     def patch_entity(self, entity):
-        if not self.db_curs:
+        if not self.db_curs or not entity:
             return
-        if 'registryRecord' in entity:
-            return
-        if 'identifier' not in entity:
-            return
-        if entity['identifier'].get('scheme') != 'UA-EDR':
-            return
-        row = self.query(entity['identifier'].get('id'))
-        if row:
+        try:
+            if 'registryRecord' in entity:
+                return
+            if 'identifier' not in entity:
+                return
+            if entity['identifier'].get('scheme') != 'UA-EDR':
+                return
+            code = entity['identifier'].get('id')
+            row = self.query(code)
+            if not row:
+                return
             entity['registryRecord'] = {
-                'edrpou': entity['identifier']['id'],
-                'name': row[0],
-                'shortName': row[1],
-                'location': row[2]
+                'edrpou': row[0],
+                'name': row[1],
+                'shortName': row[2],
+                'location': row[3]
             }
+        except Exception as e:
+            logger.error("OrgsDecoder.patch_entity %s: %s", entity, str(e))
 
 
 class OrgsSource(BaseSource):
@@ -108,9 +115,9 @@ class OrgsSource(BaseSource):
         if self.orgs_db and item.get('id'):
             row = self.orgs_db.query(item['id'])
             if row:
-                data['name'] = row[0]
-                data['short'] = row[1]
-                data['location'] = row[2]
+                data['name'] = row[1]
+                data['short'] = row[2]
+                data['location'] = row[3]
         return {'meta': item, 'data': data}
 
     def reset(self):
