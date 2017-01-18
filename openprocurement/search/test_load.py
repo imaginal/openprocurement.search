@@ -11,6 +11,7 @@ from multiprocessing import Process
 from time import time, sleep
 
 g_dict = {}
+g_ordr = {}
 g_args = None
 logger = logging.getLogger('test_load')
 FORMAT = '%(asctime)-15s %(levelname)s %(processName)s %(message)s'
@@ -39,6 +40,12 @@ def worker():
     while requests < max_reqs:
         requests += 1
         key = choice(g_dict.keys())
+        sort = ''
+        order = ''
+        while key == 'sort':
+            sort = choice(g_dict[key].keys())
+            order = choice(['', '', '', 'asc', 'desc'])
+            key = choice(g_dict.keys())
         args = list()
         # full text query
         if key == 'query':
@@ -70,6 +77,10 @@ def worker():
         else:
             code = choice(g_dict[key].keys())
             args.append((key, code))
+        if sort:
+            args.append(('sort', sort))
+        if sort and order:
+            args.append(('order', order))
         qs = urllib.urlencode(args, True)
         url = base_url + '?' + qs
         code = 0
@@ -95,11 +106,13 @@ def worker():
             logger.error("%d %d %s error %s", code, len(resp), url, str(e))
             n_errors += 1
         if n_notfnd >= max_notf:
-            logger.error('Exit by max not_found reached (%d requests)', requests)
+            logger.error('Exit by max_not_found reached (%d requests, %d not found)',
+                requests, n_notfnd)
             sys.exit(1)
             return
         if n_errors >= max_errs:
-            logger.error('Exit by max error occurred (%d requests)', requests)
+            logger.error('Exit by max error occurred (%d requests, %d errors)',
+                requests, n_errors)
             sys.exit(2)
             return
 
@@ -126,7 +139,7 @@ def prepare():
     parser.add_argument('-z', metavar='max_not_found', type=int, default=100)
     parser.add_argument('-n', metavar='requests', type=int, default=100)
     parser.add_argument('-t', metavar='timeout', type=int, default=10)
-    parser.add_argument('-v', metavar='verbosity', help='[10,20,30,40]',
+    parser.add_argument('-v', metavar='verbosity', help='10 = debug, 40 = error',
         type=int, default=logging.INFO)
     parser.add_argument('--log', metavar='output.log', nargs=1)
     parser.add_argument('--tid', metavar='tender_id.json', nargs=1)
@@ -136,8 +149,11 @@ def prepare():
     parser.add_argument('--date', metavar='date.json', nargs=1)
     parser.add_argument('--edrpou', metavar='edrpou.json', nargs=1)
     parser.add_argument('--region', metavar='region.json', nargs=1)
+    parser.add_argument('--value', metavar='value.json', nargs=1)
+    parser.add_argument('--budget', metavar='budget.json', nargs=1)
     parser.add_argument('--status', metavar='status.json', nargs=1)
     parser.add_argument('--query', metavar='query.json', nargs=1)
+    parser.add_argument('--sort', metavar='sort.json', nargs=1)
     parser.add_argument('api_url', metavar='http://api.host[:port]/resource', nargs=1)
     g_args = parser.parse_args()
 
@@ -146,7 +162,8 @@ def prepare():
         log_kw['filename'] = g_args.log[0]
     logging.basicConfig(**log_kw)
 
-    for key in ['tid', 'pid', 'cpv', 'dkpp', 'date', 'edrpou', 'region', 'status', 'query']:
+    for key in ['tid', 'pid', 'cpv', 'dkpp', 'date', 'edrpou', 'region',
+                'value', 'budget', 'status', 'query', 'sort']:
         args_list = getattr(g_args, key, None)
         if isinstance(args_list, list):
             for filename in args_list:
