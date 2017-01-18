@@ -300,7 +300,7 @@
           "properties": {
             "amount": {
               "include_in_all": false,
-              "type": "long"
+              "type": "double"
             },
             "currency": {
               "include_in_all": false,
