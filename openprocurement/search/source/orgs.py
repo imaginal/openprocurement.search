@@ -27,8 +27,11 @@ class OrgsDecoder(object):
     def query(self, code):
         if not self.db_curs or not code:
             return
-        if type(code) != str:
-            code = str(code)
+        try:
+            if type(code) != str:
+                code = str(code)
+        except (TypeError, UnicodeEncodeError):
+            return
         while len(code) < 8:
             code = "0" + code
         if code in self.q_cache:
