@@ -72,29 +72,34 @@ def worker():
             args.append((key, code))
         qs = urllib.urlencode(args, True)
         url = base_url + '?' + qs
+        code = 0
+        resp = ''
         try:
             req = urllib2.urlopen(url, timeout=g_args.t)
             code = req.getcode()
             resp = req.read()
-            if code == 200:
-                data = json.loads(resp)
-                items = data['items']
-                total = data['total']
-                if not items or not total:
-                    n_notfnd += 1
-                logger.debug("%d %d %s total %d", code, len(resp), url, total)
-            else:
-                logging.error("%d %d %s", code, len(resp), url)
-                n_errors += 1
+            if not resp:
+                resp = ''
+            if code != 200:
+                raise ValueError("BAD RESPONSE")
+            data = json.loads(resp)
+            items = data.get('items')
+            total = data.get('total')
+            error = data.get('error')
+            if error:
+                raise ValueError(error)
+            if not items or not total:
+                n_notfnd += 1
+            logger.debug("%d %d %s total %d", code, len(resp), url, total)
         except Exception as e:
-            logging.error('Exception %s on %s', str(e), url)
+            logger.error("%d %d %s error %s", code, len(resp), url, str(e))
             n_errors += 1
         if n_notfnd >= max_notf:
-            logging.error('Exit by max not_found reached (%d requests)', requests)
+            logger.error('Exit by max not_found reached (%d requests)', requests)
             sys.exit(1)
             return
         if n_errors >= max_errs:
-            logging.error('Exit by max error occurred (%d requests)', requests)
+            logger.error('Exit by max error occurred (%d requests)', requests)
             sys.exit(2)
             return
 
