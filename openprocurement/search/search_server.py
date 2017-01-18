@@ -79,6 +79,7 @@ match_map = {
 range_map = {
     'region': 'procuringEntity.address.postalCode',
     'value': 'value.amount',
+    'budget': 'budget.amount',
 }
 dates_map = {
     # auctions may not set endDate, use only startDate
@@ -117,7 +118,7 @@ sorting_map = {
     'dateModified': 'dateModified',
     'datePublished': 'datePublished',
     'value': 'value.amount',
-    'budget': 'budget.amount'
+    'budget': 'budget.amount',
 }
 
 # build query helper functions
@@ -145,11 +146,11 @@ def prefix_query(query, field):
 
 
 def range_query(query, field):
-    is_double = field in ('value.amount',)
+    force_float = field in ('value.amount', 'budget.amount')
     body = []
     for q in query:
         if q.find('-') < 0:
-            if is_double:
+            if force_float:
                 q = float(q)
                 res = {"range": {field: {"gte": q}}}
             else:
@@ -157,7 +158,7 @@ def range_query(query, field):
             body.append(res)
         else:
             beg, end = q.split('-', 1)
-            if is_double:
+            if force_float:
                 beg, end = float(beg), float(end)
             body.append({"range": {
                 field: {"gte": beg, "lte": end}
