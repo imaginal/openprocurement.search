@@ -25,22 +25,27 @@ class OrgsDecoder(object):
         return self.db_curs
 
     def query(self, code):
-        if not self.db_curs or not code or len(code) < 8:
+        if not self.db_curs or not code:
             return
+        if type(code) != str:
+            code = str(code)
         if code in self.q_cache:
+            # get cached row and increase hits count
             row = self.q_cache[code][0]
             self.q_cache[code][1] += 1
-            return (row[0], row[1], row[2])
+            return row
         if len(self.q_cache) > 10000:
             for k, v in self.q_cache.items():
                 if v[1] < 5:
                     self.q_cache.pop(k)
+            logger.info("Purge orgs cache, new len %d", len(self.q_cache))
         try:
             self.db_curs.execute("SELECT name,short,loc FROM uo WHERE code=?", (code,))
             row = self.db_curs.fetchone()
-            if row:
+            if row and len(row) > 2:
+                row = (row[0], row[1], row[2])
                 self.q_cache[code] = [row, 1]
-                return (row[0], row[1], row[2])
+                return row
         except Exception as e:
             logger.error("OrgsDecoder.query %s: %s", code, str(e))
             self.db_curs = None
