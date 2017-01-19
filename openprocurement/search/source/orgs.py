@@ -10,7 +10,7 @@ logger = getLogger(__name__)
 
 
 class OrgsDecoder(object):
-    def __init__(self, config={}):
+    def __init__(self, config={}, db_mode='?mode=ro'):
         self.db_conn = None
         self.db_curs = None
         self.q_cache = {}
@@ -18,11 +18,23 @@ class OrgsDecoder(object):
         if config.get('orgs_db'):
             orgs_db_size = os.path.getsize(config['orgs_db'])
         if orgs_db_size > 10000: # don't accept empty database
-            self.db_conn = sqlite3.connect(config['orgs_db'])
+            self.db_conn = sqlite3.connect(config['orgs_db']+db_mode)
             self.db_curs = self.db_conn.cursor()
 
     def is_connected(self):
         return self.db_curs
+
+    def __del__(self):
+        self.close()
+
+    def close(self):
+        try:
+            if self.db_conn:
+                self.db_conn.close()
+        except Exception as e:
+            logger.error("OrgsDecoder.close %s", str(e))
+        self.db_curs = None
+        self.db_conn = None
 
     def query(self, code):
         if not self.db_curs or not code:

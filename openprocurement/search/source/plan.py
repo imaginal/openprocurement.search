@@ -44,8 +44,6 @@ class PlanSource(BaseSource):
         self.fast_client = None
         self.client = None
         self.orgs_db = None
-        if self.config['plan_decode_orgs']:
-            self.orgs_db = OrgsDecoder(self.config)
 
     def procuring_entity(self, item):
         return item.data.get('procuringEntity', None)
@@ -68,7 +66,7 @@ class PlanSource(BaseSource):
                 pos = planID.find('-20')
                 plan['data']['date'] = planID[pos+1:pos+11]
         # decode official org name from EDRPOU registry
-        if self.config['plan_decode_orgs']:
+        if self.config['plan_decode_orgs'] and self.orgs_db:
             if 'procuringEntity' in plan['data']:
                 self.orgs_db.patch_entity(plan['data']['procuringEntity'])
         return plan
@@ -81,8 +79,9 @@ class PlanSource(BaseSource):
 
     @retry(stop_max_attempt_number=5, wait_fixed=5000)
     def reset(self):
-        logger.info("Reset plans, plan_skip_until=%s",
-                    self.config['plan_skip_until'])
+        logger.info("Reset plans, plan_skip_until=%s", self.config['plan_skip_until'])
+        if self.config['plan_decode_orgs']:
+            self.orgs_db = OrgsDecoder(self.config)
         if self.config.get('timeout', None):
             setdefaulttimeout(float(self.config['timeout']))
         params = {}

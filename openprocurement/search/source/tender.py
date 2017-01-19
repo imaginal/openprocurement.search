@@ -44,8 +44,6 @@ class TenderSource(BaseSource):
         self.fast_client = None
         self.client = None
         self.orgs_db = None
-        if self.config['tender_decode_orgs']:
-            self.orgs_db = OrgsDecoder(self.config)
 
     def procuring_entity(self, item):
         return item.data.get('procuringEntity', None)
@@ -73,7 +71,7 @@ class TenderSource(BaseSource):
                 if contract.get('status') == 'active':
                     contract['activeDate'] = contract.get('date')
         # decode official org name from EDRPOU registry
-        if self.config['tender_decode_orgs']:
+        if self.config['tender_decode_orgs'] and self.orgs_db:
             if 'procuringEntity' in tender['data']:
                 self.orgs_db.patch_entity(tender['data']['procuringEntity'])
             if 'bids' in tender['data']:
@@ -92,6 +90,8 @@ class TenderSource(BaseSource):
     @retry(stop_max_attempt_number=5, wait_fixed=5000)
     def reset(self):
         logger.info("Reset tenders, tender_skip_until=%s", self.config['tender_skip_until'])
+        if self.config['tender_decode_orgs']:
+            self.orgs_db = OrgsDecoder(self.config)
         if self.config.get('timeout', None):
             setdefaulttimeout(float(self.config['timeout']))
         params = {}
