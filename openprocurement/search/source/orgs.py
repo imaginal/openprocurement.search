@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
-import sqlite3
+import os
 import os.path
+import sqlite3
 from munch import munchify
 
 from openprocurement.search.source import BaseSource
@@ -10,16 +11,25 @@ logger = getLogger(__name__)
 
 
 class OrgsDecoder(object):
-    def __init__(self, config={}, db_mode='?mode=ro'):
+    def __init__(self, config={}):
         self.db_conn = None
         self.db_curs = None
         self.q_cache = {}
         orgs_db_size = 0
         if config.get('orgs_db'):
             orgs_db_size = os.path.getsize(config['orgs_db'])
-        if orgs_db_size > 10000: # don't accept empty database
-            self.db_conn = sqlite3.connect(config['orgs_db']+db_mode)
-            self.db_curs = self.db_conn.cursor()
+        if orgs_db_size < 10000: # don't accept empty database
+            logger.warning("%s not exists or empty", config['orgs_db'])
+            return
+        try:
+            fd = os.open(config['orgs_db'], os.O_RDONLY)
+            self.db_conn = sqlite3.connect('/dev/fd/%d' % fd)
+            os.close(fd)
+        except Exception as e:
+            logger.warning("Can't open %s via os.open(/dev/fd) %s",
+                config['orgs_db'], str(e))
+            self.db_conn = sqlite3.connect(config['orgs_db'])
+        self.db_curs = self.db_conn.cursor()
 
     def is_connected(self):
         return self.db_curs
@@ -106,14 +116,6 @@ class OrgsSource(BaseSource):
         if config:
             self.config.update(config)
         self.orgs_db = None
-        if self.config['orgs_db']:
-            orgs_db_size = os.path.getsize(self.config['orgs_db'])
-            logger.info("Open UA-EDR database %s size %d kb",
-                self.config['orgs_db'], orgs_db_size/1024)
-            self.orgs_db = OrgsDecoder(self.config)
-        if not self.orgs_db or not self.orgs_db.db_curs:
-            logger.warning("No UA-EDR database, orgs will not decoded")
-            self.orgs_db = None
         self.queue_size = int(self.config['orgs_queue'])
         self.queue = {}
 
@@ -136,6 +138,16 @@ class OrgsSource(BaseSource):
         return {'meta': item, 'data': data}
 
     def reset(self):
+        if self.orgs_db:
+            self.orgs_db.close()
+        if self.config['orgs_db']:
+            orgs_db_size = os.path.getsize(self.config['orgs_db'])
+            logger.info("Open UA-EDR database %s size %d MB",
+                self.config['orgs_db'], orgs_db_size/1024000)
+            self.orgs_db = OrgsDecoder(self.config)
+        if not self.orgs_db or not self.orgs_db.db_conn:
+            logger.warning("No UA-EDR database, orgs will not decoded")
+            self.orgs_db = None
         self.queue = {}
 
     def push(self, item):
@@ -168,7 +180,7 @@ class OrgsSource(BaseSource):
     def items(self, name=None):
         for item in self.queue.values():
             yield item
-        self.reset()
+        self.queue = {}
 
     def get(self, item):
         return self.patch_item(item)
