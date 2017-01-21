@@ -18,7 +18,7 @@ class OrgsDecoder(object):
         orgs_db_size = 0
         if config.get('orgs_db'):
             orgs_db_size = os.path.getsize(config['orgs_db'])
-        if orgs_db_size < 10000: # don't accept empty database
+        if orgs_db_size < 10000:    # don't accept empty database
             logger.warning("%s not exists or empty", config['orgs_db'])
             return
         try:
@@ -161,7 +161,7 @@ class OrgsSource(BaseSource):
         if self.config['orgs_db']:
             orgs_db_size = os.path.getsize(self.config['orgs_db'])
             logger.info("Open UA-EDR database %s size %d MB",
-                self.config['orgs_db'], orgs_db_size/1024000)
+                self.config['orgs_db'], orgs_db_size / 1024000)
             self.orgs_db = OrgsDecoder(self.config)
             if not self.orgs_db.is_connected():
                 logger.warning("No UA-EDR database, orgs will not be decoded")

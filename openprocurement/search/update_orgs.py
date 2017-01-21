@@ -210,8 +210,10 @@ def main():
 
         engine = IndexOrgsEngine(config, uo_config)
         source = OrgsSource(config)
-        OrgsIndex(engine, source, config)
+        index = OrgsIndex(engine, source, config)
+        # manualy reset and prevent second reset on first process_source
         source.reset()
+        index.last_current_index = index.current_index
         if config.get('tender_api_url', None):
             source = TenderSource(config)
             engine.process_source(source)
