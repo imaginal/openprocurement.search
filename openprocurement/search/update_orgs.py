@@ -215,6 +215,7 @@ def main():
         engine = IndexOrgsEngine(config, uo_config)
         source = OrgsSource(config)
         OrgsIndex(engine, source, config)
+        source.reset()
         if config.get('tender_api_url', None):
             source = TenderSource(config)
             engine.process_source(source)
