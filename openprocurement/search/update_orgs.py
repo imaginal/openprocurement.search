@@ -84,7 +84,6 @@ class IndexOrgsEngine(IndexEngine):
         items_list = True
         items_count = 0
         flush_count = 0
-        error_count = 0
         while True:
             if self.should_exit:
                 break
@@ -104,22 +103,19 @@ class IndexOrgsEngine(IndexEngine):
                         logger.info("[%s] Processed %d last %s orgs_found %d",
                             source.doc_type, items_count,
                             meta.get('dateModified'), len(self.orgs_map))
+                    # flush orgs_map each 10k
+                    if items_count - flush_count > 10000:
+                        flush_count = items_count
+                        self.flush_orgs_map()
             except Exception as e:
-                logger.error("Can't process_source: %s", str(e))
-                error_count += 1
-                if error_count > 100:
-                    logger.exception("%s", str(e))
-                    break
-            # flush orgs_map each 10k
-            if items_count - flush_count > 10000:
-                flush_count = items_count
-                self.flush_orgs_map()
+                logger.exception("Can't process_source: %s", str(e))
+                break
             # prevent stop by skip_until before first 100 processed
             if items_count < 100 and getattr(source, 'last_skipped', None):
                 logger.info("[%s] Processed %d last_skipped %s",
                     source.doc_type, items_count, source.last_skipped)
                 continue
-            elif items_count - save_count < 1:
+            elif items_count - save_count < 5:
                 break
         # flush orgs ranks
         self.flush_orgs_map()
