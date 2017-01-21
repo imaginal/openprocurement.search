@@ -182,7 +182,7 @@ class IndexOrgsEngine(IndexEngine):
 
 
 def main():
-    if len(sys.argv) < 2:
+    if len(sys.argv) < 2 or '-h' in sys.argv:
         print("Usage: update_orgs etc/search.ini [custom_index_names]")
         sys.exit(1)
 
