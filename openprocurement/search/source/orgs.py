@@ -115,9 +115,13 @@ class OrgsSource(BaseSource):
     def __init__(self, config={}):
         if config:
             self.config.update(config)
+        if not self.config.get('orgs_db'):
+            logger.warning("No UA-EDR database, orgs will not be decoded")
         self.orgs_db = None
-        self.queue_size = int(self.config['orgs_queue'])
         self.should_reset = True
+        self.queue_size = int(self.config['orgs_queue'])
+        self.not_found = 0
+        self.found = 0
         self.queue = {}
 
     def need_reset(self):
@@ -143,6 +147,12 @@ class OrgsSource(BaseSource):
                 data['name'] = row[1]
                 data['short'] = row[2]
                 data['location'] = row[3]
+                self.found += 1
+            else:
+                self.not_found += 1
+                if self.not_found % 100 == 0:
+                    logger.warning("OrgsDecoder found %d / not_found %d",
+                        self.found, self.not_found)
         return {'meta': item, 'data': data}
 
     def reset(self):
@@ -153,11 +163,10 @@ class OrgsSource(BaseSource):
             logger.info("Open UA-EDR database %s size %d MB",
                 self.config['orgs_db'], orgs_db_size/1024000)
             self.orgs_db = OrgsDecoder(self.config)
-        if not self.orgs_db or not self.orgs_db.db_conn:
-            logger.warning("No UA-EDR database, orgs will not decoded")
-            self.orgs_db = None
+            if not self.orgs_db.is_connected():
+                logger.warning("No UA-EDR database, orgs will not be decoded")
+                self.orgs_db = None
         self.should_reset = False
-        self.queue = {}
 
     def push(self, item):
         """push item in to queue and return True if need to flush"""
