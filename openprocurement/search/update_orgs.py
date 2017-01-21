@@ -31,14 +31,38 @@ def sigterm_handler(signo, frame):
 
 
 class IndexOrgsEngine(IndexEngine):
-    def __init__(self, config):
+    def __init__(self, config, update_config):
+        self.patch_engine_config(config, update_config)
         super(IndexOrgsEngine, self).__init__(config)
         self.orgs_map = {}
 
+    def patch_engine_config(self, config, update_config):
+        config['slave_mode'] = None
+        config['start_wait'] = 0
+        config['tender_fast_client'] = False
+        config['plan_fast_client'] = False
+        config['auction_fast_client'] = False
+        config['tender_preload'] = int(1e6)
+        config['plan_preload'] = int(1e6)
+        config['ocds_preload'] = int(1e6)
+        config['auction_preload'] = int(1e6)
+        # update skip_until
+        update_days = update_config.get('update_days') or 30
+        date = datetime.now() - timedelta(days=int(update_days))
+        date = date.strftime("%Y-%m-%d")
+        logger.info("Patch config: update_days = %s -> skip_until = %s", update_days, date)
+        config['auction_skip_until'] = date
+        config['tender_skip_until'] = date
+        config['plan_skip_until'] = date
+        config['ocds_skip_until'] = date
+
     def process_entity(self, entity):
+        code = None
         try:
             code = entity['identifier']['id']
-            if code and type(code) == int:
+            if not code:
+                raise ValueError("No code")
+            if type(code) != str:
                 code = str(code)
             if len(code) < 5 or len(code) > 15:
                 raise ValueError("Bad code")
@@ -47,7 +71,7 @@ class IndexOrgsEngine(IndexEngine):
         try:
             self.index_by_type('org', entity)
         except Exception as e:
-            logger.exception("Can't index: %s", str(e))
+            logger.exception("Can't index %s: %s", code, str(e))
         if code in self.orgs_map:
             self.orgs_map[code] += 1
         else:
@@ -59,6 +83,8 @@ class IndexOrgsEngine(IndexEngine):
         source.client_user_agent += " update_orgs"
         items_list = True
         items_count = 0
+        flush_count = 0
+        error_count = 0
         while True:
             if self.should_exit:
                 break
@@ -75,24 +101,26 @@ class IndexOrgsEngine(IndexEngine):
                         self.process_entity(entity)
                     # log progress
                     if items_count % 100 == 0:
-                        logger.info(
-                            "[%s] Processed %d last %s map_size %d",
+                        logger.info("[%s] Processed %d last %s orgs_found %d",
                             source.doc_type, items_count,
                             meta.get('dateModified'), len(self.orgs_map))
             except Exception as e:
-                logger.exception("Can't process_source: %s", str(e))
-                break
+                logger.error("Can't process_source: %s", str(e))
+                error_count += 1
+                if error_count > 100:
+                    logger.exception("%s", str(e))
+                    break
+            # flush orgs_map each 10k
+            if items_count - flush_count > 10000:
+                flush_count = items_count
+                self.flush_orgs_map()
             # prevent stop by skip_until before first 100 processed
             if items_count < 100 and getattr(source, 'last_skipped', None):
-                logger.info(
-                    "[%s] Processed %d last_skipped %s",
+                logger.info("[%s] Processed %d last_skipped %s",
                     source.doc_type, items_count, source.last_skipped)
                 continue
-            if items_count - save_count < 1:
+            elif items_count - save_count < 1:
                 break
-        # flush new orgs
-        for index in self.index_list:
-            index.process(allow_reindex=False)
         # flush orgs ranks
         self.flush_orgs_map()
 
@@ -104,18 +132,20 @@ class IndexOrgsEngine(IndexEngine):
         iter_count = 0
         update_count = 0
         orgs_index = self.index_list[0]
+        orgs_index.process(allow_reindex=False)
         doc_type = orgs_index.source.doc_type
         map_len = len(self.orgs_map)
+        error_count = 0
         for code, rank in self.orgs_map.iteritems():
             if self.should_exit:
                 break
             iter_count += 1
-            if iter_count % 100 == 0:
-                logger.info("[%s] Updated %d orgs %d%%",
-                    index_name, update_count,
+            if iter_count % 1000 == 0:
+                logger.info("[%s] Updated %d / %d orgs %d%%",
+                    index_name, update_count, iter_count,
                     int(100 * iter_count / map_len))
             # dont update rare companies
-            if rank < 5:
+            if rank < 10:
                 continue
             # get item
             meta = {'id': code, 'doc_type': doc_type}
@@ -140,17 +170,29 @@ class IndexOrgsEngine(IndexEngine):
                 self.index_item(index_name, item)
                 update_count += 1
             except Exception as e:
-                logger.exception("Fail index %s: %s", str(item), str(e))
+                logger.error("Fail index %s: %s", str(item), str(e))
+                error_count += 1
+                if error_count > 100:
+                    logger.exception("%s", str(e))
+                    break
+        # final info
+        logger.info("[%s] Updated %d / %d orgs %d%%",
+            index_name, update_count, iter_count,
+            int(100.0 * iter_count / map_len))
 
 
 def main():
     if len(sys.argv) < 2:
-        print("Usage: update_orgs etc/search.ini")
+        print("Usage: update_orgs etc/search.ini [custom_index_names]")
         sys.exit(1)
 
     parser = ConfigParser()
     parser.read(sys.argv[1])
     config = dict(parser.items('search_engine'))
+    uo_config = dict(parser.items('update_orgs'))
+
+    if len(sys.argv) > 2:
+        config['index_names'] = sys.argv[2]
 
     logging.config.fileConfig(sys.argv[1])
 
@@ -158,7 +200,7 @@ def main():
     logger.info("Copyright (c) 2015-2016 Volodymyr Flonts <flyonts@gmail.com>")
 
     # try get exclusive lock to prevent second start
-    lock_filename = parser.get('update_orgs', 'pidfile')
+    lock_filename = uo_config.get('pidfile') or 'update_orgs.pid'
     lock_file = open(lock_filename, "w")
     fcntl.lockf(lock_file, fcntl.LOCK_EX + fcntl.LOCK_NB)
     lock_file.write(str(os.getpid()) + "\n")
@@ -168,23 +210,9 @@ def main():
     # signal.signal(signal.SIGINT, sigterm_handler)
 
     try:
-        if parser.has_option('update_orgs', 'update_days'):
-            update_days = parser.get('update_orgs', 'update_days')
-            date = datetime.now() - timedelta(days=int(update_days))
-            date = date.strftime("%Y-%m-%d")
-            logger.info("Use update_days = %s to set skip_until = %s",
-                update_days, date)
-            config['tender_skip_until'] = date
-            config['plan_skip_until'] = date
-            config['ocds_skip_until'] = date
-        # disable fast_client mode
-        logger.info("Disable fast_client mode")
-        if 'tender_fast_client' in config:
-            config['tender_fast_client'] = False
-        if 'plan_fast_client' in config:
-            config['plan_fast_client'] = False
         global engine
-        engine = IndexOrgsEngine(config)
+
+        engine = IndexOrgsEngine(config, uo_config)
         source = OrgsSource(config)
         OrgsIndex(engine, source, config)
         if config.get('tender_api_url', None):
