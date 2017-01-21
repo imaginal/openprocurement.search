@@ -117,7 +117,15 @@ class OrgsSource(BaseSource):
             self.config.update(config)
         self.orgs_db = None
         self.queue_size = int(self.config['orgs_queue'])
+        self.should_reset = True
         self.queue = {}
+
+    def need_reset(self):
+        if self.should_reset and len(self.queue) == 0:
+            return True
+        if not self.orgs_db and self.config['orgs_db']:
+            return True
+        return False
 
     def patch_item(self, item):
         item_data = item.get('data', {})
@@ -148,6 +156,7 @@ class OrgsSource(BaseSource):
         if not self.orgs_db or not self.orgs_db.db_conn:
             logger.warning("No UA-EDR database, orgs will not decoded")
             self.orgs_db = None
+        self.should_reset = False
         self.queue = {}
 
     def push(self, item):
