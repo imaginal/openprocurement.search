@@ -138,7 +138,7 @@ class PlanSource(BaseSource):
             try:
                 items = self.client.get_tenders()
             except Exception as e:
-                logger.error("PlanSource.preload error %s", restkit_error(e))
+                logger.error("PlanSource.preload error %s", restkit_error(e, self.client))
                 self.reset()
                 break
             if self.should_exit:
@@ -185,7 +185,7 @@ class PlanSource(BaseSource):
                     raise e
                 retry_count += 1
                 logger.error("get_plan %s retry %d error %s",
-                    str(item['id']), retry_count, restkit_error(e))
+                    str(item['id']), retry_count, restkit_error(e, self.client))
                 self.sleep(5)
                 if retry_count > 1:
                     self.reset()

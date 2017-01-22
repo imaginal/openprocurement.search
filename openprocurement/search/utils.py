@@ -6,14 +6,19 @@ import time
 import logging
 
 
-def restkit_error(e):
+def restkit_error(e, client=None):
     out = str(e)
     try:
         response = getattr(e, 'response', None)
         headers = getattr(response, 'headers', None)
         if headers:
-            out += " Status:"+str(response.status_int)
-            out += " Headers:"+str(headers)
+            out += " Status:" + str(response.status_int)
+            out += " Headers:" + str(headers)
+        if client:
+            headers = getattr(client, 'headers')
+            params = getattr(client, 'params')
+            out += "RequestHeaders:" + str(headers)
+            out += "RequestParams:" + str(params)
     except:
         pass
     return out
