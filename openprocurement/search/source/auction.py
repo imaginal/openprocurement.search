@@ -60,7 +60,7 @@ class AuctionSource(BaseSource):
         if 'date' not in auction['data']:
             auctionID = auction['data']['auctionID']
             pos = auctionID.find('-20')
-            plan['data']['date'] = auctionID[pos+1:pos+11]
+            auction['data']['date'] = auctionID[pos+1:pos+11]
         return auction
 
     def need_reset(self):
@@ -88,6 +88,7 @@ class AuctionSource(BaseSource):
             params=params,
             timeout=float(self.config['timeout']),
             user_agent=self.client_user_agent)
+        logger.info("AuctionClient %s", self.client.headers)
         self.skip_until = self.config.get('auction_skip_until', None)
         if self.skip_until and self.skip_until[:2] != '20':
             self.skip_until = None

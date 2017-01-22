@@ -106,6 +106,7 @@ class TenderSource(BaseSource):
             params=params,
             timeout=float(self.config['timeout']),
             user_agent=self.client_user_agent)
+        logger.info("TendersClient %s", self.client.headers)
         if self.config['tender_fast_client']:
             fast_params = dict(params)
             fast_params['descending'] = 1
@@ -118,6 +119,7 @@ class TenderSource(BaseSource):
                 user_agent=self.client_user_agent+" fast_client")
             self.fast_client.get_tenders()
             self.fast_client.params.pop('descending')
+            logger.info("TendersClient (fast) %s", self.fast_client.headers)
         else:
             self.fast_client = None
         self.skip_until = self.config.get('tender_skip_until', None)
