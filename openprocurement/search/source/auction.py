@@ -146,7 +146,7 @@ class AuctionSource(BaseSource):
                 if retry_count > 3:
                     raise e
                 retry_count += 1
-                logger.error("get_auction %s retry %d error %s",
+                logger.error("GET %s/%s retry %d error %s", self.client.prefix_path,
                     str(item['id']), retry_count, restkit_error(e, self.client))
                 self.sleep(5)
                 if retry_count > 1:

@@ -17,8 +17,11 @@ def restkit_error(e, client=None):
         if client:
             headers = getattr(client, 'headers')
             params = getattr(client, 'params')
+            prefix = getattr(client, 'prefix_path')
+            uri = getattr(client, 'uri')
             out += " RequestHeaders:" + str(headers)
             out += " RequestParams:" + str(params)
+            out += " URI:%s%s" % (uri, prefix)
     except:
         pass
     return out
