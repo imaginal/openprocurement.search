@@ -139,8 +139,8 @@ class AuctionSource(BaseSource):
         while not self.should_exit:
             try:
                 auction = self.client.get_tender(item['id'])
-                assert auction['data']['id'] == item['id']
-                assert auction['data']['dateModified'] >= item['dateModified']
+                assert auction['data']['id'] == item['id'], "auction.id"
+                assert auction['data']['dateModified'] >= item['dateModified'], "auction.dateModified"
                 break
             except Exception as e:
                 if retry_count > 3:

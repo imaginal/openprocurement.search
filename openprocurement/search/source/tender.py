@@ -185,8 +185,8 @@ class TenderSource(BaseSource):
         while not self.should_exit:
             try:
                 tender = self.client.get_tender(item['id'])
-                assert tender['data']['id'] == item['id']
-                assert tender['data']['dateModified'] >= item['dateModified']
+                assert tender['data']['id'] == item['id'], "tender.id"
+                assert tender['data']['dateModified'] >= item['dateModified'], "tender.dateModified"
                 break
             except Exception as e:
                 if retry_count > 3:

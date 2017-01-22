@@ -177,8 +177,8 @@ class PlanSource(BaseSource):
         while not self.should_exit:
             try:
                 plan = self.client.get_tender(item['id'])
-                assert plan['data']['id'] == item['id']
-                assert plan['data']['dateModified'] >= item['dateModified']
+                assert plan['data']['id'] == item['id'], "plan.id"
+                assert plan['data']['dateModified'] >= item['dateModified'], "plan.dateModified"
                 break
             except Exception as e:
                 if retry_count > 3:
