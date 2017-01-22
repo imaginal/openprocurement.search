@@ -151,8 +151,8 @@ class OrgsSource(BaseSource):
             else:
                 self.not_found += 1
                 if self.not_found % 100 == 0:
-                    logger.warning("OrgsDecoder found %d / not_found %d",
-                        self.found, self.not_found)
+                    logger.warning("OrgsDecoder not_found %d found %d",
+                        self.not_found, self.found)
         return {'meta': item, 'data': data}
 
     def reset(self):
