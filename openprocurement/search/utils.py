@@ -17,8 +17,8 @@ def restkit_error(e, client=None):
         if client:
             headers = getattr(client, 'headers')
             params = getattr(client, 'params')
-            out += "RequestHeaders:" + str(headers)
-            out += "RequestParams:" + str(params)
+            out += " RequestHeaders:" + str(headers)
+            out += " RequestParams:" + str(params)
     except:
         pass
     return out
