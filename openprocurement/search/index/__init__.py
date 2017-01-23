@@ -165,7 +165,7 @@ class BaseIndex(object):
 
     def handle_error(self, error, exc_info):
         if self.config['ignore_errors']:
-            logger.error("%s (ignored)", str(error))
+            logger.error("%s %s (ignored)", type(error).__name__, str(error))
         else:
             raise exc_info[0], exc_info[1], exc_info[2]
 
@@ -173,7 +173,7 @@ class BaseIndex(object):
         if not last_date and fetched < 10 and indexed < 1:
             return
         pause = 1.0 * iter_count / self.config['index_speed']
-        logger.info("[%s] Fetched %d indexed %d last %s", # wait %1.1fs
+        logger.info("[%s] Fetched %d indexed %d last %s",       # wait %1.1fs
             index_name, fetched, indexed, last_date or '-')
         if pause > 0.1:
             self.engine.sleep(pause)
