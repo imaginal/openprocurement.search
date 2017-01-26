@@ -138,7 +138,6 @@ class SearchTester(object):
         if test_count < 5:
             raise RuntimeError("Not enough queries")
 
-
     def test_plans(self):
         # self.engine_config['plan_skip_until'] = ''
         self.engine_config['plan_fast_client'] = False
@@ -295,11 +294,13 @@ class SearchTester(object):
 def print_usage():
     print("Usage: test_search etc/search.ini [options]")
     print("Options are:")
+    print("\t--offset=MINUTES\n\t\t- document age to test (default=30)")
     print("\t-d\t- enable debug mode")
     print("\t-f\t- search 1% of all")
     print("\t-i\t- ignore errors")
     print("\t-nt\t- don't test tenders")
     print("\t-np\t- don't test plans")
+    print("\t-na\t- don't test auctions")
     print("\t-q\t- be quiet")
 
 
