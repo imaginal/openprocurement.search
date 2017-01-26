@@ -2,7 +2,6 @@
 from gevent import monkey
 monkey.patch_all()
 
-import re
 import sys
 import simplejson as json
 from ConfigParser import ConfigParser
@@ -89,15 +88,15 @@ dates_map = {
     'award_start':   ('gte', 'awards.activeDate'),
     'award_end':     ('lt',  'awards.activeDate'),
     # use custom field activeDate (see source.patch_tender)
-    'contract_start':('gte', 'contracts.activeDate'),
-    'contract_end':  ('lt',  'contracts.activeDate'),
+    'contract_start': ('gte', 'contracts.activeDate'),
+    'contract_end':   ('lt',  'contracts.activeDate'),
     # tender.date
     'date_start':    ('gte', 'date'),
     'date_end':      ('lt',  'date'),
     # tender.dateModified
     'datemod_start': ('gte', 'dateModified'),
     'datemod_end':   ('lt',  'dateModified'),
-     # plan.datePublished
+    # plan.datePublished
     'datepub_start': ('gte', 'datePublished'),
     'datepub_end':   ('lt',  'datePublished'),
     # for enquiry use only startDate
@@ -121,7 +120,9 @@ sorting_map = {
     'budget': 'budget.amount',
 }
 
+
 # build query helper functions
+
 
 def match_query(query, field, type_=None, operator=None, analyzer=None):
     qtext = " ".join(query)
@@ -183,14 +184,16 @@ def append_dates_query(body, query, args):
     for q in body:
         if "range" not in q:
             continue
-        for rk,rv in q["range"].items():
+        for rk, rv in q["range"].items():
             if rk == key:
                 rv[op] = query
                 return
     match = dates_query(query, args)
     body.append(match)
 
+
 # build query body
+
 
 def prepare_search_body(args, default_sort='dateModified'):
     body = list()
@@ -309,16 +312,17 @@ def search_auctions():
 @search_server.route('/orgsuggest')
 def orgsuggest():
     # excact search
-    edrpou = request.args.get('edrpou', '')
-    if edrpou and len(edrpou) < 10:
-        body = {
-            "query": {"match": {"edrpou": edrpou}},
-        }
-        res = search_engine.search(body, limit=1, index_set='orgs')
+    if request.args.get('edrpou', ''):
+        edrpou = request.args.getlist('edrpou')
+        limit = len(edrpou)
+        if limit > 100:
+            return jsonify({"error": "too many edrpou"})
+        body = {"query": {"terms": {"edrpou": edrpou}}}
+        res = search_engine.search(body, limit=limit, index_set='orgs')
         return jsonify(res)
     # generate static top-orgs json
     toporgs = request.args.get('toporgs', '')
-    if toporgs and int(toporgs) <= 1000:
+    if toporgs and int(toporgs) < 1001:
         body = {
             "query": {"match_all": {}},
             "sort": {"rank": {"order": "desc"}},
@@ -348,16 +352,22 @@ def orgsuggest():
         "query": {"match": {"_all": _all}},
         "sort": {"rank": {"order": "desc"}},
     }
-    res = search_engine.search(body, limit=10, index_set='orgs')
+    limit = int(request.args.get('limit') or 10)
+    if limit < 1 or limit > 100:
+        return jsonify({"error": "bad limit"})
+    res = search_engine.search(body, limit=limit, index_set='orgs')
     if not res.get('items'):
         _all["fuzziness"] += 1
-        res = search_engine.search(body, limit=10, index_set='orgs')
+        res = search_engine.search(body, limit=limit, index_set='orgs')
     return jsonify(res)
 
 
 @search_server.route('/heartbeat')
 def heartbeat():
-    data = {'heartbeat': search_engine.master_heartbeat()}
+    data = {
+        'heartbeat': search_engine.master_heartbeat(),
+        'version': __version__
+    }
     key = request.args.get('key', None)
     if key and key == search_server.secret_key:
         data['index_names'] = search_engine.index_names_dict()
@@ -369,6 +379,7 @@ def heartbeat():
         res.set_data(json.dumps(data, sort_keys=True, indent=4))
     return res
 
+
 def make_app(global_conf, **kwargs):
     class config:
         pass
@@ -376,6 +387,7 @@ def make_app(global_conf, **kwargs):
         setattr(config, key.upper(), value)
     search_server.config.from_object(config)
     return search_server
+
 
 def main():
     search_server.debug = True
