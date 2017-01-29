@@ -127,7 +127,7 @@ class PlanSource(BaseSource):
             try:
                 items = self.fast_client.get_tenders()
                 if not len(items):
-                    logger.info("Preload fast 0 plans")
+                    logger.debug("Preload fast 0 plans")
                     raise ValueError()
                 preload_items.extend(items)
                 logger.info("Preload fast %d plans, last %s",
