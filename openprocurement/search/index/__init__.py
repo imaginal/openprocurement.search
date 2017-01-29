@@ -5,7 +5,6 @@ import time
 from datetime import datetime, timedelta
 from multiprocessing import Process
 from logging import getLogger
-import simplejson as json
 
 logger = getLogger(__name__)
 
@@ -20,6 +19,7 @@ class BaseIndex(object):
         'ignore_errors': 0,
         'reindex_check': '1,1',
         'number_of_shards': 4,
+        'index_parallel': 1,
         'index_speed': 100,
         'error_wait': 10,
     }
@@ -172,10 +172,12 @@ class BaseIndex(object):
     def indexing_stat(self, index_name, fetched, indexed, iter_count, last_date):
         if not last_date and fetched < 10 and indexed < 1:
             return
-        pause = 1.0 * iter_count / self.config['index_speed']
-        logger.info("[%s] Fetched %d indexed %d last %s",       # wait %1.1fs
+        logger.info("[%s] Fetched %d indexed %d last %s",
             index_name, fetched, indexed, last_date or '-')
-        if pause > 0.1:
+        pause = float(iter_count) / float(self.config['index_speed'] or 1)
+        if pause > 1:
+            logger.info("Wait %1.1f sec", pause)
+        if pause > 0.01:
             self.engine.sleep(pause)
 
     def index_item(self, index_name, item):
@@ -196,9 +198,10 @@ class BaseIndex(object):
 
         return self.engine.index_item(index_name, item)
 
-    def index_source(self, index_name=None, reset=False):
+    def index_source(self, index_name=None, reset=False, reindex=False):
         if self.engine.slave_mode:
             if not self.engine.heartbeat(self.source):
+                self.engine.sleep(1)
                 return
 
         if not index_name:
@@ -223,7 +226,10 @@ class BaseIndex(object):
         while self.engine.heartbeat(self.source):
             info = {}
             iter_count = 0
-            for info in self.source.items():
+            items_list = self.source.items()
+            if not items_list:
+                break
+            for info in items_list:
                 if self.engine.should_exit:
                     return
                 if not self.test_exists(index_name, info):
@@ -237,7 +243,7 @@ class BaseIndex(object):
                 iter_count += 1
                 total_count += 1
                 # update heartbeat for long indexing
-                if iter_count >= 100:
+                if iter_count >= 500:
                     self.indexing_stat(
                         index_name, total_count, index_count,
                         iter_count, info.get('dateModified', '-'))
@@ -257,6 +263,10 @@ class BaseIndex(object):
                     index_name, total_count, last_skipped or '-')
             elif not info:
                 break
+            # break on each iteration if not in full reindex mode
+            if not reindex and self.config['index_parallel'] and index_count < total_count:
+                logger.debug("[%s] Swith loop", index_name)
+                return
 
         return index_count
 
@@ -300,8 +310,9 @@ class BaseIndex(object):
         if self.check_all_field:
             try:
                 info = self.engine.index_info(index_name)
+                stat = self.engine.index_stats(index_name)
             except Exception as e:
-                logger.error("[%s] Check index failed: index not found", index_name)
+                logger.error("[%s] Check index failed: %s", index_name, str(e))
                 self.force_next_reindex = True
                 return False
             doc_type = self.source.__doc_type__
@@ -313,14 +324,15 @@ class BaseIndex(object):
 
         if self.skip_check_count:
             if self.check_all_field:
-                logger.info("[%s] Index is ok, docs count not tested", index_name)
+                logger.info("[%s] Total docs %d, last indexed not tested",
+                    index_name, stat['docs']['count'])
             return True
 
         # check index docs count afetr reindex
         body = {
             "query": {"match_all": {}},
             "sort": {"dateModified": {"order": "desc"}}
-            }
+        }
         try:
             res = self.engine.search(body, start=0, limit=1, index=index_name)
         except:
@@ -362,7 +374,7 @@ class BaseIndex(object):
         # reconnect elatic and prevent future stop_childs
         self.engine.start_in_subprocess()
 
-        self.index_source(self.next_index_name, reset=True)
+        self.index_source(self.next_index_name, reset=True, reindex=True)
 
         if self.check_index(self.next_index_name):
             exit_code = self.magic_exit_code
@@ -372,13 +384,6 @@ class BaseIndex(object):
         # exit with specific code to signal master process reset source
         logger.info("*** Exit subprocess")
         sys.exit(exit_code)
-
-    def do_reindex(self):
-        self.index_source(self.next_index_name, reset=True)
-        if self.check_index(self.next_index_name):
-            self.set_current(self.next_index_name)
-            return True
-        return False
 
     def reindex(self):
         # check reindex process is alive
@@ -395,7 +400,11 @@ class BaseIndex(object):
 
         # reindex in old-way sync mode
         if not self.allow_async_reindex:
-            return self.do_reindex()
+            self.index_source(self.next_index_name, reset=True, reindex=True)
+            if self.check_index(self.next_index_name):
+                self.set_current(self.next_index_name)
+                return True
+            return False
 
         # reindex in async mode, start new reindex process
         proc_name = "Reindex-%s" % self.__index_name__
