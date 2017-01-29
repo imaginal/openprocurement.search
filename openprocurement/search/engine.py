@@ -7,7 +7,7 @@ import simplejson as json
 
 from elasticsearch import Elasticsearch
 from elasticsearch.client import IndicesClient
-from elasticsearch.exceptions import ElasticsearchException, RequestError, NotFoundError
+from elasticsearch.exceptions import ElasticsearchException, NotFoundError
 
 from openprocurement.search.utils import SharedFileDict
 
@@ -48,17 +48,17 @@ class SearchEngine(object):
             self.search_index_map.update(search_map)
         # update index_name from config.ini
         for k in self.search_index_map.keys():
-            names = self.config.get('search_'+k)
+            names = self.config.get('search_' + k)
             if not names:
                 continue
             names = [s.strip() for s in names.split(',') if s]
             self.search_index_map[k] = names
         # update index names from rename_xxx
-        for k,names in self.search_index_map.items():
-            for i,index in enumerate(names):
+        for k, names in self.search_index_map.items():
+            for i, index in enumerate(names):
                 if hasattr(index, '__index_name__'):
                     names[i] = index.__index_name__
-                new_name = self.config.get('rename_'+names[i])
+                new_name = self.config.get('rename_' + names[i])
                 if new_name:
                     names[i] = new_name
         logger.debug("Search indexes %s", str(self.search_index_map))
@@ -97,7 +97,7 @@ class SearchEngine(object):
                 key = key.__index_name__
             name = self.get_index(key)
             if not name:
-                name = self.get_index(key+'.next')
+                name = self.get_index(key + '.next')
             if name:
                 index_names.append(name)
         return ','.join(index_names)
@@ -110,7 +110,7 @@ class SearchEngine(object):
         indices = IndicesClient(self.elastic)
         stin = indices.stats()
         stout = {}
-        for k,v in self.index_names_dict().items():
+        for k, v in self.index_names_dict().items():
             try:
                 k += '_docs_count'
                 stout[k] = stin['indices'][v]['primaries']['docs']['count']
@@ -199,7 +199,7 @@ class SearchEngine(object):
             hv = data['heartbeat']
             lag = time() - hv
             logger.info("Master heartbeat %s lag %s min",
-                strftime('%H:%M:%S', localtime(hv)), int(lag/60))
+                strftime('%H:%M:%S', localtime(hv)), int(lag / 60))
         except Exception as e:
             logger.error("Can't check heartbeat %s %s",
                 type(e).__name__, unicode(e))
@@ -348,7 +348,7 @@ class IndexEngine(SearchEngine):
                 return
 
         info_string = "".join(["\n\t%-17s = %s" % (k, str(v))
-                for k,v in alive['version'].items()])
+                for k, v in alive['version'].items()])
         logger.info(u"ElasticSearch version: %s", info_string)
 
         if alive['version']['number'][:4] != '1.7.':
