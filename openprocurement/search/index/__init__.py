@@ -390,6 +390,9 @@ class BaseIndex(object):
         # check reindex process is alive
         if self.reindex_process and self.reindex_process.is_alive():
             return
+        # don't start reindex process when exiting
+        if self.engine.should_exit:
+            return
 
         # clear reindex flag
         if self.force_next_reindex:
