@@ -2237,7 +2237,7 @@
               "lowercase",
               "light_russian"
             ],
-            "tokenizer": "whitespace"
+            "tokenizer": "standard40"
           },
           "whitespace": {
             "filter": "lowercase",
