@@ -143,7 +143,8 @@ class BaseIndex(object):
         if name != old_index:
             logger.info("Change current %s index %s -> %s",
                         index_key, old_index, name)
-            self.engine.set_index(index_key, name)
+            if self.check_index(name):
+                self.engine.set_index(index_key, name)
             self.last_current_index = name
             # assert(self.current_index == name)
             if old_index:

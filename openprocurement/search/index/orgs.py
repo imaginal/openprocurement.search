@@ -34,8 +34,8 @@ class OrgsIndex(BaseIndex):
             if not self.test_exists(index_name, item['meta']):
                 raise e
 
-    def index_source(self, index_name=None, reset=False):
-        res = BaseIndex.index_source(self, index_name, reset)
+    def index_source(self, index_name=None, reset=False, reindex=False):
+        res = BaseIndex.index_source(self, index_name, reset, reindex)
         # allow create empty index on reindex (only for orgs)
         if res == 0 and reset:
             return 1
