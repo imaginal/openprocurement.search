@@ -2227,7 +2227,6 @@
         "analyzer": {
           "index_ru": {
             "filter": [
-              "standard",
               "lowercase",
               "light_russian"
             ],

@@ -3575,7 +3575,6 @@
         "analyzer": {
           "index_ru": {
             "filter": [
-              "standard",
               "lowercase",
               "light_russian"
             ],
@@ -3586,7 +3585,7 @@
               "lowercase",
               "light_russian"
             ],
-            "tokenizer": "whitespace"
+            "tokenizer": "standard40"
           },
           "whitespace": {
             "filter": "lowercase",
