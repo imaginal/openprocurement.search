@@ -125,11 +125,11 @@ class BaseIndex(object):
         # apply lang
         for index_lang in lang_list:
             analysis = tender['settings']['index']['analysis']
-            stopwords = 'stopwords_' + index_lang
+            stopwords = 'stopwords_' + index_lang.strip()
             if stopwords in analysis['filter']:
                 analysis['analyzer']['all_index']['filter'].append(stopwords)
                 analysis['analyzer']['all_search']['filter'].append(stopwords)
-            stemmer = 'stemmer_' + index_lang
+            stemmer = 'stemmer_' + index_lang.strip()
             if stemmer in analysis['filter']:
                 analysis['analyzer']['all_index']['filter'].append(stemmer)
                 analysis['analyzer']['all_search']['filter'].append(stemmer)
