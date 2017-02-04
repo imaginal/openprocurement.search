@@ -1,26 +1,6 @@
 {
   "mappings": {
     "tender": {
-      "_all": {
-        "enabled": true,
-        "index_analyzer": "index_ru",
-        "search_analyzer": "search_ru"
-      },
-      "dynamic": false,
-      "date_detection": false,
-      "numeric_detection": false,
-      "dynamic_templates": [
-        {
-          "force_string" : {
-            "match" : "*",
-            "mapping" : {
-              "analyzer": "whitespace_auto",
-              "include_in_all": false,
-              "type" : "string"
-            }
-          }
-        }
-      ],
       "include_in_all": false,
       "properties": {
         "auctionPeriod": {
@@ -49,7 +29,7 @@
           "type": "string"
         },
         "awardCriteria": {
-          "analyzer": "whitespace",
+          "analyzer": "whitespace_lower",
           "include_in_all": false,
           "type": "string"
         },
@@ -77,7 +57,7 @@
               "type": "date"
             },
             "bid_id": {
-              "analyzer": "whitespace",
+              "analyzer": "whitespace_lower",
               "include_in_all": false,
               "type": "string"
             },
@@ -125,7 +105,7 @@
                           "type": "string"
                         },
                         "postalCode": {
-                          "analyzer": "whitespace",
+                          "analyzer": "postalcode",
                           "include_in_all": false,
                           "type": "string"
                         },
@@ -143,7 +123,7 @@
                       "include_in_all": false,
                       "properties": {
                         "email": {
-                          "analyzer": "whitespace",
+                          "analyzer": "whitespace_lower",
                           "include_in_all": true,
                           "type": "string"
                         },
@@ -164,7 +144,8 @@
                           "type": "string"
                         },
                         "telephone": {
-                          "include_in_all": false,
+                          "analyzer": "telephone",
+                          "include_in_all": true,
                           "type": "string"
                         },
                         "url": {
@@ -177,7 +158,7 @@
                       "include_in_all": false,
                       "properties": {
                         "id": {
-                          "analyzer": "whitespace",
+                          "analyzer": "whitespace_lower",
                           "include_in_all": true,
                           "type": "string"
                         },
@@ -214,7 +195,7 @@
                   "type": "string"
                 },
                 "complaintID": {
-                  "analyzer": "whitespace",
+                  "analyzer": "whitespace_lower",
                   "include_in_all": true,
                   "type": "string"
                 },
@@ -310,6 +291,7 @@
                     },
                     "language": {
                       "include_in_all": false,
+                      "index": "no",
                       "type": "string"
                     },
                     "title": {
@@ -337,7 +319,7 @@
                   "type": "string"
                 },
                 "relatedLot": {
-                  "analyzer": "whitespace",
+                  "analyzer": "whitespace_lower",
                   "include_in_all": false,
                   "type": "string"
                 },
@@ -346,7 +328,7 @@
                   "type": "string"
                 },
                 "resolutionType": {
-                  "analyzer": "whitespace",
+                  "analyzer": "whitespace_lower",
                   "include_in_all": false,
                   "type": "string"
                 },
@@ -354,7 +336,7 @@
                   "type": "boolean"
                 },
                 "status": {
-                  "analyzer": "whitespace",
+                  "analyzer": "whitespace_lower",
                   "include_in_all": false,
                   "type": "string"
                 },
@@ -372,7 +354,7 @@
                   "type": "string"
                 },
                 "type": {
-                  "analyzer": "whitespace",
+                  "analyzer": "whitespace_lower",
                   "include_in_all": false,
                   "type": "string"
                 }
@@ -387,7 +369,7 @@
                   "type": "date"
                 },
                 "awardID": {
-                  "analyzer": "whitespace",
+                  "analyzer": "whitespace_lower",
                   "include_in_all": true,
                   "type": "string"
                 },
@@ -438,7 +420,7 @@
                   "type": "string"
                 },
                 "status": {
-                  "analyzer": "whitespace",
+                  "analyzer": "whitespace_lower",
                   "include_in_all": true,
                   "type": "string"
                 }
@@ -509,8 +491,8 @@
                   "type": "string"
                 },
                 "language": {
-                  "analyzer": "whitespace",
                   "include_in_all": false,
+                  "index": "no",
                   "type": "string"
                 },
                 "title": {
@@ -541,7 +523,7 @@
               "type": "string"
             },
             "lotID": {
-              "analyzer": "whitespace",
+              "analyzer": "whitespace_lower",
               "include_in_all": true,
               "type": "string"
             },
@@ -549,7 +531,7 @@
               "type": "boolean"
             },
             "status": {
-              "analyzer": "whitespace",
+              "analyzer": "whitespace_lower",
               "include_in_all": false,
               "type": "string"
             },
@@ -580,7 +562,7 @@
                       "type": "string"
                     },
                     "postalCode": {
-                      "analyzer": "whitespace",
+                      "analyzer": "postalcode",
                       "include_in_all": true,
                       "type": "string"
                     },
@@ -598,7 +580,7 @@
                   "include_in_all": false,
                   "properties": {
                     "email": {
-                      "analyzer": "whitespace",
+                      "analyzer": "whitespace_lower",
                       "include_in_all": true,
                       "type": "string"
                     },
@@ -619,7 +601,8 @@
                       "type": "string"
                     },
                     "telephone": {
-                      "include_in_all": false,
+                      "analyzer": "telephone",
+                      "include_in_all": true,
                       "type": "string"
                     },
                     "url": {
@@ -632,7 +615,7 @@
                   "include_in_all": true,
                   "properties": {
                     "id": {
-                      "analyzer": "whitespace",
+                      "analyzer": "whitespace_lower",
                       "include_in_all": true,
                       "type": "string"
                     },
@@ -766,12 +749,12 @@
                   "type": "boolean"
                 },
                 "language": {
-                  "analyzer": "whitespace",
                   "include_in_all": false,
+                  "index": "no",
                   "type": "string"
                 },
                 "relatedItem": {
-                  "analyzer": "whitespace",
+                  "analyzer": "whitespace_lower",
                   "include_in_all": false,
                   "type": "string"
                 },
@@ -850,12 +833,12 @@
                   "type": "string"
                 },
                 "language": {
-                  "analyzer": "whitespace",
                   "include_in_all": false,
+                  "index": "no",
                   "type": "string"
                 },
                 "relatedItem": {
-                  "analyzer": "whitespace",
+                  "analyzer": "whitespace_lower",
                   "include_in_all": false,
                   "type": "string"
                 },
@@ -934,12 +917,12 @@
                   "type": "string"
                 },
                 "language": {
-                  "analyzer": "whitespace",
                   "include_in_all": false,
+                  "index": "no",
                   "type": "string"
                 },
                 "relatedItem": {
-                  "analyzer": "whitespace",
+                  "analyzer": "whitespace_lower",
                   "include_in_all": false,
                   "type": "string"
                 },
@@ -981,12 +964,12 @@
                   "type": "string"
                 },
                 "relatedLot": {
-                  "analyzer": "whitespace",
+                  "analyzer": "whitespace_lower",
                   "include_in_all": false,
                   "type": "string"
                 },
                 "status": {
-                  "analyzer": "whitespace",
+                  "analyzer": "whitespace_lower",
                   "include_in_all": false,
                   "type": "string"
                 },
@@ -1013,14 +996,14 @@
               }
             },
             "owner": {
-              "analyzer": "whitespace",
+              "analyzer": "whitespace_lower",
               "include_in_all": false,
               "type": "string"
             },
             "owner_token": {
-              "index": "no",
-              "analyzer": "whitespace",
+              "analyzer": "whitespace_lower",
               "include_in_all": false,
+              "index": "no",
               "type": "string"
             },
             "parameters": {
@@ -1085,6 +1068,7 @@
                 },
                 "language": {
                   "include_in_all": false,
+                  "index": "no",
                   "type": "string"
                 },
                 "title": {
@@ -1105,7 +1089,7 @@
               "type": "boolean"
             },
             "status": {
-              "analyzer": "whitespace",
+              "analyzer": "whitespace_lower",
               "include_in_all": false,
               "type": "string"
             },
@@ -1136,7 +1120,7 @@
                       "type": "string"
                     },
                     "postalCode": {
-                      "analyzer": "whitespace",
+                      "analyzer": "postalcode",
                       "include_in_all": true,
                       "type": "string"
                     },
@@ -1154,7 +1138,7 @@
                   "include_in_all": false,
                   "properties": {
                     "email": {
-                      "analyzer": "whitespace",
+                      "analyzer": "whitespace_lower",
                       "include_in_all": true,
                       "type": "string"
                     },
@@ -1175,7 +1159,8 @@
                       "type": "string"
                     },
                     "telephone": {
-                      "include_in_all": false,
+                      "analyzer": "telephone",
+                      "include_in_all": true,
                       "type": "string"
                     },
                     "url": {
@@ -1189,7 +1174,7 @@
                   "include_in_all": false,
                   "properties": {
                     "id": {
-                      "analyzer": "whitespace",
+                      "analyzer": "whitespace_lower",
                       "include_in_all": false,
                       "type": "string"
                     },
@@ -1227,21 +1212,21 @@
                   "include_in_all": true,
                   "properties": {
                     "edrpou": {
-                      "type": "string",
-                      "analyzer": "whitespace",
-                      "include_in_all": true
+                      "analyzer": "whitespace_lower",
+                      "include_in_all": true,
+                      "type": "string"
                     },
                     "location": {
-                      "type": "string",
-                      "include_in_all": true
+                      "include_in_all": true,
+                      "type": "string"
                     },
                     "name": {
-                      "type": "string",
-                      "include_in_all": true
+                      "include_in_all": true,
+                      "type": "string"
                     },
                     "shortName": {
-                      "type": "string",
-                      "include_in_all": true
+                      "include_in_all": true,
+                      "type": "string"
                     }
                   }
                 }
@@ -1325,8 +1310,8 @@
                   "type": "string"
                 },
                 "language": {
-                  "analyzer": "whitespace",
                   "include_in_all": false,
+                  "index": "no",
                   "type": "string"
                 },
                 "title": {
@@ -1358,17 +1343,17 @@
               "type": "string"
             },
             "reasonType": {
-              "analyzer": "whitespace",
+              "analyzer": "whitespace_lower",
               "include_in_all": false,
               "type": "string"
             },
             "relatedLot": {
-              "analyzer": "whitespace",
+              "analyzer": "whitespace_lower",
               "include_in_all": false,
               "type": "string"
             },
             "status": {
-              "analyzer": "whitespace",
+              "analyzer": "whitespace_lower",
               "include_in_all": false,
               "type": "string"
             }
@@ -1434,7 +1419,7 @@
                       "type": "string"
                     },
                     "postalCode": {
-                      "analyzer": "whitespace",
+                      "analyzer": "postalcode",
                       "include_in_all": false,
                       "type": "string"
                     },
@@ -1452,7 +1437,7 @@
                   "include_in_all": false,
                   "properties": {
                     "email": {
-                      "analyzer": "whitespace",
+                      "analyzer": "whitespace_lower",
                       "include_in_all": true,
                       "type": "string"
                     },
@@ -1473,7 +1458,8 @@
                       "type": "string"
                     },
                     "telephone": {
-                      "include_in_all": false,
+                      "analyzer": "telephone",
+                      "include_in_all": true,
                       "type": "string"
                     },
                     "url": {
@@ -1487,7 +1473,7 @@
                   "include_in_all": false,
                   "properties": {
                     "id": {
-                      "analyzer": "whitespace",
+                      "analyzer": "whitespace_lower",
                       "include_in_all": true,
                       "type": "string"
                     },
@@ -1528,7 +1514,7 @@
               "type": "string"
             },
             "complaintID": {
-              "analyzer": "whitespace",
+              "analyzer": "whitespace_lower",
               "include_in_all": true,
               "type": "string"
             },
@@ -1623,12 +1609,12 @@
                   "type": "string"
                 },
                 "language": {
-                  "analyzer": "whitespace",
                   "include_in_all": false,
+                  "index": "no",
                   "type": "string"
                 },
                 "relatedItem": {
-                	"analyzer": "whitespace",
+                  "analyzer": "whitespace_lower",
                   "include_in_all": false,
                   "type": "string"
                 },
@@ -1657,18 +1643,18 @@
               "type": "string"
             },
             "owner": {
-            	"analyzer": "whitespace",
+              "analyzer": "whitespace_lower",
               "include_in_all": false,
               "type": "string"
             },
             "owner_token": {
-              "index": "no",
-              "analyzer": "whitespace",
+              "analyzer": "whitespace_lower",
               "include_in_all": false,
+              "index": "no",
               "type": "string"
             },
             "relatedLot": {
-              "analyzer": "whitespace",
+              "analyzer": "whitespace_lower",
               "include_in_all": false,
               "type": "string"
             },
@@ -1677,7 +1663,7 @@
               "type": "string"
             },
             "resolutionType": {
-              "analyzer": "whitespace",
+              "analyzer": "whitespace_lower",
               "include_in_all": false,
               "type": "string"
             },
@@ -1685,7 +1671,7 @@
               "type": "boolean"
             },
             "status": {
-              "analyzer": "whitespace",
+              "analyzer": "whitespace_lower",
               "include_in_all": false,
               "type": "string"
             },
@@ -1703,7 +1689,7 @@
               "type": "string"
             },
             "type": {
-              "analyzer": "whitespace",
+              "analyzer": "whitespace_lower",
               "include_in_all": false,
               "type": "string"
             }
@@ -1718,17 +1704,17 @@
               "type": "date"
             },
             "awardID": {
-              "analyzer": "whitespace",
+              "analyzer": "whitespace_lower",
               "include_in_all": true,
               "type": "string"
             },
             "contractID": {
-              "analyzer": "whitespace",
+              "analyzer": "whitespace_lower",
               "include_in_all": true,
               "type": "string"
             },
             "contractNumber": {
-              "analyzer": "whitespace",
+              "analyzer": "whitespace_lower",
               "include_in_all": true,
               "type": "string"
             },
@@ -1794,8 +1780,8 @@
                   "type": "string"
                 },
                 "language": {
-                  "analyzer": "whitespace",
                   "include_in_all": false,
+                  "index": "no",
                   "type": "string"
                 },
                 "title": {
@@ -1833,7 +1819,7 @@
                       "type": "string"
                     },
                     "id": {
-                      "analyzer": "whitespace",
+                      "analyzer": "whitespace_lower",
                       "include_in_all": true,
                       "type": "string"
                     },
@@ -1859,7 +1845,7 @@
                       "type": "string"
                     },
                     "id": {
-                      "analyzer": "whitespace",
+                      "analyzer": "whitespace_lower",
                       "include_in_all": true,
                       "type": "string"
                     },
@@ -1889,7 +1875,7 @@
                       "type": "string"
                     },
                     "postalCode": {
-                      "analyzer": "whitespace",
+                      "analyzer": "postalcode",
                       "include_in_all": false,
                       "type": "string"
                     },
@@ -1960,7 +1946,7 @@
                   "type": "long"
                 },
                 "relatedLot": {
-                  "analyzer": "whitespace",
+                  "analyzer": "whitespace_lower",
                   "include_in_all": false,
                   "type": "string"
                 },
@@ -2003,7 +1989,7 @@
               }
             },
             "status": {
-              "analyzer": "whitespace",
+              "analyzer": "whitespace_lower",
               "include_in_all": false,
               "type": "string"
             },
@@ -2030,7 +2016,7 @@
                       "type": "string"
                     },
                     "postalCode": {
-                      "analyzer": "whitespace",
+                      "analyzer": "postalcode",
                       "include_in_all": false,
                       "type": "string"
                     },
@@ -2048,7 +2034,7 @@
                   "include_in_all": false,
                   "properties": {
                     "email": {
-                      "analyzer": "whitespace",
+                      "analyzer": "whitespace_lower",
                       "include_in_all": true,
                       "type": "string"
                     },
@@ -2069,7 +2055,8 @@
                       "type": "string"
                     },
                     "telephone": {
-                      "include_in_all": false,
+                      "analyzer": "telephone",
+                      "include_in_all": true,
                       "type": "string"
                     },
                     "url": {
@@ -2083,7 +2070,7 @@
                   "include_in_all": false,
                   "properties": {
                     "id": {
-                      "analyzer": "whitespace",
+                      "analyzer": "whitespace_lower",
                       "include_in_all": false,
                       "type": "string"
                     },
@@ -2164,7 +2151,7 @@
           "type": "string"
         },
         "dialogueID": {
-        	"analyzer": "whitespace",
+          "analyzer": "whitespace_lower",
           "include_in_all": true,
           "type": "string"
         },
@@ -2216,12 +2203,12 @@
               "type": "string"
             },
             "language": {
-              "analyzer": "whitespace",
               "include_in_all": false,
+              "index": "no",
               "type": "string"
             },
             "relatedItem": {
-              "analyzer": "whitespace",
+              "analyzer": "whitespace_lower",
               "include_in_all": false,
               "type": "string"
             },
@@ -2241,6 +2228,29 @@
               "include_in_all": false,
               "index": "no",
               "type": "string"
+            }
+          }
+        },
+        "dozorro": {
+          "include_in_all": false,
+          "properties": {
+            "commentCount": {
+              "include_in_all": false,
+              "type": "long"
+            },
+            "formCount": {
+              "include_in_all": false,
+              "type": "long"
+            },
+            "lastCommentDate": {
+              "format": "dateOptionalTime",
+              "include_in_all": false,
+              "type": "date"
+            },
+            "lastFormDate": {
+              "format": "dateOptionalTime",
+              "include_in_all": false,
+              "type": "date"
             }
           }
         },
@@ -2273,7 +2283,7 @@
           "include_in_all": false,
           "properties": {
             "code": {
-              "analyzer": "whitespace",
+              "analyzer": "whitespace_lower",
               "include_in_all": false,
               "type": "string"
             },
@@ -2323,7 +2333,7 @@
               "type": "string"
             },
             "relatedItem": {
-              "analyzer": "whitespace",
+              "analyzer": "whitespace_lower",
               "include_in_all": false,
               "type": "string"
             },
@@ -2355,7 +2365,7 @@
           }
         },
         "id": {
-          "analyzer": "whitespace",
+          "analyzer": "whitespace_lower",
           "include_in_all": true,
           "type": "string"
         },
@@ -2370,12 +2380,12 @@
                   "type": "string"
                 },
                 "id": {
-                  "analyzer": "whitespace",
+                  "analyzer": "whitespace_lower",
                   "include_in_all": true,
                   "type": "string"
                 },
                 "scheme": {
-                  "analyzer": "whitespace",
+                  "analyzer": "whitespace_lower",
                   "include_in_all": true,
                   "type": "string"
                 }
@@ -2397,12 +2407,12 @@
                   "type": "string"
                 },
                 "id": {
-                  "analyzer": "whitespace",
+                  "analyzer": "whitespace_lower",
                   "include_in_all": true,
                   "type": "string"
                 },
                 "scheme": {
-                  "analyzer": "whitespace",
+                  "analyzer": "whitespace_lower",
                   "include_in_all": true,
                   "type": "string"
                 }
@@ -2428,7 +2438,7 @@
                   "type": "string"
                 },
                 "postalCode": {
-                  "analyzer": "whitespace",
+                  "analyzer": "postalcode",
                   "include_in_all": true,
                   "type": "string"
                 },
@@ -2499,7 +2509,7 @@
               "type": "long"
             },
             "relatedLot": {
-              "analyzer": "whitespace",
+              "analyzer": "whitespace_lower",
               "include_in_all": false,
               "type": "string"
             },
@@ -2581,7 +2591,7 @@
               }
             },
             "id": {
-              "analyzer": "whitespace",
+              "analyzer": "whitespace_lower",
               "include_in_all": false,
               "index": "no",
               "type": "string"
@@ -2603,7 +2613,7 @@
               }
             },
             "status": {
-              "analyzer": "whitespace",
+              "analyzer": "whitespace_lower",
               "include_in_all": false,
               "type": "string"
             },
@@ -2654,7 +2664,7 @@
           }
         },
         "mode": {
-          "analyzer": "whitespace",
+          "analyzer": "whitespace_lower",
           "include_in_all": false,
           "type": "string"
         },
@@ -2668,12 +2678,12 @@
           "type": "long"
         },
         "owner": {
-          "analyzer": "whitespace",
+          "analyzer": "whitespace_lower",
           "include_in_all": false,
           "type": "string"
         },
         "procurementMethod": {
-          "analyzer": "whitespace",
+          "analyzer": "whitespace_lower",
           "include_in_all": false,
           "type": "string"
         },
@@ -2682,12 +2692,12 @@
           "type": "string"
         },
         "procurementMethodRationale": {
-          "analyzer": "whitespace",
+          "analyzer": "whitespace_lower",
           "include_in_all": false,
           "type": "string"
         },
         "procurementMethodType": {
-          "analyzer": "whitespace",
+          "analyzer": "whitespace_lower",
           "include_in_all": false,
           "type": "string"
         },
@@ -2702,7 +2712,7 @@
                   "type": "string"
                 },
                 "email": {
-                  "analyzer": "whitespace",
+                  "analyzer": "whitespace_lower",
                   "include_in_all": true,
                   "type": "string"
                 },
@@ -2719,7 +2729,8 @@
                   "type": "string"
                 },
                 "telephone": {
-                  "include_in_all": false,
+                  "analyzer": "telephone",
+                  "include_in_all": true,
                   "type": "string"
                 },
                 "url": {
@@ -2748,7 +2759,7 @@
                   "type": "string"
                 },
                 "postalCode": {
-                  "analyzer": "whitespace",
+                  "analyzer": "postalcode",
                   "include_in_all": true,
                   "type": "string"
                 },
@@ -2770,7 +2781,7 @@
                   "type": "string"
                 },
                 "email": {
-                  "analyzer": "whitespace",
+                  "analyzer": "whitespace_lower",
                   "include_in_all": true,
                   "type": "string"
                 },
@@ -2791,7 +2802,8 @@
                   "type": "string"
                 },
                 "telephone": {
-                  "include_in_all": false,
+                  "analyzer": "telephone",
+                  "include_in_all": true,
                   "type": "string"
                 },
                 "url": {
@@ -2805,7 +2817,7 @@
               "include_in_all": true,
               "properties": {
                 "id": {
-                  "analyzer": "whitespace",
+                  "analyzer": "whitespace_lower",
                   "include_in_all": true,
                   "type": "string"
                 },
@@ -2818,7 +2830,7 @@
                   "type": "string"
                 },
                 "scheme": {
-                  "analyzer": "whitespace",
+                  "analyzer": "whitespace_lower",
                   "include_in_all": false,
                   "type": "string"
                 },
@@ -2829,7 +2841,7 @@
               }
             },
             "kind": {
-              "analyzer": "whitespace",
+              "analyzer": "whitespace_lower",
               "include_in_all": true,
               "type": "string"
             },
@@ -2849,21 +2861,21 @@
               "include_in_all": true,
               "properties": {
                 "edrpou": {
-                  "type": "string",
-                  "analyzer": "whitespace",
-                  "include_in_all": true
+                  "analyzer": "whitespace_lower",
+                  "include_in_all": true,
+                  "type": "string"
                 },
                 "location": {
-                  "type": "string",
-                  "include_in_all": true
+                  "include_in_all": true,
+                  "type": "string"
                 },
                 "name": {
-                  "type": "string",
-                  "include_in_all": true
+                  "include_in_all": true,
+                  "type": "string"
                 },
                 "shortName": {
-                  "type": "string",
-                  "include_in_all": true
+                  "include_in_all": true,
+                  "type": "string"
                 }
               }
             }
@@ -2888,7 +2900,7 @@
           "include_in_all": false,
           "properties": {
             "bidID": {
-              "analyzer": "whitespace",
+              "analyzer": "whitespace_lower",
               "include_in_all": true,
               "type": "string"
             },
@@ -2921,7 +2933,7 @@
                           "type": "string"
                         },
                         "postalCode": {
-                          "analyzer": "whitespace",
+                          "analyzer": "postalcode",
                           "include_in_all": true,
                           "type": "string"
                         },
@@ -2939,7 +2951,7 @@
                       "include_in_all": false,
                       "properties": {
                         "email": {
-                          "analyzer": "whitespace",
+                          "analyzer": "whitespace_lower",
                           "include_in_all": true,
                           "type": "string"
                         },
@@ -2960,7 +2972,8 @@
                           "type": "string"
                         },
                         "telephone": {
-                          "include_in_all": false,
+                          "analyzer": "telephone",
+                          "include_in_all": true,
                           "type": "string"
                         },
                         "url": {
@@ -2974,7 +2987,7 @@
                       "include_in_all": false,
                       "properties": {
                         "id": {
-                          "analyzer": "whitespace",
+                          "analyzer": "whitespace_lower",
                           "include_in_all": false,
                           "type": "string"
                         },
@@ -3007,12 +3020,12 @@
                   }
                 },
                 "cancellationReason": {
-                  "analyzer": "whitespace",
+                  "analyzer": "whitespace_lower",
                   "include_in_all": false,
                   "type": "string"
                 },
                 "complaintID": {
-                  "analyzer": "whitespace",
+                  "analyzer": "whitespace_lower",
                   "include_in_all": true,
                   "type": "string"
                 },
@@ -3103,6 +3116,7 @@
                     },
                     "language": {
                       "include_in_all": false,
+                      "index": "no",
                       "type": "string"
                     },
                     "title": {
@@ -3130,18 +3144,18 @@
                   "type": "string"
                 },
                 "owner": {
-                	"analyzer": "whitespace",
+                  "analyzer": "whitespace_lower",
                   "include_in_all": false,
                   "type": "string"
                 },
                 "owner_token": {
-                  "index": "no",
-                  "analyzer": "whitespace",
+                  "analyzer": "whitespace_lower",
                   "include_in_all": false,
+                  "index": "no",
                   "type": "string"
                 },
                 "relatedLot": {
-                  "analyzer": "whitespace",
+                  "analyzer": "whitespace_lower",
                   "include_in_all": false,
                   "type": "string"
                 },
@@ -3150,7 +3164,7 @@
                   "type": "string"
                 },
                 "resolutionType": {
-                  "analyzer": "whitespace",
+                  "analyzer": "whitespace_lower",
                   "include_in_all": false,
                   "type": "string"
                 },
@@ -3158,7 +3172,7 @@
                   "type": "boolean"
                 },
                 "status": {
-                  "analyzer": "whitespace",
+                  "analyzer": "whitespace_lower",
                   "include_in_all": false,
                   "type": "string"
                 },
@@ -3176,7 +3190,7 @@
                   "type": "string"
                 },
                 "type": {
-                  "analyzer": "whitespace",
+                  "analyzer": "whitespace_lower",
                   "include_in_all": false,
                   "type": "string"
                 }
@@ -3243,8 +3257,8 @@
                   "type": "string"
                 },
                 "language": {
-                  "analyzer": "whitespace",
                   "include_in_all": false,
+                  "index": "no",
                   "type": "string"
                 },
                 "title": {
@@ -3275,7 +3289,7 @@
               "type": "string"
             },
             "lotID": {
-              "analyzer": "whitespace",
+              "analyzer": "whitespace_lower",
               "include_in_all": true,
               "type": "string"
             },
@@ -3283,7 +3297,7 @@
               "type": "boolean"
             },
             "status": {
-              "analyzer": "whitespace",
+              "analyzer": "whitespace_lower",
               "include_in_all": false,
               "type": "string"
             },
@@ -3331,7 +3345,7 @@
                       "type": "string"
                     },
                     "postalCode": {
-                      "analyzer": "whitespace",
+                      "analyzer": "postalcode",
                       "include_in_all": true,
                       "type": "string"
                     },
@@ -3349,7 +3363,7 @@
                   "include_in_all": true,
                   "properties": {
                     "email": {
-                      "analyzer": "whitespace",
+                      "analyzer": "whitespace_lower",
                       "include_in_all": true,
                       "type": "string"
                     },
@@ -3370,6 +3384,7 @@
                       "type": "string"
                     },
                     "telephone": {
+                      "analyzer": "telephone",
                       "include_in_all": true,
                       "type": "string"
                     },
@@ -3384,7 +3399,7 @@
                   "include_in_all": true,
                   "properties": {
                     "id": {
-                      "analyzer": "whitespace",
+                      "analyzer": "whitespace_lower",
                       "include_in_all": true,
                       "type": "string"
                     },
@@ -3444,7 +3459,7 @@
               "type": "string"
             },
             "relatedItem": {
-              "analyzer": "whitespace",
+              "analyzer": "whitespace_lower",
               "include_in_all": false,
               "type": "string"
             },
@@ -3461,7 +3476,7 @@
               "include_in_all": false,
               "properties": {
                 "id": {
-                	"analyzer": "whitespace",
+                  "analyzer": "whitespace_lower",
                   "include_in_all": true,
                   "type": "string"
                 },
@@ -3483,8 +3498,8 @@
               "include_in_all": false,
               "properties": {
                 "id": {
-                	"index": "no",
                   "include_in_all": false,
+                  "index": "no",
                   "type": "string"
                 }
               }
@@ -3496,17 +3511,17 @@
           }
         },
         "stage2TenderID": {
-        	"analyzer": "whitespace",
+          "analyzer": "whitespace_lower",
           "include_in_all": true,
           "type": "string"
         },
         "status": {
-          "analyzer": "whitespace",
+          "analyzer": "whitespace_lower",
           "include_in_all": false,
           "type": "string"
         },
         "submissionMethod": {
-          "analyzer": "whitespace",
+          "analyzer": "whitespace_lower",
           "include_in_all": false,
           "type": "string"
         },
@@ -3515,7 +3530,7 @@
           "type": "string"
         },
         "tenderID": {
-          "analyzer": "whitespace",
+          "analyzer": "whitespace_lower",
           "include_in_all": true,
           "type": "string"
         },
@@ -3570,45 +3585,5 @@
     }
   },
   "settings": {
-    "index": {
-      "analysis": {
-        "analyzer": {
-          "index_ru": {
-            "filter": [
-              "lowercase",
-              "light_russian"
-            ],
-            "tokenizer": "standard40"
-          },
-          "search_ru": {
-            "filter": [
-              "lowercase",
-              "light_russian"
-            ],
-            "tokenizer": "standard40"
-          },
-          "whitespace": {
-            "filter": "lowercase",
-            "type": "whitespace"
-          },
-          "whitespace_auto": {
-            "filter": "lowercase",
-            "type": "whitespace"
-          }
-        },
-        "filter": {
-          "light_russian": {
-            "name": "light_russian",
-            "type": "stemmer"
-          }
-        },
-        "tokenizer": {
-          "standard40": {
-            "max_token_length": 40,
-            "type": "standard"
-          }
-        }
-      }
-    }
   }
 }

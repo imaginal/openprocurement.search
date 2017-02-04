@@ -1,30 +1,10 @@
 {
   "mappings": {
     "ocds": {
-      "_all": {
-        "enabled": true,
-        "index_analyzer": "index_ru",
-        "search_analyzer": "search_ru"
-      },
-      "dynamic": false,
-      "date_detection": false,
-      "numeric_detection": false,
-      "dynamic_templates": [
-        {
-          "force_string" : {
-            "match" : "*",
-            "mapping" : {
-              "analyzer": "whitespace_auto",
-              "include_in_all": false,
-              "type" : "string"
-            }
-          }
-        }
-      ],
       "include_in_all": false,
       "properties": {
         "awardCriteria": {
-          "analyzer": "whitespace",
+          "analyzer": "whitespace_lower",
           "include_in_all": false,
           "type": "string"
         },
@@ -114,7 +94,7 @@
           "type": "boolean"
         },
         "id": {
-          "analyzer": "whitespace",
+          "analyzer": "whitespace_lower",
           "include_in_all": true,
           "type": "string"
         },
@@ -129,12 +109,12 @@
                   "type": "string"
                 },
                 "id": {
-                  "analyzer": "whitespace",
+                  "analyzer": "whitespace_lower",
                   "include_in_all": true,
                   "type": "string"
                 },
                 "scheme": {
-                  "analyzer": "whitespace",
+                  "analyzer": "whitespace_lower",
                   "include_in_all": false,
                   "type": "string"
                 }
@@ -148,11 +128,12 @@
                   "type": "string"
                 },
                 "id": {
-                  "analyzer": "whitespace",
+                  "analyzer": "whitespace_lower",
                   "include_in_all": true,
                   "type": "string"
                 },
                 "scheme": {
+                  "analyzer": "whitespace_lower",
                   "include_in_all": false,
                   "type": "string"
                 }
@@ -170,12 +151,12 @@
           }
         },
         "procurementMethod": {
-          "analyzer": "whitespace",
+          "analyzer": "whitespace_lower",
           "include_in_all": false,
           "type": "string"
         },
         "procurementMethodType": {
-          "analyzer": "whitespace",
+          "analyzer": "whitespace_lower",
           "include_in_all": false,
           "type": "string"
         },
@@ -190,7 +171,7 @@
                   "type": "string"
                 },
                 "postalCode": {
-                  "analyzer": "whitespace",
+                  "analyzer": "postalcode",
                   "include_in_all": true,
                   "type": "string"
                 },
@@ -208,12 +189,13 @@
               "include_in_all": false,
               "properties": {
                 "email": {
-                  "analyzer": "whitespace",
+                  "analyzer": "whitespace_lower",
                   "include_in_all": true,
                   "type": "string"
                 },
                 "faxNumber": {
-                  "include_in_all": false,
+                  "analyzer": "telephone",
+                  "include_in_all": true,
                   "type": "string"
                 },
                 "name": {
@@ -221,7 +203,8 @@
                   "type": "string"
                 },
                 "telephone": {
-                  "include_in_all": false,
+                  "analyzer": "telephone",
+                  "include_in_all": true,
                   "type": "string"
                 }
               }
@@ -230,7 +213,7 @@
               "include_in_all": false,
               "properties": {
                 "id": {
-                  "analyzer": "whitespace",
+                  "analyzer": "whitespace_lower",
                   "include_in_all": true,
                   "type": "string"
                 },
@@ -259,12 +242,12 @@
           }
         },
         "status": {
-          "analyzer": "whitespace",
+          "analyzer": "whitespace_lower",
           "include_in_all": false,
           "type": "string"
         },
         "tenderID": {
-          "analyzer": "whitespace",
+          "analyzer": "whitespace_lower",
           "include_in_all": true,
           "type": "string"
         },
@@ -303,6 +286,7 @@
               "type": "double"
             },
             "currency": {
+              "analyzer": "whitespace_lower",
               "include_in_all": false,
               "type": "string"
             }
@@ -312,45 +296,5 @@
     }
   },
   "settings": {
-    "index": {
-      "analysis": {
-        "analyzer": {
-          "index_ru": {
-            "filter": [
-              "lowercase",
-              "light_russian"
-            ],
-            "tokenizer": "standard40"
-          },
-          "search_ru": {
-            "filter": [
-              "lowercase",
-              "light_russian"
-            ],
-            "tokenizer": "standard40"
-          },
-          "whitespace": {
-            "filter": "lowercase",
-            "type": "whitespace"
-          },
-          "whitespace_auto": {
-            "filter": "lowercase",
-            "type": "whitespace"
-          }
-        },
-        "filter": {
-          "light_russian": {
-            "name": "light_russian",
-            "type": "stemmer"
-          }
-        },
-        "tokenizer": {
-          "standard40": {
-            "max_token_length": 40,
-            "type": "standard"
-          }
-        }
-      }
-    }
   }
 }

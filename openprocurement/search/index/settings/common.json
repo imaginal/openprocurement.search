@@ -1,0 +1,188 @@
+{
+  "mappings": {
+    "_doc_type_": {
+      "_all": {
+        "enabled": true,
+        "index_analyzer": "all_index",
+        "search_analyzer": "all_search"
+      },
+      "date_detection": false,
+      "numeric_detection": false,
+      "dynamic": false,
+      "dynamic_templates": [
+        {
+          "force_string": {
+            "mapping": {
+              "analyzer": "whitespace_auto",
+              "include_in_all": false,
+              "index": "no",
+              "type": "string"
+            },
+            "match": "*"
+          }
+        }
+      ]
+    }
+  },
+  "settings": {
+    "index": {
+      "analysis": {
+        "analyzer": {
+          "all_index": {
+            "char_filter": [
+              "eol_to_space",
+              "del_brackets",
+              "del_punct_start",
+              "del_punct_before",
+              "del_punct_after",
+              "del_punct_end"
+            ],
+            "filter": [
+              "lowercase",
+              "token_delimiter",
+              "token_length"
+            ],
+            "tokenizer": "whitespace"
+          },
+          "all_search": {
+            "char_filter": [
+              "eol_to_space",
+              "del_brackets",
+              "del_punct_start",
+              "del_punct_before",
+              "del_punct_after",
+              "del_punct_end"
+            ],
+            "filter": [
+              "lowercase",
+              "token_length"
+            ],
+            "tokenizer": "whitespace"
+          },
+          "keyword_lower": {
+            "filter": [
+              "lowercase"
+            ],
+            "tokenizer": "keyword"
+          },
+          "postalcode": {
+            "char_filter": [
+              "del_non_digits"
+            ],
+            "tokenizer": "whitespace"
+          },
+          "telephone": {
+            "char_filter": [
+              "del_non_digits"
+            ],
+            "filter": [
+              "reverse"
+            ],
+            "tokenizer": "whitespace"
+          },
+          "whitespace": {
+            "filter": [
+              "lowercase"
+            ],
+            "type": "whitespace"
+          },
+          "whitespace_auto": {
+            "filter": [
+              "lowercase"
+            ],
+            "tokenizer": "whitespace"
+          },
+          "whitespace_lower": {
+            "filter": [
+              "lowercase"
+            ],
+            "tokenizer": "whitespace"
+          }
+        },
+        "char_filter": {
+          "del_brackets": {
+            "pattern": "[!\"#&'()*,;<>?\\[\\]`{}\\|~“”‘’«»‹›⟨⟩،–—―…•°″¡¿]",
+            "replacement": " ",
+            "type": "pattern_replace"
+          },
+          "del_non_digits": {
+            "pattern": "\\D",
+            "replacement": "",
+            "type": "pattern_replace"
+          },
+          "del_punct_after": {
+            "pattern": "\\p{Punct}\\s",
+            "replacement": "  ",
+            "type": "pattern_replace"
+          },
+          "del_punct_before": {
+            "pattern": "\\s\\p{Punct}",
+            "replacement": "  ",
+            "type": "pattern_replace"
+          },
+          "del_punct_end": {
+            "pattern": "\\p{Punct}$",
+            "replacement": " ",
+            "type": "pattern_replace"
+          },
+          "del_punct_start": {
+            "pattern": "^\\p{Punct}",
+            "replacement": " ",
+            "type": "pattern_replace"
+          },
+          "eol_to_space": {
+            "mappings": [
+              "\\u000A=>\\u0020",
+              "\\u000D=>\\u0020",
+              "\\u00A0=>\\u0020"
+            ],
+            "type": "mapping"
+          }
+        },
+        "filter": {
+          "stemmer_english": {
+            "name": "english",
+            "type": "stemmer"
+          },
+          "stemmer_romanian": {
+            "name": "romanian",
+            "type": "stemmer"
+          },
+          "stemmer_russian": {
+            "name": "light_russian",
+            "type": "stemmer"
+          },
+          "stopwords_english": {
+            "stopwords": "_english_",
+            "type": "stop"
+          },
+          "stopwords_romanian": {
+            "stopwords": "_romanian_",
+            "type": "stop"
+          },
+          "stopwords_russian": {
+            "stopwords": "_russian_",
+            "type": "stop"
+          },
+          "token_delimiter": {
+            "catenate_all": true,
+            "catenate_numbers": true,
+            "catenate_words": true,
+            "generate_number_parts": true,
+            "generate_word_parts": true,
+            "preserve_original": true,
+            "split_on_numerics": true,
+            "stem_english_possessive": false,
+            "type": "word_delimiter"
+          },
+          "token_length": {
+            "max": 32,
+            "min": 3,
+            "type": "length"
+          }
+        },
+        "tokenizer": {}
+      }
+    }
+  }
+}
