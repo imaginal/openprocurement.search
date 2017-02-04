@@ -236,6 +236,23 @@ class IndexEngine(SearchEngine):
             return False
         return True
 
+    def set_alias(self, alias_name, index_name):
+        indices = IndicesClient(self.elastic)
+        old_index = alias_name + '_20*'
+        try:
+            indices.delete_alias(index=old_index, name=alias_name)
+        except NotFoundError:
+            pass
+        except Exception as e:
+            logger.error("Alias %s for %s not created: %s", alias_name, index_name, str(e))
+            return
+        try:
+            indices.put_alias(index=index_name, name=alias_name, body={})
+        except Exception as e:
+            logger.error("Alias %s for %s not created: %s", alias_name, index_name, str(e))
+            return
+        logger.info("Set alias %s -> %s", alias_name, index_name)
+
     def create_index(self, index_name, body):
         indices = IndicesClient(self.elastic)
         indices.create(index_name, body=body)
