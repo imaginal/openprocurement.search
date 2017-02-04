@@ -1,9 +1,6 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime
-from pkgutil import get_data
-import simplejson as json
-
-from openprocurement.search.index import BaseIndex, logger
+from openprocurement.search.index import BaseIndex
 
 
 class TenderIndex(BaseIndex):
@@ -63,10 +60,8 @@ class TenderIndex(BaseIndex):
 
         return False
 
-    def create_index(self, name, settings='settings/tender.json'):
-        logger.info("Create new index %s from %s", name, settings)
-        data = get_data(__name__, settings)
-        body = json.loads(data)
-        for key in self.index_settings_keys:
-            body['settings']['index'][key] = self.config[key]
-        self.engine.create_index(name, body=body)
+    def create_index(self, name):
+        common = 'settings/common.json'
+        tender = 'settings/tender.json'
+        lang_list = self.config.get('tender_index_lang', '').split(',')
+        self.create_tender_index(name, common, tender, lang_list)

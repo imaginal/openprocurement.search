@@ -35,10 +35,8 @@ class OcdsIndex(BaseIndex):
             self.engine.index_by_type('org', entity)
         return True
 
-    def create_index(self, name, settings='settings/ocds.json'):
-        logger.info("Create new index %s from %s", name, settings)
-        data = get_data(__name__, settings)
-        body = json.loads(data)
-        for key in self.index_settings_keys:
-            body['settings']['index'][key] = self.config[key]
-        self.engine.create_index(name, body=body)
+    def create_index(self, name):
+        common = 'settings/common.json'
+        tender = 'settings/ocds.json'
+        lang_list = self.config.get('ocds_index_lang', '').split(',')
+        self.create_tender_index(name, common, tender, lang_list)
