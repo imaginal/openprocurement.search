@@ -45,7 +45,5 @@ class OrgsIndex(BaseIndex):
         logger.info("Create new index %s from %s", name, settings)
         data = get_data(__name__, settings)
         body = json.loads(data)
-        # for key in self.index_settings_keys:
-        #     body['settings']['index'][key] = self.config[key]
-        body['settings']['index']['number_of_shards'] = 1
+        body['settings']['index']['number_of_shards'] = 2
         self.engine.create_index(name, body=body)
