@@ -26,7 +26,7 @@ class PlanSource(BaseSource):
         'plan_api_mode': '',
         'plan_skip_until': None,
         'plan_limit': 1000,
-        'plan_preload': 10000,
+        'plan_preload': 5000,
         'plan_resethour': 23,
         'plan_decode_orgs': False,
         'plan_fast_client': False,

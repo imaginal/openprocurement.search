@@ -4,7 +4,6 @@ from datetime import datetime
 from retrying import retry
 from iso8601 import parse_date
 from socket import setdefaulttimeout
-from retrying import retry
 
 from openprocurement.search.source import BaseSource, TendersClient
 from openprocurement.search.utils import restkit_error
@@ -26,7 +25,7 @@ class AuctionSource(BaseSource):
         'auction_api_mode': '',
         'auction_skip_until': None,
         'auction_limit': 1000,
-        'auction_preload': 10000,
+        'auction_preload': 5000,
         'auction_resethour': 23,
         'auction_user_agent': '',
         'timeout': 30,

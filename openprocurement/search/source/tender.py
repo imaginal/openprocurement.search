@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-#import gevent
 from time import time, mktime
 from iso8601 import parse_date
 from datetime import datetime
@@ -26,7 +25,7 @@ class TenderSource(BaseSource):
         'tender_api_mode': '',
         'tender_skip_until': None,
         'tender_limit': 1000,
-        'tender_preload': 10000,
+        'tender_preload': 5000,
         'tender_resethour': 22,
         'tender_decode_orgs': False,
         'tender_fast_client': False,
