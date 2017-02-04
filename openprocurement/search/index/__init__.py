@@ -2,8 +2,10 @@
 import os
 import sys
 import time
+import simplejson as json
 from datetime import datetime, timedelta
 from multiprocessing import Process
+from pkgutil import get_data
 from logging import getLogger
 
 logger = getLogger(__name__)
@@ -15,15 +17,14 @@ class BaseIndex(object):
     """Search Index Interface
     """
     config = {
-        'async_reindex': 0,
+        'async_reindex': 1,
         'ignore_errors': 0,
-        'reindex_check': '1,1',
-        'number_of_shards': 4,
+        'reindex_check': '1,10',
+        'number_of_shards': 6,
         'index_parallel': 1,
-        'index_speed': 100,
+        'index_speed': 1000,
         'error_wait': 10,
     }
-    index_settings_keys = ['number_of_shards']
     allow_async_reindex = False
     force_next_reindex = False
     magic_exit_code = 84
@@ -105,6 +106,36 @@ class BaseIndex(object):
     def create_index(self, name):
         return
 
+    def create_tender_index(self, name, common, tender, lang_list):
+        logger.info("Create new index %s from %s %s %s", name, common, tender, lang_list)
+        common = json.loads(get_data(__name__, common))
+        tender = json.loads(get_data(__name__, tender))
+        # merge
+        mappings = common['mappings']['_doc_type_']
+        settings = common['settings']
+        doc_type = self.source.__doc_type__
+        for k, v in mappings.items():
+            if k in tender['mappings'][doc_type]:
+                raise KeyError("Common key '%s' found in mappings" % k)
+            tender['mappings'][doc_type][k] = v
+        for k, v in settings.items():
+            if k in tender['settings']:
+                raise KeyError("Common key '%s' found in settings" % k)
+            tender['settings'][k] = v
+        # apply lang
+        for index_lang in lang_list:
+            analysis = tender['settings']['index']['analysis']
+            stopwords = 'stopwords_' + index_lang
+            if stopwords in analysis['filter']:
+                analysis['analyzer']['all_index']['filter'].append(stopwords)
+                analysis['analyzer']['all_search']['filter'].append(stopwords)
+            stemmer = 'stemmer_' + index_lang
+            if stemmer in analysis['filter']:
+                analysis['analyzer']['all_index']['filter'].append(stemmer)
+                analysis['analyzer']['all_search']['filter'].append(stemmer)
+        tender['settings']['index']['number_of_shards'] = self.config['number_of_shards']
+        self.engine.create_index(name, body=tender)
+
     def new_index(self, is_async=False):
         index_key = self.__index_name__
         index_key_next = "{}.next".format(index_key)
@@ -153,6 +184,8 @@ class BaseIndex(object):
         index_key_next = "{}.next".format(index_key)
         if self.engine.get_index(index_key_next) == name:
             self.engine.set_index(index_key_next, '')
+        # set alias
+        self.engine.set_alias(index_key, name)
         return name
 
     def test_exists(self, index_name, info):
