@@ -1,26 +1,6 @@
 {
   "mappings": {
     "plan": {
-      "_all": {
-        "enabled": true,
-        "index_analyzer": "index_ru",
-        "search_analyzer": "search_ru"
-      },
-      "dynamic": false,
-      "date_detection": false,
-      "numeric_detection": false,
-      "dynamic_templates": [
-        {
-          "force_string" : {
-            "match" : "*",
-            "mapping" : {
-              "analyzer": "whitespace_auto",
-              "include_in_all": false,
-              "type" : "string"
-            }
-          }
-        }
-      ],
       "include_in_all": false,
       "properties": {
         "additionalClassifications": {
@@ -31,11 +11,12 @@
               "type": "string"
             },
             "id": {
-              "analyzer": "whitespace",
+              "analyzer": "whitespace_lower",
               "include_in_all": true,
               "type": "string"
             },
             "scheme": {
+              "analyzer": "whitespace_lower",
               "include_in_all": false,
               "type": "string"
             }
@@ -53,6 +34,7 @@
               "type": "double"
             },
             "currency": {
+              "analyzer": "whitespace_lower",
               "include_in_all": false,
               "type": "string"
             },
@@ -69,7 +51,7 @@
               "type": "string"
             },
             "id": {
-              "analyzer": "whitespace",
+              "analyzer": "whitespace_lower",
               "include_in_all": true,
               "type": "string"
             },
@@ -81,7 +63,7 @@
               "include_in_all": false,
               "properties": {
                 "id": {
-                  "analyzer": "whitespace",
+                  "analyzer": "whitespace_lower",
                   "include_in_all": true,
                   "type": "string"
                 },
@@ -113,12 +95,13 @@
               "type": "string"
             },
             "id": {
-              "analyzer": "whitespace",
+              "analyzer": "whitespace_lower",
               "include_in_all": true,
               "type": "string"
             },
             "scheme": {
-              "include_in_all": true,
+              "analyzer": "whitespace_lower",
+              "include_in_all": false,
               "type": "string"
             }
           }
@@ -200,8 +183,31 @@
             }
           }
         },
+        "dozorro": {
+          "include_in_all": false,
+          "properties": {
+            "commentCount": {
+              "include_in_all": false,
+              "type": "long"
+            },
+            "formCount": {
+              "include_in_all": false,
+              "type": "long"
+            },
+            "lastCommentDate": {
+              "format": "dateOptionalTime",
+              "include_in_all": false,
+              "type": "date"
+            },
+            "lastFormDate": {
+              "format": "dateOptionalTime",
+              "include_in_all": false,
+              "type": "date"
+            }
+          }
+        },
         "id": {
-          "analyzer": "whitespace",
+          "analyzer": "whitespace_lower",
           "include_in_all": true,
           "type": "string"
         },
@@ -216,11 +222,12 @@
                   "type": "string"
                 },
                 "id": {
-                  "analyzer": "whitespace",
+                  "analyzer": "whitespace_lower",
                   "include_in_all": true,
                   "type": "string"
                 },
                 "scheme": {
+                  "analyzer": "whitespace_lower",
                   "include_in_all": false,
                   "type": "string"
                 }
@@ -234,11 +241,12 @@
                   "type": "string"
                 },
                 "id": {
-                  "analyzer": "whitespace",
+                  "analyzer": "whitespace_lower",
                   "include_in_all": true,
                   "type": "string"
                 },
                 "scheme": {
+                  "analyzer": "whitespace_lower",
                   "include_in_all": false,
                   "type": "string"
                 }
@@ -272,11 +280,12 @@
               "type": "string"
             },
             "id": {
-              "analyzer": "whitespace",
+              "analyzer": "whitespace_lower",
               "include_in_all": true,
               "type": "string"
             },
             "quantity": {
+              "analyzer": "whitespace_lower",
               "include_in_all": false,
               "type": "long"
             },
@@ -284,6 +293,7 @@
               "include_in_all": false,
               "properties": {
                 "code": {
+                  "analyzer": "whitespace_lower",
                   "include_in_all": false,
                   "type": "string"
                 },
@@ -296,17 +306,17 @@
           }
         },
         "mode": {
-          "analyzer": "whitespace",
+          "analyzer": "whitespace_lower",
           "include_in_all": false,
           "type": "string"
         },
         "owner": {
-          "analyzer": "whitespace",
+          "analyzer": "whitespace_lower",
           "include_in_all": false,
           "type": "string"
         },
         "planID": {
-          "analyzer": "whitespace",
+          "analyzer": "whitespace_lower",
           "include_in_all": true,
           "type": "string"
         },
@@ -317,7 +327,7 @@
               "include_in_all": false,
               "properties": {
                 "id": {
-                  "analyzer": "whitespace",
+                  "analyzer": "whitespace_lower",
                   "include_in_all": true,
                   "type": "string"
                 },
@@ -355,21 +365,21 @@
               "include_in_all": true,
               "properties": {
                 "edrpou": {
-                  "type": "string",
-                  "analyzer": "whitespace",
-                  "include_in_all": true
+                  "analyzer": "whitespace_lower",
+                  "include_in_all": true,
+                  "type": "string"
                 },
                 "location": {
-                  "type": "string",
-                  "include_in_all": true
+                  "include_in_all": true,
+                  "type": "string"
                 },
                 "name": {
-                  "type": "string",
-                  "include_in_all": true
+                  "include_in_all": true,
+                  "type": "string"
                 },
                 "shortName": {
-                  "type": "string",
-                  "include_in_all": true
+                  "include_in_all": true,
+                  "type": "string"
                 }
               }
             }
@@ -379,12 +389,12 @@
           "include_in_all": false,
           "properties": {
             "procurementMethod": {
-              "analyzer": "whitespace",
+              "analyzer": "whitespace_lower",
               "include_in_all": true,
               "type": "string"
             },
             "procurementMethodType": {
-              "analyzer": "whitespace",
+              "analyzer": "whitespace_lower",
               "include_in_all": true,
               "type": "string"
             },
@@ -409,45 +419,5 @@
     }
   },
   "settings": {
-    "index": {
-      "analysis": {
-        "analyzer": {
-          "index_ru": {
-            "filter": [
-              "lowercase",
-              "light_russian"
-            ],
-            "tokenizer": "standard40"
-          },
-          "search_ru": {
-            "filter": [
-              "lowercase",
-              "light_russian"
-            ],
-            "tokenizer": "standard40"
-          },
-          "whitespace": {
-            "filter": "lowercase",
-            "type": "whitespace"
-          },
-          "whitespace_auto": {
-            "filter": "lowercase",
-            "type": "whitespace"
-          }
-        },
-        "filter": {
-          "light_russian": {
-            "name": "light_russian",
-            "type": "stemmer"
-          }
-        },
-        "tokenizer": {
-          "standard40": {
-            "max_token_length": 40,
-            "type": "standard"
-          }
-        }
-      }
-    }
   }
 }
