@@ -61,11 +61,13 @@ class OrgsDecoder(object):
             row = self.q_cache[code][0]
             self.q_cache[code][1] += 1
             return row
-        if len(self.q_cache) > 10000:
+        limit = 3
+        while len(self.q_cache) > 10000:
             for k, v in self.q_cache.items():
-                if v[1] < 5:
+                if v[1] < limit:
                     self.q_cache.pop(k)
-            logger.info("Purge orgs cache, new len %d", len(self.q_cache))
+            logger.info("Purge orgs cache, limit %d, new len %d", limit, len(self.q_cache))
+            limit += 1
         try:
             self.db_curs.execute("SELECT code,name,short,loc FROM uo WHERE code=?", (code,))
             row = self.db_curs.fetchone()

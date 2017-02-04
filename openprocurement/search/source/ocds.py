@@ -12,6 +12,7 @@ from openprocurement.search.source import BaseSource, logger
 
 re_postalCode = re.compile(r"\d\d\d\d\d")
 
+
 class OcdsSource(BaseSource):
     """OCDS Source from json files
     """
