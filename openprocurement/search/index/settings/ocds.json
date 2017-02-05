@@ -84,8 +84,8 @@
               "type": "string"
             },
             "url": {
-              "index": "no",
               "include_in_all": false,
+              "index": "no",
               "type": "string"
             }
           }
@@ -295,6 +295,5 @@
       }
     }
   },
-  "settings": {
-  }
+  "settings": {}
 }

@@ -7,28 +7,28 @@
       },
       "properties": {
         "edrpou": {
-          "type": "string",
+          "include_in_all": true,
           "index": "not_analyzed",
-          "include_in_all": true
-        },
-        "name": {
-          "type": "string",
-          "index": "no",
-          "include_in_all": true
-        },
-        "short": {
-          "type": "string",
-          "index": "no",
-          "include_in_all": true
+          "type": "string"
         },
         "location": {
-          "type": "string",
+          "include_in_all": false,
           "index": "no",
-          "include_in_all": false
+          "type": "string"
+        },
+        "name": {
+          "include_in_all": true,
+          "index": "no",
+          "type": "string"
         },
         "rank": {
-          "type": "integer",
-          "include_in_all": false
+          "include_in_all": false,
+          "type": "integer"
+        },
+        "short": {
+          "include_in_all": true,
+          "index": "no",
+          "type": "string"
         }
       }
     }
@@ -36,32 +36,32 @@
   "settings": {
     "index": {
       "analysis": {
-        "filter": {
-          "nGram_filter": {
-            "token_chars": [
-              "letter",
-              "digit"
-            ],
-            "type": "nGram",
-            "min_gram": "2",
-            "max_gram": "20"
-          }
-        },
         "analyzer": {
           "nGram_analyzer": {
             "filter": [
               "lowercase",
               "nGram_filter"
             ],
-            "type": "custom",
-            "tokenizer": "whitespace"
+            "tokenizer": "whitespace",
+            "type": "custom"
           },
           "whitespace_analyzer": {
             "filter": [
               "lowercase"
             ],
-            "type": "custom",
-            "tokenizer": "whitespace"
+            "tokenizer": "whitespace",
+            "type": "custom"
+          }
+        },
+        "filter": {
+          "nGram_filter": {
+            "max_gram": "20",
+            "min_gram": "2",
+            "token_chars": [
+              "letter",
+              "digit"
+            ],
+            "type": "nGram"
           }
         }
       }

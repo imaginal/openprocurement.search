@@ -134,9 +134,9 @@
                   "type": "string"
                 },
                 "hash": {
-                  "index": "no",
                   "analyzer": "whitespace_lower",
                   "include_in_all": false,
+                  "index": "no",
                   "type": "string"
                 },
                 "id": {
@@ -396,9 +396,9 @@
                   "type": "string"
                 },
                 "hash": {
-                  "index": "no",
                   "analyzer": "whitespace_lower",
                   "include_in_all": false,
+                  "index": "no",
                   "type": "string"
                 },
                 "id": {
@@ -676,9 +676,9 @@
                   "type": "string"
                 },
                 "hash": {
-                  "index": "no",
                   "analyzer": "whitespace_lower",
                   "include_in_all": false,
+                  "index": "no",
                   "type": "string"
                 },
                 "id": {
@@ -1004,9 +1004,9 @@
                   "type": "string"
                 },
                 "hash": {
-                  "index": "no",
                   "analyzer": "whitespace_lower",
                   "include_in_all": false,
+                  "index": "no",
                   "type": "string"
                 },
                 "id": {
@@ -1391,9 +1391,9 @@
               "type": "string"
             },
             "hash": {
-              "index": "no",
               "analyzer": "whitespace_lower",
               "include_in_all": false,
+              "index": "no",
               "type": "string"
             },
             "id": {
@@ -2237,6 +2237,5 @@
       }
     }
   },
-  "settings": {
-  }
+  "settings": {}
 }
