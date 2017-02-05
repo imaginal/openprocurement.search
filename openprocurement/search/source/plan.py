@@ -31,6 +31,7 @@ class PlanSource(BaseSource):
         'plan_decode_orgs': False,
         'plan_fast_client': False,
         'plan_user_agent': '',
+        'plan_file_cache': '',
         'timeout': 30,
     }
 
@@ -41,6 +42,8 @@ class PlanSource(BaseSource):
         self.config['plan_preload'] = int(self.config['plan_preload'] or 0) or 100
         self.config['plan_resethour'] = int(self.config['plan_resethour'] or 0)
         self.client_user_agent += " (plans) " + self.config['plan_user_agent']
+        self.cache_setpath(self.config['plan_file_cache'], self.config['plan_api_url'],
+            self.config['plan_api_version'], 'plans')
         self.fast_client = None
         self.client = None
         self.orgs_db = None
@@ -175,7 +178,11 @@ class PlanSource(BaseSource):
     def get(self, item):
         plan = {}
         retry_count = 0
-        while not self.should_exit:
+        if self.cache_path:
+            plan = self.cache_get(item)
+        while not plan:
+            if self.should_exit:
+                break
             try:
                 plan = self.client.get_tender(item['id'])
                 assert plan['data']['id'] == item['id'], "plan.id"
@@ -190,6 +197,8 @@ class PlanSource(BaseSource):
                 self.sleep(5)
                 if retry_count > 1:
                     self.reset()
+        if self.cache_path:
+            self.cache_put(plan)
         if item['dateModified'] != plan['data']['dateModified']:
             logger.debug("Plan dateModified mismatch %s %s %s",
                 item['id'], item['dateModified'],
