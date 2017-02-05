@@ -25,10 +25,11 @@ class AuctionSource(BaseSource):
         'auction_api_mode': '',
         'auction_skip_until': None,
         'auction_limit': 1000,
-        'auction_preload': 5000,
+        'auction_preload': 10000,
         'auction_resethour': 23,
         'auction_user_agent': '',
         'auction_file_cache': '',
+        'auction_cache_allow': 'complete,cancelled,unsuccessful',
         'timeout': 30,
     }
 
@@ -41,6 +42,9 @@ class AuctionSource(BaseSource):
         self.client_user_agent += " (auctions) " + self.config['auction_user_agent']
         self.cache_setpath(self.config['auction_file_cache'], self.config['auction_api_url'],
             self.config['auction_api_version'], 'auctions')
+        if self.cache_path:
+            self.cache_allow_status = self.config['auction_cache_allow'].split(',')
+            logger.info("[auction] Cache allow status %s", self.cache_allow_status)
         self.client = None
 
     def procuring_entity(self, item):
@@ -134,6 +138,11 @@ class AuctionSource(BaseSource):
                 self.last_skipped = auction['dateModified']
                 continue
             yield self.patch_version(auction)
+
+    def cache_allow(self, data):
+        if data and data['data']['status'] in self.cache_allow_status:
+            return True
+        return False
 
     def get(self, item):
         auction = {}

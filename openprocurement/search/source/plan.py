@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from time import time, mktime
-from datetime import datetime
+from datetime import datetime, timedelta
 from iso8601 import parse_date
 from socket import setdefaulttimeout
 from retrying import retry
@@ -26,12 +26,13 @@ class PlanSource(BaseSource):
         'plan_api_mode': '',
         'plan_skip_until': None,
         'plan_limit': 1000,
-        'plan_preload': 5000,
+        'plan_preload': 10000,
         'plan_resethour': 23,
         'plan_decode_orgs': False,
         'plan_fast_client': False,
         'plan_user_agent': '',
         'plan_file_cache': '',
+        'plan_cache_minage': 7,
         'timeout': 30,
     }
 
@@ -117,6 +118,12 @@ class PlanSource(BaseSource):
             logger.info("PlansClient (fast) %s", self.fast_client.headers)
         else:
             self.fast_client = None
+        if self.config['plan_file_cache']:
+            cache_minage = int(self.config['plan_cache_minage'])
+            cache_date = datetime.now() - timedelta(days=cache_minage)
+            self.cache_allow_dateModified = cache_date.isoformat()
+            logger.info("[plan] Cache allow dateModified before %s",
+                        self.cache_allow_dateModified)
         self.skip_until = self.config.get('plan_skip_until', None)
         if self.skip_until and self.skip_until[:2] != '20':
             self.skip_until = None
@@ -174,6 +181,11 @@ class PlanSource(BaseSource):
                 self.last_skipped = plan['dateModified']
                 continue
             yield self.patch_version(plan)
+
+    def cache_allow(self, data):
+        if data and data['data']['dateModified'] < self.cache_allow_dateModified:
+            return True
+        return False
 
     def get(self, item):
         plan = {}

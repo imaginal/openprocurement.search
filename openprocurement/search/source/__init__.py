@@ -68,19 +68,25 @@ class BaseSource:
         dirname = self.cache_dirname(name)
         return os.path.join(dirname, name + '.gz')
 
+    def cache_allow(self, data):
+        return data and len(data['data']) > 5
+
     def cache_get(self, item):
+        if (self.cache_hit + self.cache_miss) % 10000 == 0:
+            logger.info("[%s] Cache usage %d / %d", self.__doc_type__,
+                        self.cache_hit, self.cache_miss)
+
         filename = self.cahce_filename(item['id'])
         if not os.path.exists(filename):
             self.cache_miss += 1
             return {}
-        if self.cache_hit + self.cache_miss % 10000 == 0:
-            logger.info("[%s] Cache usage %d / %d", self.__doc_type__,
-                self.cache_hit, self.cache_miss)
         try:
             with gzip.open(filename, 'rb') as fp:
                 data = json.load(fp)
             if data['data']['dateModified'] == item['dateModified']:
-                if len(data['data'].keys()) > 4:
+                assert data['data']['id'] == item['id'], "Bad ID"
+                assert len(data['data']) > 5, "Bad data"
+                if self.cache_allow(data):
                     self.cache_hit += 1
                     return munchify(data)
             os.remove(filename)
@@ -89,19 +95,22 @@ class BaseSource:
         self.cache_miss += 1
         return {}
 
-    def cache_put(self, item):
+    def cache_put(self, data):
+        if not self.cache_path:
+            return
         try:
-            dirname = self.cache_dirname(item['data']['id'])
+            if not self.cache_allow(data):
+                return data
+            dirname = self.cache_dirname(data['data']['id'])
             if not os.path.exists(dirname):
                 os.makedirs(dirname)
-            filename = self.cahce_filename(item['data']['id'])
+            filename = self.cahce_filename(data['data']['id'])
             with gzip.open(filename, 'wb') as fp:
-                json.dump(item, fp)
+                json.dump(data, fp)
         except Exception as e:
-            filename = item.get('data', {}).get('id')
+            filename = data.get('data', {}).get('id')
             logger.error("Can't save to cache %s %s", filename, str(e))
-            self.cache_path = None
-        return item
+        return data
 
 
 class TendersClient(client.TendersClient):
