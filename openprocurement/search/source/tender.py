@@ -30,6 +30,7 @@ class TenderSource(BaseSource):
         'tender_decode_orgs': False,
         'tender_fast_client': False,
         'tender_user_agent': '',
+        'tender_file_cache': '',
         'timeout': 30,
     }
 
@@ -40,6 +41,8 @@ class TenderSource(BaseSource):
         self.config['tender_preload'] = int(self.config['tender_preload'] or 0) or 100
         self.config['tender_resethour'] = int(self.config['tender_resethour'] or 0)
         self.client_user_agent += " (tenders) " + self.config['tender_user_agent']
+        self.cache_setpath(self.config['tender_file_cache'], self.config['tender_api_url'],
+            self.config['tender_api_version'], 'tenders')
         self.fast_client = None
         self.client = None
         self.orgs_db = None
@@ -182,7 +185,11 @@ class TenderSource(BaseSource):
     def get(self, item):
         tender = {}
         retry_count = 0
-        while not self.should_exit:
+        if self.cache_path:
+            tender = self.cache_get(item)
+        while not tender:
+            if self.should_exit:
+                break
             try:
                 tender = self.client.get_tender(item['id'])
                 assert tender['data']['id'] == item['id'], "tender.id"
@@ -197,6 +204,8 @@ class TenderSource(BaseSource):
                 self.sleep(5)
                 if retry_count > 1:
                     self.reset()
+        if self.cache_path:
+            self.cache_put(tender)
         if item['dateModified'] != tender['data']['dateModified']:
             logger.debug("Tender dateModified mismatch %s %s %s",
                 item['id'], item['dateModified'],

@@ -28,6 +28,7 @@ class AuctionSource(BaseSource):
         'auction_preload': 5000,
         'auction_resethour': 23,
         'auction_user_agent': '',
+        'auction_file_cache': '',
         'timeout': 30,
     }
 
@@ -38,6 +39,8 @@ class AuctionSource(BaseSource):
         self.config['auction_preload'] = int(self.config['auction_preload'] or 0) or 100
         self.config['auction_resethour'] = int(self.config['auction_resethour'] or 0)
         self.client_user_agent += " (auctions) " + self.config['auction_user_agent']
+        self.cache_setpath(self.config['auction_file_cache'], self.config['auction_api_url'],
+            self.config['auction_api_version'], 'auctions')
         self.client = None
 
     def procuring_entity(self, item):
@@ -135,7 +138,11 @@ class AuctionSource(BaseSource):
     def get(self, item):
         auction = {}
         retry_count = 0
-        while not self.should_exit:
+        if self.cache_path:
+            auction = self.cache_get(item)
+        while not auction:
+            if self.should_exit:
+                break
             try:
                 auction = self.client.get_tender(item['id'])
                 assert auction['data']['id'] == item['id'], "auction.id"
@@ -150,6 +157,8 @@ class AuctionSource(BaseSource):
                 self.sleep(5)
                 if retry_count > 1:
                     self.reset()
+        if self.cache_path:
+            self.cache_put(auction)
         if item['dateModified'] != auction['data']['dateModified']:
             logger.debug("Auction dateModified mismatch %s %s %s",
                 item['id'], item['dateModified'],
