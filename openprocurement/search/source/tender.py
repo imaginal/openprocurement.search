@@ -25,12 +25,13 @@ class TenderSource(BaseSource):
         'tender_api_mode': '',
         'tender_skip_until': None,
         'tender_limit': 1000,
-        'tender_preload': 5000,
+        'tender_preload': 10000,
         'tender_resethour': 22,
         'tender_decode_orgs': False,
         'tender_fast_client': False,
         'tender_user_agent': '',
         'tender_file_cache': '',
+        'tender_cache_allow': 'complete,cancelled,unsuccessful',
         'timeout': 30,
     }
 
@@ -43,6 +44,9 @@ class TenderSource(BaseSource):
         self.client_user_agent += " (tenders) " + self.config['tender_user_agent']
         self.cache_setpath(self.config['tender_file_cache'], self.config['tender_api_url'],
             self.config['tender_api_version'], 'tenders')
+        if self.cache_path:
+            self.cache_allow_status = self.config['tender_cache_allow'].split(',')
+            logger.info("[tender] Cache allow status %s", self.cache_allow_status)
         self.fast_client = None
         self.client = None
         self.orgs_db = None
@@ -181,6 +185,11 @@ class TenderSource(BaseSource):
                 self.last_skipped = tender['dateModified']
                 continue
             yield self.patch_version(tender)
+
+    def cache_allow(self, data):
+        if data and data['data']['status'] in self.cache_allow_status:
+            return True
+        return False
 
     def get(self, item):
         tender = {}
