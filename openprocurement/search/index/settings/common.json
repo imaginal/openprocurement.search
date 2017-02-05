@@ -7,7 +7,6 @@
         "search_analyzer": "all_search"
       },
       "date_detection": false,
-      "numeric_detection": false,
       "dynamic": false,
       "dynamic_templates": [
         {
@@ -21,7 +20,8 @@
             "match": "*"
           }
         }
-      ]
+      ],
+      "numeric_detection": false
     }
   },
   "settings": {
@@ -52,6 +52,16 @@
               "del_punct_before",
               "del_punct_after",
               "del_punct_end"
+            ],
+            "filter": [
+              "lowercase",
+              "token_length"
+            ],
+            "tokenizer": "whitespace"
+          },
+          "default": {
+            "char_filter": [
+              "del_brackets"
             ],
             "filter": [
               "lowercase",
@@ -152,6 +162,9 @@
             "name": "light_russian",
             "type": "stemmer"
           },
+          "stemmer_ukrainian": {
+            "type": "ukrainian"
+          },
           "stopwords_english": {
             "stopwords": "_english_",
             "type": "stop"
@@ -162,6 +175,11 @@
           },
           "stopwords_russian": {
             "stopwords": "_russian_",
+            "type": "stop"
+          },
+          "stopwords_ukrainian": {
+            "ignore_case": true,
+            "stopwords_path": "/opt/search-tenders/stopwords/ukrainian.txt",
             "type": "stop"
           },
           "token_delimiter": {
