@@ -161,6 +161,8 @@ def range_query(query, field):
             beg, end = q.split('-', 1)
             if force_float:
                 beg, end = float(beg), float(end)
+            elif 'postalCode' in field:
+                end += '999'
             body.append({"range": {
                 field: {"gte": beg, "lte": end}
             }})
