@@ -103,15 +103,19 @@ class AuctionSource(BaseSource):
 
     def preload(self):
         preload_items = []
+        retry_count = 0
         while True:
+            if retry_count > 3 or self.should_exit:
+                break
             try:
                 items = self.client.get_tenders()
             except Exception as e:
-                logger.error("AuctionSource.preload error %s", restkit_error(e, self.client))
+                retry_count += 1
+                logger.error("GET %s retry %d count %d error %s", self.client.prefix_path,
+                    retry_count, len(preload_items), restkit_error(e, self.client))
+                self.sleep(5 * retry_count)
                 self.reset()
-                break
-            if self.should_exit:
-                return []
+                continue
             if not items:
                 break
 
@@ -156,18 +160,20 @@ class AuctionSource(BaseSource):
                 auction = self.client.get_tender(item['id'])
                 assert auction['data']['id'] == item['id'], "auction.id"
                 assert auction['data']['dateModified'] >= item['dateModified'], "auction.dateModified"
-                break
             except Exception as e:
                 if retry_count > 3:
                     raise e
                 retry_count += 1
                 logger.error("GET %s/%s retry %d error %s", self.client.prefix_path,
                     str(item['id']), retry_count, restkit_error(e, self.client))
-                self.sleep(5)
+                self.sleep(5 * retry_count)
                 if retry_count > 1:
                     self.reset()
-        if self.cache_path:
-            self.cache_put(auction)
+                auction = {}
+            # save to cache
+            if auction and self.cache_path:
+                self.cache_put(auction)
+
         if item['dateModified'] != auction['data']['dateModified']:
             logger.debug("Auction dateModified mismatch %s %s %s",
                 item['id'], item['dateModified'],

@@ -298,7 +298,7 @@ class BaseIndex(object):
             elif not info:
                 break
             # break on each iteration if not in full reindex mode
-            if not reindex and self.config['index_parallel'] and index_count < total_count:
+            if not reindex and self.config['index_parallel']:
                 logger.debug("[%s] Swith loop", index_name)
                 return
 
