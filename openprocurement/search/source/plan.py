@@ -145,15 +145,19 @@ class PlanSource(BaseSource):
             except:
                 pass
 
+        retry_count = 0
         while True:
+            if retry_count > 3 or self.should_exit:
+                break
             try:
                 items = self.client.get_tenders()
             except Exception as e:
-                logger.error("PlanSource.preload error %s", restkit_error(e, self.client))
+                retry_count += 1
+                logger.error("GET %s retry %d count %d error %s", self.client.prefix_path,
+                    retry_count, len(preload_items), restkit_error(e, self.client))
+                self.sleep(5 * retry_count)
                 self.reset()
-                break
-            if self.should_exit:
-                return []
+                continue
             if not items:
                 break
 
@@ -199,18 +203,20 @@ class PlanSource(BaseSource):
                 plan = self.client.get_tender(item['id'])
                 assert plan['data']['id'] == item['id'], "plan.id"
                 assert plan['data']['dateModified'] >= item['dateModified'], "plan.dateModified"
-                break
             except Exception as e:
                 if retry_count > 3:
                     raise e
                 retry_count += 1
                 logger.error("GET %s/%s retry %d error %s", self.client.prefix_path,
                     str(item['id']), retry_count, restkit_error(e, self.client))
-                self.sleep(5)
+                self.sleep(5 * retry_count)
                 if retry_count > 1:
                     self.reset()
-        if self.cache_path:
-            self.cache_put(plan)
+                plan = {}
+            # save to cache
+            if plan and self.cache_path:
+                self.cache_put(plan)
+
         if item['dateModified'] != plan['data']['dateModified']:
             logger.debug("Plan dateModified mismatch %s %s %s",
                 item['id'], item['dateModified'],

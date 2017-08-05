@@ -31,13 +31,16 @@ class SearchEngine(object):
     search_index_map = {}
     debug = False
 
-    def __init__(self, config={}):
+    def __init__(self, config={}, role='search'):
         self.index_list = list()
         if config:
             self.config.update(config)
             self.config['update_wait'] = int(self.config['update_wait'])
         self.names_db = SharedFileDict(self.config.get('index_names'))
-        self.elastic = Elasticsearch([self.config.get('elastic_host')])
+        self.elatic_host = self.config.get('elastic_host')
+        if role and (role + '_elastic_host') in self.config:
+            self.elatic_host = self.config[role + '_elastic_host']
+        self.elastic = Elasticsearch([self.elatic_host])
         self.slave_mode = self.config.get('slave_mode') or None
         self.slave_wakeup = int(self.config['slave_wakeup'] or 600)
         self.debug = self.config.get('debug', False)
@@ -65,7 +68,7 @@ class SearchEngine(object):
 
     def start_in_subprocess(self):
         # create copy of elastic connection
-        self.elastic = Elasticsearch([self.config.get('elastic_host')])
+        self.elastic = Elasticsearch([self.elatic_host])
         # we're not master anymore, clear inherited reindex_process
         for index in self.index_list:
             if getattr(index, 'reindex_process', None):
@@ -215,8 +218,8 @@ class SearchEngine(object):
 class IndexEngine(SearchEngine):
     """Indexer Engine
     """
-    def __init__(self, config={}):
-        super(IndexEngine, self).__init__(config)
+    def __init__(self, config={}, role='index'):
+        super(IndexEngine, self).__init__(config, role)
         logger.info("Start with config:\n\t%s", self.dump_config())
 
     def dump_config(self):

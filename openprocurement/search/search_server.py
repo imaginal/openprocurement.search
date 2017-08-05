@@ -6,6 +6,7 @@ import sys
 import simplejson as json
 from ConfigParser import ConfigParser
 from flask import Flask, request, jsonify, abort
+from time import time
 
 from openprocurement.search import __version__
 from openprocurement.search.index.auction import AuctionIndex
@@ -19,6 +20,7 @@ from openprocurement.search.engine import SearchEngine
 # Flas config
 
 JSONIFY_PRETTYPRINT_REGULAR = False
+NAME = 'noname'
 
 # create Flask app
 
@@ -35,7 +37,7 @@ search_config = dict(config_parser.items('search_engine'))
 
 # create engine
 
-search_engine = SearchEngine(search_config)
+search_engine = SearchEngine(search_config, role='search')
 search_engine.init_search_map({
     'auctions': [AuctionIndex],
     'tenders': [TenderIndex, OcdsIndex],
@@ -146,8 +148,7 @@ def prefix_query(query, field):
     return {"bool": {"should": body}}
 
 
-def range_query(query, field):
-    force_float = field in ('value.amount', 'budget.amount')
+def range_query(query, field, force_float=False):
     body = []
     for q in query:
         if q.find('-') < 0:
@@ -161,7 +162,7 @@ def range_query(query, field):
             beg, end = q.split('-', 1)
             if force_float:
                 beg, end = float(beg), float(end)
-            elif 'postalCode' in field:
+            elif 'postalCode' in field:  # FIXME
                 end += '999'
             body.append({"range": {
                 field: {"gte": beg, "lte": end}
@@ -226,7 +227,8 @@ def prepare_search_body(args, default_sort='dateModified'):
             continue
         field = range_map[key]
         query = args.getlist(key)
-        match = range_query(query, field)
+        float_field = '.amount' in field
+        match = range_query(query, field, float_field)
         body.append(match)
 
     # date range
@@ -364,22 +366,33 @@ def orgsuggest():
     return jsonify(res)
 
 
-@search_server.route('/heartbeat')
+@search_server.route('/heartbeat', methods=['GET', 'POST'])
 def heartbeat():
     data = {
-        'heartbeat': search_engine.master_heartbeat(),
+        'name': search_server.config.get('NAME'),
+        'uptime': int(time() - search_server.config.get('START_TIME', 0)),
+        'heartbeat': int(search_engine.master_heartbeat() or 0),
         'version': __version__
     }
-    key = request.args.get('key', None)
+    key = request.values.get('key', None)
     if key and key == search_server.secret_key:
         data['index_names'] = search_engine.index_names_dict()
         data['index_stats'] = search_engine.index_docs_count()
+        if request.values.get('config', ''):
+            data['search_config'] = search_config
+        if search_server.debug:
+            data['debug'] = True
     elif key:
         abort(403)
     res = jsonify(data)
-    if request.args.get('pretty', ''):
+    if request.values.get('pretty', ''):
         res.set_data(json.dumps(data, sort_keys=True, indent=4))
     return res
+
+
+@search_server.route('/', methods=['GET', 'POST'])
+def root():
+    return heartbeat()
 
 
 def make_app(global_conf, **kwargs):
@@ -388,6 +401,7 @@ def make_app(global_conf, **kwargs):
     for key, value in kwargs.items():
         setattr(config, key.upper(), value)
     search_server.config.from_object(config)
+    search_server.config['START_TIME'] = time()
     return search_server
 
 
