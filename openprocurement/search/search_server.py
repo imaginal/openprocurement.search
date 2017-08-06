@@ -9,7 +9,7 @@ from flask import Flask, request, jsonify, abort
 from time import time
 
 from openprocurement.search import __version__
-from openprocurement.search.index.auction import AuctionIndex
+from openprocurement.search.index.auction import AuctionIndex, AuctionIndex2
 from openprocurement.search.index.tender import TenderIndex
 from openprocurement.search.index.ocds import OcdsIndex
 from openprocurement.search.index.plan import PlanIndex
@@ -40,6 +40,8 @@ search_config = dict(config_parser.items('search_engine'))
 search_engine = SearchEngine(search_config, role='search')
 search_engine.init_search_map({
     'auctions': [AuctionIndex],
+    'auctions2': [AuctionIndex2],
+    'auctions3': [AuctionIndex, AuctionIndex2],
     'tenders': [TenderIndex, OcdsIndex],
     'plans': [PlanIndex],
     'orgs': [OrgsIndex],
@@ -54,6 +56,7 @@ prefix_map = {
     'pid_like': 'planID',
     'cpv_like': 'items.classification.id',
     'dkpp_like': 'items.additionalClassifications.id',
+    'cpvs_like': 'items.additionalClassifications.id',
     'plan_cpv_like': 'classification.id',
     'plan_dkpp_like': 'additionalClassifications.id',
 }
@@ -65,6 +68,7 @@ match_map = {
     'pid': 'planID',
     'cpv': 'items.classification.id',
     'dkpp': 'items.additionalClassifications.id',
+    'cpvs': 'items.additionalClassifications.id',
     'plan_cpv': 'classification.id',
     'plan_dkpp': 'additionalClassifications.id',
     'edrpou': 'procuringEntity.identifier.id',
@@ -79,6 +83,8 @@ match_map = {
 }
 range_map = {
     'region': 'procuringEntity.address.postalCode',
+    'item_region': 'items.address.postalCode',
+    'item_square': 'items.quantity_MTK',
     'value': 'value.amount',
     'budget': 'budget.amount',
 }
@@ -126,8 +132,10 @@ sorting_map = {
 # build query helper functions
 
 
-def match_query(query, field, type_=None, operator=None, analyzer=None):
+def match_query(query, field, type_=None, operator=None, analyzer=None, force_lower=False):
     qtext = " ".join(query)
+    if force_lower:
+        qtext = qtext.lower()
     query = {"query": qtext}
     if operator and qtext.find(" ") >= 0:
         query["operator"] = operator
@@ -138,9 +146,11 @@ def match_query(query, field, type_=None, operator=None, analyzer=None):
     return {"match": {field: query}}
 
 
-def prefix_query(query, field):
+def prefix_query(query, field, force_lower=False):
     body = []
     for q in query:
+        if force_lower:
+            q = q.lower()
         query = {field: {"prefix": q}}
         body.append({"prefix": query})
     if len(body) == 1:
@@ -199,6 +209,7 @@ def append_dates_query(body, query, args):
 
 
 def prepare_search_body(args, default_sort='dateModified'):
+    force_lower = int(search_config.get('force_lower', 1))
     body = list()
 
     # hierarchical classifiers
@@ -207,7 +218,8 @@ def prepare_search_body(args, default_sort='dateModified'):
             continue
         field = prefix_map[key]
         query = args.getlist(key)
-        match = prefix_query(query, field)
+        match = prefix_query(query, field,
+            force_lower=force_lower)
         body.append(match)
 
     # ID's and states
@@ -218,7 +230,8 @@ def prepare_search_body(args, default_sort='dateModified'):
         query = args.getlist(key)
         match = match_query(query, field,
             operator='or',
-            analyzer='whitespace')
+            analyzer='whitespace',
+            force_lower=force_lower)
         body.append(match)
 
     # range values ie postal code
@@ -227,7 +240,7 @@ def prepare_search_body(args, default_sort='dateModified'):
             continue
         field = range_map[key]
         query = args.getlist(key)
-        float_field = '.amount' in field
+        float_field = 'postalCode' not in field
         match = range_query(query, field, float_field)
         body.append(match)
 
@@ -307,7 +320,9 @@ def search_auctions():
     start = int(args.get('start') or 0)
     limit = int(args.get('limit') or 10)
     limit = min(max(1, limit), 100)
-    res = search_engine.search(body, start, limit, index_set='auctions')
+    index_key = int(args.get('index') or 1)
+    index_set = ['auctions', 'auctions2', 'auctions3'][index_key - 1]
+    res = search_engine.search(body, start, limit, index_set=index_set)
     if search_server.debug:
         res['body'] = body
     return jsonify(res)
