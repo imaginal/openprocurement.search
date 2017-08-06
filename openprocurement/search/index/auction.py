@@ -36,3 +36,20 @@ class AuctionIndex(BaseIndex):
         tender = 'settings/auction.json'
         lang_list = self.config.get('auction_index_lang', '').split(',')
         self.create_tender_index(name, common, tender, lang_list)
+
+
+class AuctionIndex2(AuctionIndex):
+    """OpenProcurement Auction Index
+    """
+    __index_name__ = 'auctions2'
+
+    def after_init(self):
+        self.set_reindex_options(
+            self.config.get('auction2_reindex', '5,6'),
+            self.config.get('auction2_check', '1,1'))
+
+    def create_index(self, name):
+        common = 'settings/common.json'
+        tender = 'settings/auction.json'
+        lang_list = self.config.get('auction2_index_lang', '').split(',')
+        self.create_tender_index(name, common, tender, lang_list)

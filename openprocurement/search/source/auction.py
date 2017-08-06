@@ -67,6 +67,11 @@ class AuctionSource(BaseSource):
             auctionID = auction['data']['auctionID']
             pos = auctionID.find('-20')
             auction['data']['date'] = auctionID[pos+1:pos+11]
+        if 'items' in auction['data']:
+            for item in auction['data']['items']:
+                if 'unit' in item and 'quantity' in item:
+                    key = 'quantity_' + item['unit']['code']
+                    item[key] = item['quantity']
         return auction
 
     def need_reset(self):
@@ -181,4 +186,72 @@ class AuctionSource(BaseSource):
             item['dateModified'] = auction['data']['dateModified']
             item = self.patch_version(item)
         auction['meta'] = item
-        return auction
+        return self.patch_auction(auction)
+
+
+class AuctionSource2(AuctionSource):
+    """Auction Source
+    """
+    __doc_type__ = 'auction'
+
+    config = {
+        'auction2_api_key': '',
+        'auction2_api_url': "",
+        'auction2_api_version': '0',
+        'auction2_resource': 'auctions',
+        'auction2_api_mode': '',
+        'auction2_skip_until': None,
+        'auction2_limit': 1000,
+        'auction2_preload': 10000,
+        'auction2_resethour': 23,
+        'auction2_user_agent': '',
+        'auction2_file_cache': '',
+        'auction2_cache_allow': 'complete,cancelled,unsuccessful',
+        'timeout': 30,
+    }
+
+    def __init__(self, config={}):
+        if config:
+            self.config.update(config)
+        self.config['auction2_limit'] = int(self.config['auction2_limit'] or 0) or 100
+        self.config['auction2_preload'] = int(self.config['auction2_preload'] or 0) or 100
+        self.config['auction2_resethour'] = int(self.config['auction2_resethour'] or 0)
+        self.client_user_agent += " (auctions) " + self.config['auction2_user_agent']
+        self.cache_setpath(self.config['auction2_file_cache'], self.config['auction2_api_url'],
+            self.config['auction2_api_version'], 'auctions')
+        if self.cache_path:
+            self.cache_allow_status = self.config['auction2_cache_allow'].split(',')
+            logger.info("[auction2] Cache allow status %s", self.cache_allow_status)
+        self.client = None
+
+    def need_reset(self):
+        if self.should_reset:
+            return True
+        if time() - self.last_reset_time > 3600:
+            return datetime.now().hour == int(self.config['auction2_resethour'])
+
+    @retry(stop_max_attempt_number=5, wait_fixed=5000)
+    def reset(self):
+        logger.info("Reset auctions2, auction2_skip_until=%s",
+                    self.config['auction2_skip_until'])
+        if self.config.get('timeout', None):
+            setdefaulttimeout(float(self.config['timeout']))
+        params = {}
+        if self.config['auction2_api_mode']:
+            params['mode'] = self.config['auction2_api_mode']
+        if self.config['auction2_limit']:
+            params['limit'] = self.config['auction2_limit']
+        self.client = TendersClient(
+            key=self.config['auction2_api_key'],
+            host_url=self.config['auction2_api_url'],
+            api_version=self.config['auction2_api_version'],
+            resource=self.config['auction2_resource'],
+            params=params,
+            timeout=float(self.config['timeout']),
+            user_agent=self.client_user_agent)
+        logger.info("AuctionClient2 %s", self.client.headers)
+        self.skip_until = self.config.get('auction2_skip_until', None)
+        if self.skip_until and self.skip_until[:2] != '20':
+            self.skip_until = None
+        self.last_reset_time = time()
+        self.should_reset = False

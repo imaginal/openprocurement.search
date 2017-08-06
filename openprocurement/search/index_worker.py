@@ -24,8 +24,8 @@ from openprocurement.search.index.ocds import OcdsIndex
 from openprocurement.search.source.plan import PlanSource
 from openprocurement.search.index.plan import PlanIndex
 
-from openprocurement.search.source.auction import AuctionSource
-from openprocurement.search.index.auction import AuctionIndex
+from openprocurement.search.source.auction import AuctionSource, AuctionSource2
+from openprocurement.search.index.auction import AuctionIndex, AuctionIndex2
 
 
 engine = type('engine', (), {})()
@@ -94,6 +94,9 @@ def main():
         if config.get('auction_api_url', None):
             source = AuctionSource(config)
             AuctionIndex(engine, source, config)
+        if config.get('auction2_api_url', None):
+            source = AuctionSource2(config)
+            AuctionIndex2(engine, source, config)
         engine.run()
     except Exception as e:
         logger.exception("Unhandled Exception: %s", str(e))

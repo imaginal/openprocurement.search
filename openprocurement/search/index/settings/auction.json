@@ -1124,6 +1124,10 @@
                   "include_in_all": false,
                   "type": "long"
                 },
+                "quantity_MTK": {
+                  "include_in_all": false,
+                  "type": "long"
+                },
                 "unit": {
                   "include_in_all": false,
                   "properties": {
@@ -1718,6 +1722,10 @@
               }
             },
             "quantity": {
+              "include_in_all": false,
+              "type": "long"
+            },
+            "quantity_MTK": {
               "include_in_all": false,
               "type": "long"
             },
