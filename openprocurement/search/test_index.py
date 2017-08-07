@@ -22,8 +22,8 @@ from openprocurement.search.index.ocds import OcdsIndex
 from openprocurement.search.source.plan import PlanSource
 from openprocurement.search.index.plan import PlanIndex
 
-from openprocurement.search.source.auction import AuctionSource
-from openprocurement.search.index.auction import AuctionIndex
+from openprocurement.search.source.auction import AuctionSource, AuctionSource2
+from openprocurement.search.index.auction import AuctionIndex, AuctionIndex2
 
 LOG_FORMAT = '%(asctime)s %(levelname)s %(message)s'
 
@@ -56,6 +56,10 @@ class IndexTester(object):
         if self.config.get('auction_api_url', None):
             source = AuctionSource(self.config)
             AuctionIndex(self.engine, source, self.config)
+
+        if self.config.get('auction2_api_url', None):
+            source = AuctionSource2(self.config)
+            AuctionIndex2(self.engine, source, self.config)
 
     def test(self):
         self.init_engine()
@@ -112,6 +116,8 @@ def main():
         tester.config['ocds_dir'] = None
     if '-na' in sys.argv:
         tester.config['auction_api_url'] = None
+    if '-na2' in sys.argv:
+        tester.config['auction2_api_url'] = None
     if '-ns' in sys.argv:
         tester.config['orgs_db'] = None
 
