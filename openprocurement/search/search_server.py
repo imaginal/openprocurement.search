@@ -17,7 +17,7 @@ from openprocurement.search.index.orgs import OrgsIndex
 
 from openprocurement.search.engine import SearchEngine
 
-# Flas config
+# Flask config
 
 JSONIFY_PRETTYPRINT_REGULAR = False
 NAME = 'noname'
@@ -54,6 +54,7 @@ prefix_map = {
     'dgf_like': 'dgfID',
     'tid_like': 'tenderID',
     'pid_like': 'planID',
+    'cav_like': 'items.classification.id',
     'cpv_like': 'items.classification.id',
     'dkpp_like': 'items.additionalClassifications.id',
     'cpvs_like': 'items.additionalClassifications.id',
@@ -66,6 +67,7 @@ match_map = {
     'dgf': 'dgfID',
     'tid': 'tenderID',
     'pid': 'planID',
+    'cav': 'items.classification.id',
     'cpv': 'items.classification.id',
     'dkpp': 'items.additionalClassifications.id',
     'cpvs': 'items.additionalClassifications.id',
@@ -263,7 +265,7 @@ def prepare_search_body(args, default_sort='dateModified'):
         body.append(match)
 
     if not body:
-        return None
+        body = {'query': {'match_all': {}}}
     elif len(body) == 1:
         body = {'query': body[0]}
     else:
@@ -287,14 +289,16 @@ def prepare_search_body(args, default_sort='dateModified'):
 
 @search_server.route('/tenders')
 def search_tenders():
-    args = request.args
-    body = prepare_search_body(args, default_sort='date')
-    if not body:
-        return jsonify({"error": "empty query"})
-    start = int(args.get('start') or 0)
-    limit = int(args.get('limit') or 10)
-    limit = min(max(1, limit), 100)
-    res = search_engine.search(body, start, limit, index_set='tenders')
+    try:
+        args = request.args
+        body = prepare_search_body(args, default_sort='date')
+        start = int(args.get('start') or 0)
+        limit = int(args.get('limit') or 10)
+        limit = min(max(1, limit), 100)
+        res = search_engine.search(body, start, limit, index_set='tenders')
+    except Exception as e:
+        search_server.logger.exception("Error in tenders {}".format(e))
+        res = {"error": "{}: {}".format(type(e).__name__, e)}
     if search_server.debug:
         res['body'] = body
     return jsonify(res)
@@ -302,12 +306,16 @@ def search_tenders():
 
 @search_server.route('/plans')
 def search_plans():
-    args = request.args
-    body = prepare_search_body(args, default_sort='datePublished')
-    start = int(args.get('start') or 0)
-    limit = int(args.get('limit') or 10)
-    limit = min(max(1, limit), 100)
-    res = search_engine.search(body, start, limit, index_set='plans')
+    try:
+        args = request.args
+        body = prepare_search_body(args, default_sort='datePublished')
+        start = int(args.get('start') or 0)
+        limit = int(args.get('limit') or 10)
+        limit = min(max(1, limit), 100)
+        res = search_engine.search(body, start, limit, index_set='plans')
+    except Exception as e:
+        search_server.logger.exception("Error in plans {}".format(e))
+        res = {"error": "{}: {}".format(type(e).__name__, e)}
     if search_server.debug:
         res['body'] = body
     return jsonify(res)
@@ -315,14 +323,18 @@ def search_plans():
 
 @search_server.route('/auctions')
 def search_auctions():
-    args = request.args
-    body = prepare_search_body(args, default_sort='date')
-    start = int(args.get('start') or 0)
-    limit = int(args.get('limit') or 10)
-    limit = min(max(1, limit), 100)
-    index_key = int(args.get('index') or 1)
-    index_set = ['auctions', 'auctions2', 'auctions3'][index_key - 1]
-    res = search_engine.search(body, start, limit, index_set=index_set)
+    try:
+        args = request.args
+        body = prepare_search_body(args, default_sort='date')
+        start = int(args.get('start') or 0)
+        limit = int(args.get('limit') or 10)
+        limit = min(max(1, limit), 100)
+        index_key = int(args.get('index') or 1)
+        index_set = ['auctions', 'auctions2', 'auctions3'][index_key - 1]
+        res = search_engine.search(body, start, limit, index_set=index_set)
+    except Exception as e:
+        search_server.logger.exception("Error in auctions {}".format(e))
+        res = {"error": str(e)}
     if search_server.debug:
         res['body'] = body
     return jsonify(res)
@@ -381,7 +393,7 @@ def orgsuggest():
     return jsonify(res)
 
 
-@search_server.route('/heartbeat', methods=['GET', 'POST'])
+@search_server.route('/heartbeat', methods=['GET', 'HEAD', 'POST'])
 def heartbeat():
     data = {
         'name': search_server.config.get('NAME'),
@@ -405,7 +417,7 @@ def heartbeat():
     return res
 
 
-@search_server.route('/', methods=['GET', 'POST'])
+@search_server.route('/', methods=['GET', 'HEAD', 'POST'])
 def root():
     return heartbeat()
 

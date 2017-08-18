@@ -4,11 +4,12 @@ import sys
 import argparse
 import logging
 import simplejson as json
-import urllib, urllib2
+import urllib
+import urllib2
 from datetime import datetime, timedelta
 from random import choice, randint
 from multiprocessing import Process
-from time import time, sleep
+from time import time
 
 g_dict = {}
 g_ordr = {}
@@ -26,6 +27,7 @@ def worker():
     if base_url.find('://') < 0:
         base_url = 'http://' + base_url
     plan_mode = base_url.endswith('plans')
+    auction_mode = base_url.find('auctions') + 1
 
     max_errs = g_args.e
     max_notf = g_args.z
@@ -53,24 +55,26 @@ def worker():
             query = g_dict[key][code]
             query = query.encode('utf-8')
             args.append((key, query))
-        elif key == 'cpv' or key == 'dkpp':
+        elif key in ('cav', 'cpv', 'cpvs', 'dkpp'):
             code = choice(g_dict[key].keys())
-            like = 5 if key == 'dkpp' else 6
+            like = {'dkpp': 5, 'cpv': 6, 'cav': 4, 'cpvs': 4}.get(key, 6)
+            if auction_mode:
+                like = 4
             if len(code) > like:
                 code = code[:like]
             if plan_mode:
-                key = 'plan_'+key
+                key = 'plan_' + key
             key += '_like'
             args.append((key, code))
         elif key == 'date':
             subkey = choice(g_dict[key].keys())
-            start = datetime.now()-timedelta(days=randint(10,60))
+            start = datetime.now() - timedelta(days=randint(10, 60))
             start = start.isoformat()[:10]
-            end = datetime.now()+timedelta(days=randint(1,30))
+            end = datetime.now() + timedelta(days=randint(1, 30))
             end = end.isoformat()[:10]
-            args.append((subkey+'_start', start))
-            args.append((subkey+'_end', end))
-        elif key == 'tid' or key == 'pid':
+            args.append((subkey + '_start', start))
+            args.append((subkey + '_end', end))
+        elif key == 'tid' or key == 'pid' or key == 'aid':
             code = choice(g_dict[key].keys())
             key += '_like'
             args.append((key, code))
@@ -82,7 +86,10 @@ def worker():
         if sort and order:
             args.append(('order', order))
         qs = urllib.urlencode(args, True)
-        url = base_url + '?' + qs
+        if '?' in base_url:
+            url = base_url + '&' + qs
+        else:
+            url = base_url + '?' + qs
         code = 0
         resp = ''
         try:
@@ -142,13 +149,18 @@ def prepare():
     parser.add_argument('-v', metavar='verbosity', help='10 = debug, 40 = error',
         type=int, default=logging.INFO)
     parser.add_argument('--log', metavar='output.log', nargs=1)
+    parser.add_argument('--aid', metavar='auction_id.json', nargs=1)
     parser.add_argument('--tid', metavar='tender_id.json', nargs=1)
     parser.add_argument('--pid', metavar='plan_id.json', nargs=1)
+    parser.add_argument('--cav', metavar='cav.json', nargs=1)
     parser.add_argument('--cpv', metavar='cpv.json', nargs=1)
+    parser.add_argument('--cpvs', metavar='cpv.json', nargs=1)
     parser.add_argument('--dkpp', metavar='dkpp.json', nargs=1)
     parser.add_argument('--date', metavar='date.json', nargs=1)
     parser.add_argument('--edrpou', metavar='edrpou.json', nargs=1)
     parser.add_argument('--region', metavar='region.json', nargs=1)
+    parser.add_argument('--item_region', metavar='region.json', nargs=1)
+    parser.add_argument('--item_square', metavar='square.json', nargs=1)
     parser.add_argument('--value', metavar='value.json', nargs=1)
     parser.add_argument('--budget', metavar='budget.json', nargs=1)
     parser.add_argument('--status', metavar='status.json', nargs=1)
@@ -162,8 +174,8 @@ def prepare():
         log_kw['filename'] = g_args.log[0]
     logging.basicConfig(**log_kw)
 
-    for key in ['tid', 'pid', 'cpv', 'dkpp', 'date', 'edrpou', 'region',
-                'value', 'budget', 'status', 'query', 'sort']:
+    for key in ['aid', 'tid', 'pid', 'cav', 'cpv', 'cpvs', 'dkpp', 'date', 'edrpou', 'region',
+                'item_region', 'item_square', 'value', 'budget', 'status', 'query', 'sort']:
         args_list = getattr(g_args, key, None)
         if isinstance(args_list, list):
             for filename in args_list:
