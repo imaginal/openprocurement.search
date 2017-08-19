@@ -27,11 +27,11 @@ setup(name='openprocurement.search',
             'Flask',
             'iso8601',
             'PyYAML',
-            'pkg_resources',
             'requests',
             'retrying',
             'simplejson',
             'setuptools',
+            'distribute',
         ],
         entry_points={
             'console_scripts': [
