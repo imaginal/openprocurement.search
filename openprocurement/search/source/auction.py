@@ -36,8 +36,8 @@ class AuctionSource(BaseSource):
     def __init__(self, config={}):
         if config:
             self.config.update(config)
-        self.config['auction_limit'] = int(self.config['auction_limit'] or 0) or 100
-        self.config['auction_preload'] = int(self.config['auction_preload'] or 0) or 100
+        self.config['auction_limit'] = int(self.config['auction_limit'] or 100)
+        self.config['auction_preload'] = int(self.config['auction_preload'] or 100)
         self.config['auction_resethour'] = int(self.config['auction_resethour'] or 0)
         self.client_user_agent += " (auctions) " + self.config['auction_user_agent']
         self.cache_setpath(self.config['auction_file_cache'], self.config['auction_api_url'],
@@ -207,15 +207,17 @@ class AuctionSource2(AuctionSource):
         'auction2_user_agent': '',
         'auction2_file_cache': '',
         'auction2_cache_allow': 'complete,cancelled,unsuccessful',
+        'auction_preload': 10000,  # FIXME
         'timeout': 30,
     }
 
     def __init__(self, config={}):
         if config:
             self.config.update(config)
-        self.config['auction2_limit'] = int(self.config['auction2_limit'] or 0) or 100
-        self.config['auction2_preload'] = int(self.config['auction2_preload'] or 0) or 100
+        self.config['auction2_limit'] = int(self.config['auction2_limit'] or 100)
+        self.config['auction2_preload'] = int(self.config['auction2_preload'] or 100)
         self.config['auction2_resethour'] = int(self.config['auction2_resethour'] or 0)
+        self.config['auction_preload'] = int(self.config['auction2_preload'] or 100)  # FIXME
         self.client_user_agent += " (auctions) " + self.config['auction2_user_agent']
         self.cache_setpath(self.config['auction2_file_cache'], self.config['auction2_api_url'],
             self.config['auction2_api_version'], 'auctions')
