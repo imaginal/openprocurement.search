@@ -1,20 +1,23 @@
 # Налаштування
 
+
 Розміщення
 
 * При інсталяції через buildout
     в `./openprocurement.search.buildout/etc`
-* При інсталяціїї debian пакета 
+* При інсталяціїї debian пакета
     в `/etc/search-tenders`
+
 
 Перелік файлів налаштувань
 
 * `accesslog.conf` - налаштування формату логу пошукових запитів
-* `circus.ini` -  налаштування менеджера процесів 
+* `circus.ini` -  налаштування менеджера процесів
 * `ftpsync.ini` - налаштування FTP синхронізації OCDS файлів
 * `logrotate.conf` - правила ротації логів
 * `search.ini` - основний файл налаштувань
-* `/etc/cron.d/search-tenders` - періодичні операції  
+* `/etc/cron.d/search-tenders` - періодичні операції
+
 
 ## accesslog.conf
 
@@ -26,18 +29,20 @@ access_log_format = '%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s"
 ```
 
 Документація по [gunicorn settings](http://docs.gunicorn.org/en/stable/settings.html#access-log-format)
-Підключається в `circus.ini` 
+
+Підключається в `circus.ini`
+
 
 ## circus.ini
 
 Circus запускає, моніторить роботу і перезапускає в разі аварійного завершення два основні сервіси:
 
-1. Пошукове HTTP API, що запускається за допомогою gunicorn, приймає і обробляє пошукові запити, також видає статистику по `GET /heartbeat` 
+1. Пошукове HTTP API, що запускається за допомогою gunicorn, приймає і обробляє пошукові запити, також видає статистику по `GET /heartbeat`
 2. Індексуючий демон, що підтримує наповненя індексу в ElasticSearch, веде його перевірку і переіндексацію за розкладом
 
 Документація [Circus Configuration](http://circus.readthedocs.io/en/latest/for-ops/configuration/)
 
-Приклад налаштувань при інсталяції deb пакета 
+Приклад налаштувань при інсталяції deb пакета
 
 ```ini
 [circus]
@@ -48,7 +53,7 @@ pidfile = /run/search-tenders.pid
 
 
 ; HTTP API для обробки пошукових запитів
-; запускається через gunicorn 
+; запускається через gunicorn
 ; налаштування http сервісу в search.ini
 ; налаштування gunicorn в accesslog.conf
 [watcher:search_server]
@@ -86,7 +91,8 @@ uid = searchtenders
 gid = searchtenders
 ```
 
-Типові налаштування рідко змінюються, є можливість додавати власні секції і таким чином 
+Типові налаштування рідко змінюються, є можливість додавати власні секції і таким чином
+
 
 ## ftpsync.ini
 
@@ -130,13 +136,15 @@ filematch = ocds-tender-*.json
 ```
 
 Зверніть увагу на перезапуск після ротації за допомогою `reloadlogs`
+
 Стандартний `reload` перехоплюється `systemd` і працює некоректно.
+
 
 ## search.ini
 
 Основний файл налаштувань, містить в одному місці спільні налаштування для сервісів:
 
-1. Пошукового HTTP API 
+1. Пошукового HTTP API
 2. Індексатора
 3.  Додаткових утиліт
 3.1. видалення старих індексів `clean_indexes`
@@ -145,12 +153,13 @@ filematch = ocds-tender-*.json
 3.4. перервірки швидкості роботи `test_load`
 3.5. перевірки назв організацій `update_orgs`
 
- 
+
 ### [server:main]
- 
- Загальні налаштуванян gunicorn для пошукового HTTP API
- Документація див. [gunicorn settings](http://docs.gunicorn.org/en/stable/settings.html)
- 
+
+Загальні налаштуванян gunicorn для пошукового HTTP API
+
+Документація див. [gunicorn settings](http://docs.gunicorn.org/en/stable/settings.html)
+
 ```ini
 [server:main]
 proc_name = search_server
@@ -164,9 +173,11 @@ max_requests = 10000
 timeout = 30
 ```
 
+
 ### [app:main]
 
 Загальні налаштування Flask Microframework для пошукового HTTP API
+
 Документація див. [Flask config](http://flask.pocoo.org/docs/0.12/config/)
 
 ```ini
@@ -184,9 +195,11 @@ secret_key = 123456-RANDOM-123456
 
 **debug** - включення цього параметру додає відладочну інформацію у відповілях Search API
 
+
 ### [search_engine]
 
 Основний розділ пошукового сервісу та індексатора, містить налаштування джерел даних, періодичності переіндексування, режиму Master-Slave, тощо.
+
 
 #### Master-Slave
 
@@ -202,7 +215,9 @@ slave_wakeup = 600
 
 **slave_wakeup** - час простою *master* (секунд) при якому *slave* прокидається, рекомендується не менше 300 сек.
 
+
 #### ElasticSearch
+
 
 ```ini
 index_names  = /opt/search-tenders/var/index_names
@@ -214,14 +229,15 @@ elastic_timeout = 300
 ```
 
 **index_names** - шлях до файлів які визначають поточний стан індексатора, цей префікс спільний для файлів
- 
- * `index_names.yaml` - список імен індексів (поточних, попередніх, наступних, переіндексація яких ще йде) 
+
+ * `index_names.yaml` - список імен індексів (поточних, попередніх, наступних, переіндексація яких ще йде)
  * `index_names.heartbeat` - час останньої успішної операції індексування
  * `index_names.lock` - pid-файл що захищає від повторного запуску індексатора
 
 **elastic_host** - підключення до кластеру ElasticSearch
 
 **elastic_timeout** - таймаут операцій ElasticSearch
+
 
 #### EDRPOU database
 
@@ -234,7 +250,8 @@ orgs_queue = 1000
 
 **orgs_queue** - розмір черги індексатора підсказок назв організацій
 
-#### Індекс "паперові тендери" 
+
+#### Індекс "паперові тендери"
 
 Шлях та налаштування джерела OCDS файлів паперових продцедур, які були отримані за допомогою утиліти `ocds_ftp_sync` див. файл налаштувань `ftpsync.ini`
 
@@ -248,6 +265,7 @@ ocds_dir = /opt/search-tenders/var/ocds
 ;ocds_reindex = 360,7
 ;ocds_check = 100000,0
 ```
+
 
 #### Індекс "Тендери ProZorro"
 
@@ -273,6 +291,7 @@ tender_api_version = 2.3
 ;tender_resethour = 22
 ```
 
+
 #### Індекс "Плани ProZorro"
 
 ```ini
@@ -296,6 +315,7 @@ plan_api_version = 2.3
 ;plan_resethour = 23
 ```
 
+
 #### Індекс "Аукціони ProZorro.Sale"
 
 ```ini
@@ -318,13 +338,15 @@ plan_api_version = 2.3
 ;auction_check = 1,10
 ```
 
+
 #### Індекс "Аукціони2 ProZorro.Sale (майно)"
 
 ```ini
 auction2_api_url = http://public.api.ea2.openprocurement.org
 ```
 
-Налаштування аналогічно індексу "Аукціони Prozorro.Sale" 
+Налаштування аналогічно індексу "Аукціони Prozorro.Sale"
+
 
 #### Загальні налаштування індексатора
 
@@ -346,6 +368,7 @@ auction2_api_url = http://public.api.ea2.openprocurement.org
 timeout = 30
 ```
 
+
 ### Розділ утиліти `update_orgs`
 
 ```ini
@@ -361,7 +384,9 @@ update_days = 30
 ### Python logger settings (search.ini)
 
 Налаштування рівнів логування та формату лог-файлів
+
 Документація див. [Python Logging Configuration](https://docs.python.org/2/library/logging.config.html)
+
 
 ```ini
 ; search.ini
@@ -399,11 +424,12 @@ formatter = generic
 format = %(asctime)s %(levelname)s [%(processName)s %(process)d] %(message)s
 ```
 
+
 ## Історія версій
 
 * 05.02.2017 - додано index_lang
 * 11.01.2017 - додано decode_orgs
-* 20.12.2016 - додано user_agent 
+* 20.12.2016 - додано user_agent
 * 07.12.2016 - додано fast_mode client
 * 21.11.2016 - додані утиліти test_index, test_search
 * 19.11.2016 - додано індекс auction (prozorro.sale)
@@ -412,6 +438,7 @@ format = %(asctime)s %(levelname)s [%(processName)s %(process)d] %(message)s
 * 14.06.2016 - додано master/slave mode
 * 22.03.2016 - додано утиліту ocds_ftp_sync та файл ftpsync.ini
 * 22.12.2015 - перша версія пошукового сервісу
+
 
 ---
 &copy; 2015-2017 Volodymyr Flonts / <flyonts@gmail.com> / https://github.com/imaginal
