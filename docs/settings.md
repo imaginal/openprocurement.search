@@ -154,7 +154,7 @@ filematch = ocds-tender-*.json
     - перевірки назв організацій `update_orgs`
 
 
-### [server:main]
+### Розділ [server:main]
 
 Загальні налаштуванян gunicorn для пошукового HTTP API
 
@@ -174,7 +174,7 @@ timeout = 30
 ```
 
 
-### [app:main]
+### Розділ [app:main]
 
 Загальні налаштування Flask Microframework для пошукового HTTP API
 
@@ -196,7 +196,7 @@ secret_key = 123456-RANDOM-123456
 **debug** - включення цього параметру додає відладочну інформацію у відповілях Search API
 
 
-### [search_engine]
+### Розділ [search_engine]
 
 Основний розділ пошукового сервісу та індексатора, містить налаштування джерел даних, періодичності переіндексування, режиму Master-Slave, тощо.
 
