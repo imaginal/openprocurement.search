@@ -31,6 +31,13 @@ class SearchEngine(object):
         'error_wait': 10,
         'start_wait': 1,
     }
+    es_options = {
+        'max_retries': 3,
+        'retry_on_timeout': True,
+        'sniff_on_start': True,
+        'request_timeout': 300,
+        'timeout': 300,
+    }
     search_index_map = {}
     debug = False
 
@@ -39,15 +46,14 @@ class SearchEngine(object):
         if config:
             self.config.update(config)
             self.config['update_wait'] = int(self.config['update_wait'])
-        self.config['elastic_timeout'] = int(self.config['elastic_timeout'])
         self.names_db = SharedFileDict(self.config.get('index_names'))
         self.elatic_host = self.config.get('elastic_host')
         if role and (role + '_elastic_host') in self.config:
             self.elatic_host = self.config[role + '_elastic_host']
+        self.es_options['timeout'] = int(self.config['elastic_timeout'])
+        self.es_options['request_timeout'] = int(self.config['elastic_timeout'])
         self.elastic = Elasticsearch([self.elatic_host],
-            request_timeout=self.config['elastic_timeout'],
-            retry_on_timeout=True,
-            max_retries=3)
+            **self.es_options)
         self.slave_mode = self.config.get('slave_mode') or None
         self.slave_wakeup = int(self.config['slave_wakeup'] or 600)
         self.debug = self.config.get('debug', False)
@@ -78,9 +84,7 @@ class SearchEngine(object):
     def start_in_subprocess(self):
         # create copy of elastic connection
         self.elastic = Elasticsearch([self.elatic_host],
-            request_timeout=self.config['elastic_timeout'],
-            retry_on_timeout=True,
-            max_retries=3)
+            **self.es_options)
         # we're not master anymore, clear inherited reindex_process
         for index in self.index_list:
             if getattr(index, 'reindex_process', None):
@@ -349,7 +353,9 @@ class IndexEngine(SearchEngine):
 
                 } for item in items_list]
                 try:
-                    bulk_res = bulk(self.elastic, bulk_items, timeout=300, request_timeout=300)
+                    bulk_res = bulk(self.elastic, bulk_items,
+                        request_timeout=self.es_options['request_timeout'],
+                        timeout=self.es_options['timeout'])
                     logger.debug("[%s] BULK result %s", index_name, bulk_res)
                 except ElasticsearchException as e:
                     logger.error("[%s] Error BULK index %s: %s",
