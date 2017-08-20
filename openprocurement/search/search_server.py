@@ -334,7 +334,7 @@ def search_auctions():
         res = search_engine.search(body, start, limit, index_set=index_set)
     except Exception as e:
         search_server.logger.exception("Error in auctions {}".format(e))
-        res = {"error": str(e)}
+        res = {"error": "{}: {}".format(type(e).__name__, e)}
     if search_server.debug:
         res['body'] = body
     return jsonify(res)
