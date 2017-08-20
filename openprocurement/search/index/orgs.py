@@ -27,7 +27,7 @@ class OrgsIndex(BaseIndex):
 
     def index_item(self, index_name, item):
         try:
-            return self.engine.index_item(index_name, item)
+            return self.engine.index_item(index_name, item, ignore_bulk=True)
         except Exception as e:
             if self.config['ignore_errors']:
                 return None
