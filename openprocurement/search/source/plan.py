@@ -32,7 +32,7 @@ class PlanSource(BaseSource):
         'plan_fast_client': False,
         'plan_user_agent': '',
         'plan_file_cache': '',
-        'plan_cache_minage': 7,
+        'plan_cache_minage': 15,
         'timeout': 30,
     }
 

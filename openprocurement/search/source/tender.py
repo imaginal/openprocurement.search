@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from time import time, mktime
 from iso8601 import parse_date
-from datetime import datetime
+from datetime import datetime, timedelta
 from socket import setdefaulttimeout
 from retrying import retry
 
@@ -32,6 +32,7 @@ class TenderSource(BaseSource):
         'tender_user_agent': '',
         'tender_file_cache': '',
         'tender_cache_allow': 'complete,cancelled,unsuccessful',
+        'tender_cache_minage': 15,
         'timeout': 30,
     }
 
@@ -128,6 +129,12 @@ class TenderSource(BaseSource):
             logger.info("TendersClient (fast) %s", self.fast_client.headers)
         else:
             self.fast_client = None
+        if self.config['tender_file_cache']:
+            cache_minage = int(self.config['tender_cache_minage'])
+            cache_date = datetime.now() - timedelta(days=cache_minage)
+            self.cache_allow_dateModified = cache_date.isoformat()
+            logger.info("[tender] Cache allow dateModified before %s",
+                        self.cache_allow_dateModified)
         self.skip_until = self.config.get('tender_skip_until', None)
         if self.skip_until and self.skip_until[:2] != '20':
             self.skip_until = None
@@ -192,7 +199,7 @@ class TenderSource(BaseSource):
 
     def cache_allow(self, data):
         if data and data['data']['status'] in self.cache_allow_status:
-            return True
+            return data['data']['dateModified'] < self.cache_allow_dateModified
         return False
 
     def get(self, item):

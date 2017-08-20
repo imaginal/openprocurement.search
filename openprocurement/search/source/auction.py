@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from time import time, mktime
-from datetime import datetime
+from datetime import datetime, timedelta
 from retrying import retry
 from iso8601 import parse_date
 from socket import setdefaulttimeout
@@ -30,6 +30,7 @@ class AuctionSource(BaseSource):
         'auction_user_agent': '',
         'auction_file_cache': '',
         'auction_cache_allow': 'complete,cancelled,unsuccessful',
+        'auction_cache_minage': 15,
         'timeout': 30,
     }
 
@@ -99,6 +100,12 @@ class AuctionSource(BaseSource):
             params=params,
             timeout=float(self.config['timeout']),
             user_agent=self.client_user_agent)
+        if self.config['auction_file_cache']:
+            cache_minage = int(self.config['auction_cache_minage'])
+            cache_date = datetime.now() - timedelta(days=cache_minage)
+            self.cache_allow_dateModified = cache_date.isoformat()
+            logger.info("[auction2] Cache allow dateModified before %s",
+                        self.cache_allow_dateModified)
         logger.info("AuctionClient %s", self.client.headers)
         self.skip_until = self.config.get('auction_skip_until', None)
         if self.skip_until and self.skip_until[:2] != '20':
@@ -150,7 +157,7 @@ class AuctionSource(BaseSource):
 
     def cache_allow(self, data):
         if data and data['data']['status'] in self.cache_allow_status:
-            return True
+            return data['data']['dateModified'] < self.cache_allow_dateModified
         return False
 
     def get(self, item):
@@ -207,6 +214,7 @@ class AuctionSource2(AuctionSource):
         'auction2_user_agent': '',
         'auction2_file_cache': '',
         'auction2_cache_allow': 'complete,cancelled,unsuccessful',
+        'auction2_cache_minage': 15,
         'auction_preload': 10000,  # FIXME
         'timeout': 30,
     }
@@ -251,6 +259,12 @@ class AuctionSource2(AuctionSource):
             params=params,
             timeout=float(self.config['timeout']),
             user_agent=self.client_user_agent)
+        if self.config['auction2_file_cache']:
+            cache_minage = int(self.config['auction2_cache_minage'])
+            cache_date = datetime.now() - timedelta(days=cache_minage)
+            self.cache_allow_dateModified = cache_date.isoformat()
+            logger.info("[auction2] Cache allow dateModified before %s",
+                        self.cache_allow_dateModified)
         logger.info("AuctionClient2 %s", self.client.headers)
         self.skip_until = self.config.get('auction2_skip_until', None)
         if self.skip_until and self.skip_until[:2] != '20':
