@@ -11,6 +11,7 @@ from logging import getLogger
 logger = getLogger(__name__)
 
 SUFFIX_FORMAT = "%Y-%m-%d-%H%M%S"
+INDEX_ITER = 100
 
 
 class BaseIndex(object):
@@ -22,7 +23,7 @@ class BaseIndex(object):
         'reindex_check': '1,10',
         'number_of_shards': 6,
         'index_parallel': 1,
-        'index_speed': 1000,
+        'index_speed': 500,
         'error_wait': 10,
     }
     allow_async_reindex = False
@@ -209,7 +210,7 @@ class BaseIndex(object):
         logger.info("[%s] Fetched %d indexed %d last %s",
             index_name, fetched, indexed, last_date or '-')
         pause = float(iter_count) / float(self.config['index_speed'] or 1)
-        if pause > 1:
+        if pause > 2.0:
             logger.info("Wait %1.1f sec", pause)
         if pause > 0.01:
             self.engine.sleep(pause)
@@ -259,13 +260,12 @@ class BaseIndex(object):
         # heartbeat return True in slave mode only if master fail
         while self.engine.heartbeat(self.source):
             info = {}
-            iter_count = 0
             items_list = self.source.items()
             if not items_list:
                 break
             for info in items_list:
                 if self.engine.should_exit:
-                    return
+                    break
                 if not self.test_exists(index_name, info):
                     try:
                         item = self.source.get(info)
@@ -274,23 +274,24 @@ class BaseIndex(object):
                     except Exception as e:
                         self.handle_error(e, sys.exc_info())
                 # update statistics
-                iter_count += 1
                 total_count += 1
                 # update heartbeat for long indexing
-                if iter_count >= 500:
+                if total_count % INDEX_ITER == 0:
+                    self.engine.flush_bulk()
                     self.indexing_stat(
                         index_name, total_count, index_count,
-                        iter_count, info.get('dateModified', '-'))
+                        INDEX_ITER, info.get('dateModified', '-'))
                     if not self.engine.heartbeat(self.source):
                         break
-                    iter_count = 0
+
+            self.engine.flush_bulk()
 
             if self.engine.should_exit:
                 return
             # break if nothing iterated
-            if iter_count > 0:
+            if total_count % INDEX_ITER != 0:
                 self.indexing_stat(index_name, total_count, index_count,
-                    iter_count, info.get('dateModified', '-'))
+                    total_count % INDEX_ITER, info.get('dateModified', '-'))
             elif getattr(self.source, 'last_skipped', None):
                 last_skipped = self.source.last_skipped or ""
                 logger.info("[%s] Fetched %d, last_skipped %s",
