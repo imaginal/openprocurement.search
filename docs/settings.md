@@ -11,13 +11,15 @@
 
 Перелік файлів налаштувань
 
-* `accesslog.conf` - налаштування формату логу пошукових запитів
-* `circus.ini` -  налаштування менеджера процесів
-* `ftpsync.ini` - налаштування FTP синхронізації OCDS файлів
-* `logrotate.conf` - правила ротації логів
-* `search.ini` - основний файл налаштувань
-* `/etc/cron.d/search-tenders` - періодичні операції
+* [accesslog.conf](#accesslog) - налаштування формату логу пошукових запитів
+* [circus.ini](#circus) -  налаштування менеджера процесів
+* [ftpsync.ini](#ftpsync) - налаштування FTP синхронізації OCDS файлів
+* [logrotate.conf](#logrotate) - правила ротації логів
+* [search.ini](#search) - основний файл налаштувань
+* [/etc/cron.d/search-tenders](#crontab) - періодичні операції
 
+
+<a name="accesslog"></a>
 
 ## accesslog.conf
 
@@ -32,6 +34,8 @@ access_log_format = '%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s"
 
 Підключається в `circus.ini`
 
+
+<a name="circus"></a>
 
 ## circus.ini
 
@@ -94,6 +98,8 @@ gid = searchtenders
 Типові налаштування рідко змінюються, є можливість додавати власні секції і таким чином
 
 
+<a name="ftpsync"></a>
+
 ## ftpsync.ini
 
 Використовувався до липня 2016, дозволяв отримувати вигрузку паперових продцедур з https://ips.vdz.ua/
@@ -112,6 +118,8 @@ local_dir = /mnt/di2/ocds
 ; маска файлів що підпадають під синхронізацію
 filematch = ocds-tender-*.json
 ```
+
+<a name="logrotate"></a>
 
 ## logrotate.conf
 
@@ -140,6 +148,8 @@ filematch = ocds-tender-*.json
 Стандартний `reload` перехоплюється `systemd` і працює некоректно.
 
 
+<a name="search"></a>
+
 ## search.ini
 
 Основний файл налаштувань, містить в одному місці спільні налаштування для сервісів:
@@ -153,6 +163,8 @@ filematch = ocds-tender-*.json
     - перервірки швидкості роботи `test_load`
     - перевірки назв організацій `update_orgs`
 
+
+<a name="server_main"></a>
 
 ### Розділ [server:main]
 
@@ -173,6 +185,8 @@ max_requests = 10000
 timeout = 30
 ```
 
+
+<a name="app_main"></a>
 
 ### Розділ [app:main]
 
@@ -196,14 +210,17 @@ secret_key = 123456-RANDOM-123456
 **debug** - включення цього параметру додає відладочну інформацію у відповілях Search API
 
 
+<a name="search_engine"></a>
+
 ### Розділ [search_engine]
 
 Основний розділ пошукового сервісу та індексатора, містить налаштування джерел даних, періодичності переіндексування, режиму Master-Slave, тощо.
 
+<a name="slave_mode"></a>
 
-#### Master-Slave
+### Master / Slave Mode
 
-Два індексатора можуть працювати в режимі *master/slave*. В такому режимі *master* індексує, а *slave* моніторить його роботу і чекає. Якщо за якихось причин *master* перестає працювати тоді *slave* прокидається і продовжує індексування.  Коли *master* повертається до роботи, *slave* засипає.
+Два індексатора можуть працювати в режимі **master/slave**. В такому режимі *master* індексує, а *slave* моніторить його роботу і чекає. Якщо за якихось причин *master* перестає працювати тоді *slave* прокидається і продовжує індексування.  Коли *master* повертається до роботи, *slave* засипає.
 
 ```ini
 [search_engine]
@@ -216,7 +233,9 @@ slave_wakeup = 600
 **slave_wakeup** - час простою *master* (секунд) при якому *slave* прокидається, рекомендується не менше 300 сек.
 
 
-#### ElasticSearch
+<a name="elastic"></a>
+
+### ElasticSearch
 
 
 ```ini
@@ -239,7 +258,9 @@ elastic_timeout = 300
 **elastic_timeout** - таймаут операцій ElasticSearch
 
 
-#### EDRPOU database
+<a name="orgs"></a>
+
+### EDRPOU database
 
 ```ini
 orgs_db = /opt/search-tenders/edrpou/edrpou.db
@@ -251,7 +272,10 @@ orgs_queue = 1000
 **orgs_queue** - розмір черги індексатора підсказок назв організацій
 
 
-#### Індекс "паперові тендери"
+
+<a name="ocds"></a>
+
+### Індекс "паперові тендери"
 
 Шлях та налаштування джерела OCDS файлів паперових продцедур, які були отримані за допомогою утиліти `ocds_ftp_sync` див. файл налаштувань `ftpsync.ini`
 
@@ -267,7 +291,9 @@ ocds_dir = /opt/search-tenders/var/ocds
 ```
 
 
-#### Індекс "Тендери ProZorro"
+<a name="tender"></a>
+
+### Індекс "Тендери ProZorro"
 
 ```ini
 ;; tender source
@@ -292,7 +318,9 @@ tender_api_version = 2.3
 ```
 
 
-#### Індекс "Плани ProZorro"
+<a name="plan"></a>
+
+### Індекс "Плани ProZorro"
 
 ```ini
 ;; plan source
@@ -316,14 +344,16 @@ plan_api_version = 2.3
 ```
 
 
-#### Індекс "Аукціони ProZorro.Sale"
+<a name="auction"></a>
+
+### Індекс "Аукціони ProZorro.Sale"
 
 ```ini
 ;; auction source
 ;; ==============
-;auction_api_key = ""
-;auction_api_url = http://public.api-sandbox.ea.openprocurement.org
-;auction_api_version = 0
+auction_api_key = ""
+auction_api_url = http://public.api.ea.openprocurement.org
+auction_api_version = 2.4
 ;auction_api_mode = _all_
 ;auction_index_lang = english,russian,ukrainian
 ;auction_skip_until = 2016-06-01
@@ -339,16 +369,26 @@ plan_api_version = 2.3
 ```
 
 
-#### Індекс "Аукціони2 ProZorro.Sale (майно)"
+<a name="auction2"></a>
+
+### Індекс "Аукціони2 ProZorro.Sale (майно)"
 
 ```ini
+;; auction2 source
+;; ==============
+auction2_api_key = ""
 auction2_api_url = http://public.api.ea2.openprocurement.org
+;auction2_api_version = 2.3
+;auction2_api_mode = _all_
+;auction2_...
 ```
 
 Налаштування аналогічно індексу "Аукціони Prozorro.Sale"
 
 
-#### Загальні налаштування індексатора
+<a name="common"></a>
+
+### Загальні налаштування індексатора
 
 ```ini
 ;; search.ini
@@ -369,7 +409,9 @@ timeout = 30
 ```
 
 
-### Розділ утиліти `update_orgs`
+<a name="update_orgs"></a>
+
+### Розділ [update_orgs]
 
 ```ini
 ; search.ini
@@ -381,7 +423,9 @@ update_days = 30
 **update_days** - за скільки днів перевіряти організації в тендерах
 
 
-### Python logger settings (search.ini)
+<a name="loggers"></a>
+
+### Розділ [loggers]
 
 Налаштування рівнів логування та формату лог-файлів
 
@@ -425,6 +469,8 @@ format = %(asctime)s %(levelname)s [%(processName)s %(process)d] %(message)s
 ```
 
 
+<a name="history"></a>
+
 ## Історія версій
 
 * 05.02.2017 - додано index_lang
@@ -442,4 +488,3 @@ format = %(asctime)s %(levelname)s [%(processName)s %(process)d] %(message)s
 
 ---
 &copy; 2015-2017 Volodymyr Flonts / <flyonts@gmail.com> / https://github.com/imaginal
-
