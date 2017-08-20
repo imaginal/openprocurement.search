@@ -205,9 +205,9 @@ secret_key = 123456-RANDOM-123456
 
 **name** - назва сервісу що потім показується у відповіді `heartbeat`
 
-**secret_key** - ключ доступу до розширеної статистики `heartbeat` передається параметром `key` в `GET /heartbeat?key=123...`
+**secret_key** - ключ доступу до статистики, передається параметром `key` в `GET /heartbeat?key=123...`
 
-**debug** - включення цього параметру додає відладочну інформацію у відповілях Search API
+**debug** - додає розшифровку запитів у відповілях Search API
 
 
 <a name="search_engine"></a>
@@ -215,6 +215,7 @@ secret_key = 123456-RANDOM-123456
 ### Розділ [search_engine]
 
 Основний розділ пошукового сервісу та індексатора, містить налаштування джерел даних, періодичності переіндексування, режиму Master-Slave, тощо.
+
 
 <a name="slave_mode"></a>
 
@@ -301,11 +302,11 @@ ocds_dir = /opt/search-tenders/var/ocds
 tender_api_key = ""
 tender_api_url = https://public.api.openprocurement.org
 tender_api_version = 2.3
-;tender_api_mode = _all_
-;tender_skip_until = 2016-01-01
-;tender_user_agent =
-;tender_fast_client = 1
-;tender_decode_orgs = 1
+tender_api_mode = _all_
+tender_skip_until = 2016-01-01
+tender_user_agent = search-1
+tender_fast_client = 1
+tender_decode_orgs = 1
 ;tender_file_cache = /mnt/cache/tenders
 ;tender_cache_allow = complete,cancelled,unsuccessful
 ;tender_cache_minage = 15
@@ -318,6 +319,49 @@ tender_api_version = 2.3
 ```
 
 
+**tender_api_key** - ключ доступу до openprocurement.api, при доступі до public точки зазвичай пустий, для відладки запитів можна вказувати і'мя сервісу.
+
+**tender_api_url** - URL до openprocurement.api, тільки `protocol://host` без шляху
+
+**tender_api_version** - версія API, якщо не знаєте вкажіть 0
+
+**tender_api_mode** - бажаний список тендерів, можливі значення:
+
+ * (пусто) - тендери без `mode:test`
+ * `__all__` - всі тендери разом (test + not_test)
+ * `test` - тільки тестові тендери
+
+**tender_skip_until** - не індексувати тендери, зміни в яких відбулсь до цієї дати, формат ISO 8601
+
+**tender_user_agent** - User-Agent в HTTP запитах до openprocurement.api, корисно для пошуку лог-файлах і відладки запитів
+
+**tender_fast_client** - включити режим 2 курсорів при доступі до API, — перший курсор йде від найстаріших тендерів до нових, другий курсор починає від найновішого тендера і далі до нових, як тільки вони з'являться. В такому режимі при повній переіндексації нові тендери будуть з'являтись значно скоріше.
+
+**tender_decode_orgs** - розшифровувати назви організацій за кодом ЄДРПОУ
+
+**tender_file_cache** - зберігати тендери в файли на диску і використовувати їх при переіндексації (в параметрі треба вказати шлях) перед використанням перевірте наявність необхідної кількості вільних `inode` в файловій системі
+
+**tender_cache_allow** - які статуси тендерів дозволені для зберігання в файловому кеші
+
+**tender_cache_minage** - мінімальний вік тендера якйи дозволено зберігати в файловому кеші
+
+**tender_index_lang** - використовувати морфологію при пошуку по ключовому слову за вказанною мовою (english, russian, ukrainian)
+
+**tender_preload** - включити режим предзавантаження списку тендерів, це заменшує час доступу і кількість помилок при переіндексації
+
+**tender_limit** - розмір списку тендерів за один запит (дозволено до 1000)
+
+**tender_reindex** - два числа через кому, перше - період днів до переіндексації, друге - перший день тижня коли дозволена переіндексація
+
+Наприклад: tender_reindex=7,5 означає переіндексацію кожні 7 днів з початком переіндексації в п'ятницю.
+
+**tender_check** - перевіряти індекс за цими критеріями, два числа через кому, перше - мінімальна кількість документів в індексі, друге - максимальний вік документа в індексі (днів)
+
+Наприклад: tender_check=100000,2 означає що перевірку пройде індекс в якому більше 100 тис документів (тендерів) та вік самого молодого не більше 2 днів (48 годин)
+
+**tender_resethour** - година коли відбувається перез'єднання з openprocurement.api та автоматична перевірка наповнення індексу
+
+
 <a name="plan"></a>
 
 ### Індекс "Плани ProZorro"
@@ -328,9 +372,9 @@ tender_api_version = 2.3
 plan_api_key = ""
 plan_api_url = https://public.api.openprocurement.org
 plan_api_version = 2.3
-;plan_api_mode = _all_
+plan_api_mode = _all_
 ;plan_skip_until = 2016-01-01
-;plan_user_agent =
+;plan_user_agent = search-1
 ;plan_fast_client = 1
 ;plan_decode_orgs = 1
 ;plan_file_cache = /mnt/cache/plans
@@ -342,6 +386,10 @@ plan_api_version = 2.3
 ;plan_check = 500000,2
 ;plan_resethour = 23
 ```
+
+Налаштування аналогічно індексу "[Тендери ProZorro](#tender)"
+
+
 
 
 <a name="auction"></a>
@@ -368,6 +416,8 @@ auction_api_version = 2.4
 ;auction_check = 1,10
 ```
 
+Налаштування аналогічно індексу "[Тендери ProZorro](#tender)"
+
 
 <a name="auction2"></a>
 
@@ -383,7 +433,7 @@ auction2_api_url = http://public.api.ea2.openprocurement.org
 ;auction2_...
 ```
 
-Налаштування аналогічно індексу "Аукціони Prozorro.Sale"
+Налаштування аналогічно індексу "[Аукціони Prozorro.Sale](#auction)"
 
 
 <a name="common"></a>
@@ -394,19 +444,40 @@ auction2_api_url = http://public.api.ea2.openprocurement.org
 ;; search.ini
 ;; common settings
 ;; ===============
-;force_lower = 1
-;async_reindex = 1
-;ignore_errors = 1
-;check_on_start = 1
-;reindex_check = 1,1
-;number_of_shards = 6
-;index_parallel = 1
-;index_speed = 500
-;bulk_insert = 1
-;update_wait = 5
-;start_wait = 5
+force_lower = 1
+async_reindex = 1
+ignore_errors = 1
+check_on_start = 1
+number_of_shards = 6
+index_parallel = 1
+index_speed = 500
+bulk_insert = 1
+update_wait = 5
+start_wait = 5
 timeout = 30
 ```
+
+**force_lower** - примусово приводити до нижнього регістру в запитах по ID та ID_like
+
+**async_reindex** - дозволити переіндексацію в окремому процесі без зупинки поточної індексації
+
+**ignore_errors** - ігнорувати помилки при роботі з openprocurement.api та elasticsearch
+
+**check_on_start** - проводити перевірку всіх індексів на старті індексатора
+
+**number_of_shards** - кількість шардів для індексів за замовчуванням (крім orgs)
+
+**index_parallel** - дозволити паралельну перевірку повноти одразу декількох індексів, прискорює старт і вихід на робочий режим
+
+**index_speed** - обмежити індексування такою кількістю документів на секунду (додає sleep)
+
+**bulk_insert** - дозволити пакетне індексування за допомогою [Bulk API](https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-bulk.html)
+
+**update_wait** - пауза між двома циклами оновлення індексу (секунд)
+
+**start_wait** - пауза на старті індексатора (секунд)
+
+**timeout** - загальний таймаут на мережеві операції
 
 
 <a name="update_orgs"></a>
