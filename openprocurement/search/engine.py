@@ -6,6 +6,7 @@ from retrying import retry
 import simplejson as json
 
 from elasticsearch import Elasticsearch
+from elasticsearch.helpers import bulk
 from elasticsearch.client import IndicesClient
 from elasticsearch.exceptions import ElasticsearchException, NotFoundError
 
@@ -21,9 +22,11 @@ class SearchEngine(object):
     config = {
         'index_names': 'index_names',
         'elastic_host': 'localhost',
+        'elastic_timeout': 300,
         'slave_mode': None,
         'slave_wakeup': 600,
         'check_on_start': 1,
+        'bulk_insert': False,
         'update_wait': 5,
         'error_wait': 10,
         'start_wait': 1,
@@ -36,14 +39,20 @@ class SearchEngine(object):
         if config:
             self.config.update(config)
             self.config['update_wait'] = int(self.config['update_wait'])
+        self.config['elastic_timeout'] = int(self.config['elastic_timeout'])
         self.names_db = SharedFileDict(self.config.get('index_names'))
         self.elatic_host = self.config.get('elastic_host')
         if role and (role + '_elastic_host') in self.config:
             self.elatic_host = self.config[role + '_elastic_host']
-        self.elastic = Elasticsearch([self.elatic_host])
+        self.elastic = Elasticsearch([self.elatic_host],
+            request_timeout=self.config['elastic_timeout'],
+            retry_on_timeout=True,
+            max_retries=3)
         self.slave_mode = self.config.get('slave_mode') or None
         self.slave_wakeup = int(self.config['slave_wakeup'] or 600)
         self.debug = self.config.get('debug', False)
+        self.bulk_buffer = dict()
+        self.bulk_errors = False
         self.should_exit = False
 
     def init_search_map(self, search_map={}):
@@ -68,7 +77,10 @@ class SearchEngine(object):
 
     def start_in_subprocess(self):
         # create copy of elastic connection
-        self.elastic = Elasticsearch([self.elatic_host])
+        self.elastic = Elasticsearch([self.elatic_host],
+            request_timeout=self.config['elastic_timeout'],
+            retry_on_timeout=True,
+            max_retries=3)
         # we're not master anymore, clear inherited reindex_process
         for index in self.index_list:
             if getattr(index, 'reindex_process', None):
@@ -282,7 +294,12 @@ class IndexEngine(SearchEngine):
             return False
         return found['_version'] >= meta['version']
 
-    def index_item(self, index_name, item):
+    def index_item(self, index_name, item, ignore_bulk=False):
+        # bulk insert
+        if not ignore_bulk and self.config['bulk_insert']:
+            return self.bulk_index(index_name, item)
+
+        # signle insert
         meta = item['meta']
         retry_count = 0
         while True:
@@ -303,7 +320,45 @@ class IndexEngine(SearchEngine):
                 self.sleep(self.config['error_wait'])
                 if self.test_exists(index_name, meta):
                     return None
+
         return None
+
+    def bulk_index(self, index_name, item):
+        if index_name not in self.bulk_buffer:
+            self.bulk_buffer[index_name] = list()
+        items_list = self.bulk_buffer[index_name]
+        items_list.append(item)
+        if len(items_list) >= 500:
+            self.flush_bulk()
+        return True
+
+    def flush_bulk(self):
+        for index_name, items_list in self.bulk_buffer.items():
+            if len(items_list) < 50 or self.bulk_errors:
+                for item in items_list:
+                    if not self.test_exists(index_name, item['meta']):
+                        self.index_item(index_name, item, ignore_bulk=True)
+            else:
+                bulk_items = [{
+                    '_index': index_name,
+                    '_type': item['meta']['doc_type'],
+                    '_id': item['meta']['id'],
+                    '_version': item['meta']['version'],
+                    '_version_type': 'external',
+                    '_source': item['data']
+
+                } for item in items_list]
+                try:
+                    bulk_res = bulk(self.elastic, bulk_items, timeout=300, request_timeout=300)
+                    logger.debug("[%s] BULK result %s", index_name, bulk_res)
+                except ElasticsearchException as e:
+                    logger.error("[%s] Error BULK index %s: %s",
+                        index_name, type(e).__name__, str(e))
+                    self.bulk_errors = True
+                    return
+
+        self.bulk_buffer = dict()
+        self.bulk_errors = False
 
     def index_by_type(self, doc_type, item):
         for index in self.index_list:
@@ -395,6 +450,7 @@ class IndexEngine(SearchEngine):
                 if self.should_exit:
                     break
                 index.process(allow_reindex)
+                self.flush_bulk()
                 self.sleep(self.config['update_wait'])
 
         logger.info("Leave main loop")
