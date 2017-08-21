@@ -27,6 +27,16 @@ def restkit_error(e, client=None):
     return out
 
 
+def decode_config_values(config):
+    for key, value in config.items():
+        value = str(value).strip().lower()
+        if value in ("1", "true", "yes", "on"):
+            config[key] = 1
+        elif value in ("0", "false", "no", "off"):
+            config[key] = 0
+    return config
+
+
 class InfoFilter(logging.Filter):
     def filter(self, rec):
         return rec.levelno < logging.WARNING

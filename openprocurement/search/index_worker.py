@@ -11,6 +11,7 @@ from ConfigParser import ConfigParser
 
 from openprocurement.search import __version__
 from openprocurement.search.engine import IndexEngine, logger
+from openprocurement.search.utils import decode_config_values
 
 from openprocurement.search.source.orgs import OrgsSource
 from openprocurement.search.index.orgs import OrgsIndex
@@ -47,6 +48,7 @@ def main():
     parser = ConfigParser()
     parser.read(sys.argv[1])
     config = dict(parser.items('search_engine'))
+    config = decode_config_values(config)
 
     # disable slave mode if used custom_index_names
     if len(sys.argv) > 2:
@@ -60,7 +62,7 @@ def main():
     logger.info("Copyright (c) 2015-2016 Volodymyr Flonts <flyonts@gmail.com>")
 
     # try get exclusive lock to prevent second start
-    lock_filename = config.get('index_names', 'index_worker')+'.lock'
+    lock_filename = config.get('index_names', 'index_worker') + '.lock'
     lock_file = open(lock_filename, "w")
     try:
         fcntl.lockf(lock_file, fcntl.LOCK_EX + fcntl.LOCK_NB)
@@ -74,7 +76,6 @@ def main():
 
     signal.signal(signal.SIGTERM, sigterm_handler)
     # signal.signal(signal.SIGINT, sigterm_handler)
-
 
     try:
         global engine
