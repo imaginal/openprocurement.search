@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 from ConfigParser import ConfigParser
 
 from openprocurement.search.engine import IndexEngine
+from openprocurement.search.utils import decode_bool_values
 
 from openprocurement.search.source.tender import TenderSource
 from openprocurement.search.index.tender import TenderIndex
@@ -36,6 +37,7 @@ class SearchTester(object):
     def __init__(self, engine_config, search_config):
         self.engine_config = dict(engine_config)
         self.search_config = dict(search_config)
+        decode_bool_values(self.engine_config)
 
         if self.search_config['host'] == '0.0.0.0':
             self.search_config['host'] = '127.0.0.1'

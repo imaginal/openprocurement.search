@@ -27,7 +27,7 @@ def restkit_error(e, client=None):
     return out
 
 
-def decode_config_values(config):
+def decode_bool_values(config):
     for key, value in config.items():
         value = str(value).strip().lower()
         if value in ("1", "true", "yes", "on"):

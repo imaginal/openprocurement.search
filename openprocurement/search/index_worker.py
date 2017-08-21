@@ -11,7 +11,7 @@ from ConfigParser import ConfigParser
 
 from openprocurement.search import __version__
 from openprocurement.search.engine import IndexEngine, logger
-from openprocurement.search.utils import decode_config_values
+from openprocurement.search.utils import decode_bool_values
 
 from openprocurement.search.source.orgs import OrgsSource
 from openprocurement.search.index.orgs import OrgsIndex
@@ -48,7 +48,7 @@ def main():
     parser = ConfigParser()
     parser.read(sys.argv[1])
     config = dict(parser.items('search_engine'))
-    config = decode_config_values(config)
+    config = decode_bool_values(config)
 
     # disable slave mode if used custom_index_names
     if len(sys.argv) > 2:

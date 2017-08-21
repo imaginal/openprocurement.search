@@ -18,6 +18,7 @@ from openprocurement.search.source.tender import TenderSource
 from openprocurement.search.source.ocds import OcdsSource
 from openprocurement.search.source.plan import PlanSource
 from openprocurement.search.source.auction import AuctionSource
+from openprocurement.search.utils import decode_bool_values
 
 
 engine = type('engine', (), {})()
@@ -185,6 +186,7 @@ def main():
     parser = ConfigParser()
     parser.read(sys.argv[1])
     config = dict(parser.items('search_engine'))
+    config = decode_bool_values(config)
     uo_config = dict(parser.items('update_orgs'))
 
     if len(sys.argv) > 2:

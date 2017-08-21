@@ -25,6 +25,8 @@ from openprocurement.search.index.plan import PlanIndex
 from openprocurement.search.source.auction import AuctionSource, AuctionSource2
 from openprocurement.search.index.auction import AuctionIndex, AuctionIndex2
 
+from openprocurement.search.utils import decode_bool_values
+
 LOG_FORMAT = '%(asctime)s %(levelname)s %(message)s'
 
 logger = logging.getLogger(__name__)
@@ -99,7 +101,8 @@ def main():
         print("Not a config.file")
         sys.exit(1)
 
-    config = parser.items('search_engine')
+    config = dict(parser.items('search_engine'))
+    config = decode_bool_values(config)
     tester = IndexTester(config)
 
     log_level = logging.INFO

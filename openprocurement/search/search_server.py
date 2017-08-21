@@ -16,7 +16,7 @@ from openprocurement.search.index.plan import PlanIndex
 from openprocurement.search.index.orgs import OrgsIndex
 
 from openprocurement.search.engine import SearchEngine
-from openprocurement.search.utils import decode_config_values
+from openprocurement.search.utils import decode_bool_values
 
 # Flask config
 
@@ -35,7 +35,7 @@ for arg in sys.argv:
     if arg.endswith('.ini'):
         config_parser.read(arg)
 search_config = dict(config_parser.items('search_engine'))
-search_config = decode_config_values(search_config)
+search_config = decode_bool_values(search_config)
 
 # create engine
 
