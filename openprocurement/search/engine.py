@@ -338,7 +338,7 @@ class IndexEngine(SearchEngine):
 
     def flush_bulk(self):
         for index_name, items_list in self.bulk_buffer.items():
-            if len(items_list) < 50 or self.bulk_errors:
+            if len(items_list) < 100 or self.bulk_errors:
                 for item in items_list:
                     if not self.test_exists(index_name, item['meta']):
                         self.index_item(index_name, item, ignore_bulk=True)
