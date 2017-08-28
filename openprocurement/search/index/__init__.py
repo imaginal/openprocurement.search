@@ -261,6 +261,7 @@ class BaseIndex(object):
         while self.engine.heartbeat(self.source):
             info = {}
             items_list = self.source.items()
+            iter_count = 0
             if not items_list:
                 break
             for info in items_list:
@@ -275,13 +276,17 @@ class BaseIndex(object):
                         self.handle_error(e, sys.exc_info())
                 # update statistics
                 total_count += 1
+                iter_count += 1
                 # update heartbeat for long indexing
-                if total_count % INDEX_ITER == 0:
+                if iter_count >= INDEX_ITER:
                     self.engine.flush_bulk()
                     self.indexing_stat(
                         index_name, total_count, index_count,
-                        INDEX_ITER, info.get('dateModified', '-'))
-                    if not self.engine.heartbeat(self.source):
+                        iter_count, info.get('dateModified', '-'))
+                    iter_count = 0
+                # check for heartbeat also
+                if total_count % 5000 == 0:
+                    if not self.heartbeat(self.source):
                         break
 
             self.engine.flush_bulk()
@@ -289,9 +294,9 @@ class BaseIndex(object):
             if self.engine.should_exit:
                 return
             # break if nothing iterated
-            if total_count % INDEX_ITER != 0:
+            if iter_count:
                 self.indexing_stat(index_name, total_count, index_count,
-                    total_count % INDEX_ITER, info.get('dateModified', '-'))
+                    iter_count, info.get('dateModified', '-'))
             elif getattr(self.source, 'last_skipped', None):
                 last_skipped = self.source.last_skipped or ""
                 logger.info("[%s] Fetched %d, last_skipped %s",
