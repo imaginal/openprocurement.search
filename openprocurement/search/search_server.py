@@ -8,7 +8,7 @@ from ConfigParser import ConfigParser
 from flask import Flask, request, jsonify, abort
 from time import time
 
-from openprocurement.search import __version__
+from openprocurement.search.version import __version__
 from openprocurement.search.index.auction import AuctionIndex, AuctionIndex2
 from openprocurement.search.index.tender import TenderIndex
 from openprocurement.search.index.ocds import OcdsIndex

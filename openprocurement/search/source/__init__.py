@@ -6,7 +6,7 @@ import simplejson as json
 from time import sleep
 from munch import munchify
 from socket import setdefaulttimeout
-from openprocurement.search import __version__
+from openprocurement.search.version import __version__
 from openprocurement_client import client
 
 from logging import getLogger

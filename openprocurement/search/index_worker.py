@@ -9,7 +9,7 @@ import logging.config
 
 from ConfigParser import ConfigParser
 
-from openprocurement.search import __version__
+from openprocurement.search.version import __version__
 from openprocurement.search.engine import IndexEngine, logger
 from openprocurement.search.utils import decode_bool_values
 
