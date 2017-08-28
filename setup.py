@@ -28,7 +28,6 @@ setup(
         'Flask',
         'iso8601',
         'PyYAML',
-        'pkgutil',
         'requests',
         'retrying',
         'simplejson',
