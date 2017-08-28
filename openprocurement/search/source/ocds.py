@@ -77,6 +77,7 @@ class OcdsSource(BaseSource):
         return time() - self.last_reset_time
 
     def reset(self):
+        self.stat_resets += 1
         files = []
         ocds_minsize = int(self.config['ocds_minsize'])
         for name in listdir(self.config['ocds_dir']):

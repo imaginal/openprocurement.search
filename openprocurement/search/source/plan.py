@@ -84,6 +84,7 @@ class PlanSource(BaseSource):
     @retry(stop_max_attempt_number=5, wait_fixed=5000)
     def reset(self):
         logger.info("Reset plans, plan_skip_until=%s", self.config['plan_skip_until'])
+        self.stat_resets += 1
         if self.config['plan_decode_orgs']:
             self.orgs_db = OrgsDecoder(self.config)
         if self.config.get('timeout', None):
@@ -136,6 +137,7 @@ class PlanSource(BaseSource):
         if self.fast_client:
             try:
                 items = self.fast_client.get_tenders()
+                self.stat_queries += 1
                 if not len(items):
                     logger.debug("Preload fast 0 plans")
                     raise ValueError()
@@ -151,6 +153,7 @@ class PlanSource(BaseSource):
                 break
             try:
                 items = self.client.get_tenders()
+                self.stat_queries += 1
             except Exception as e:
                 retry_count += 1
                 logger.error("GET %s retry %d count %d error %s", self.client.prefix_path,
@@ -183,7 +186,9 @@ class PlanSource(BaseSource):
                 raise StopIteration()
             if self.skip_until > plan['dateModified']:
                 self.last_skipped = plan['dateModified']
+                self.stat_skipped += 1
                 continue
+            self.stat_fetched += 1
             yield self.patch_version(plan)
 
     def cache_allow(self, data):
@@ -224,4 +229,5 @@ class PlanSource(BaseSource):
             item['dateModified'] = plan['data']['dateModified']
             item = self.patch_version(item)
         plan['meta'] = item
+        self.stat_getitem += 1
         return self.patch_plan(plan)

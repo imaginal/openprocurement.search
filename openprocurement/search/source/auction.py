@@ -85,6 +85,7 @@ class AuctionSource(BaseSource):
     def reset(self):
         logger.info("Reset auctions, auction_skip_until=%s",
                     self.config['auction_skip_until'])
+        self.stat_resets += 1
         if self.config.get('timeout', None):
             setdefaulttimeout(float(self.config['timeout']))
         params = {}
@@ -121,6 +122,7 @@ class AuctionSource(BaseSource):
                 break
             try:
                 items = self.client.get_tenders()
+                self.stat_queries += 1
             except Exception as e:
                 retry_count += 1
                 logger.error("GET %s retry %d count %d error %s", self.client.prefix_path,
@@ -152,7 +154,9 @@ class AuctionSource(BaseSource):
                 raise StopIteration()
             if self.skip_until > auction['dateModified']:
                 self.last_skipped = auction['dateModified']
+                self.stat_skipped += 1
                 continue
+            self.stat_fetched += 1
             yield self.patch_version(auction)
 
     def cache_allow(self, data):
@@ -193,6 +197,7 @@ class AuctionSource(BaseSource):
             item['dateModified'] = auction['data']['dateModified']
             item = self.patch_version(item)
         auction['meta'] = item
+        self.stat_getitem += 1
         return self.patch_auction(auction)
 
 
@@ -244,6 +249,7 @@ class AuctionSource2(AuctionSource):
     def reset(self):
         logger.info("Reset auctions2, auction2_skip_until=%s",
                     self.config['auction2_skip_until'])
+        self.stat_resets += 1
         if self.config.get('timeout', None):
             setdefaulttimeout(float(self.config['timeout']))
         params = {}

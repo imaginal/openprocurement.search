@@ -97,6 +97,7 @@ class TenderSource(BaseSource):
     @retry(stop_max_attempt_number=5, wait_fixed=5000)
     def reset(self):
         logger.info("Reset tenders, tender_skip_until=%s", self.config['tender_skip_until'])
+        self.stat_resets += 1
         if self.config['tender_decode_orgs']:
             self.orgs_db = OrgsDecoder(self.config)
         if self.config.get('timeout', None):
@@ -147,6 +148,7 @@ class TenderSource(BaseSource):
         if self.fast_client:
             try:
                 items = self.fast_client.get_tenders()
+                self.stat_queries += 1
                 if not len(items):
                     logger.debug("Preload fast 0 tenders")
                     raise ValueError()
@@ -162,6 +164,7 @@ class TenderSource(BaseSource):
                 break
             try:
                 items = self.client.get_tenders()
+                self.stat_queries += 1
             except Exception as e:
                 retry_count += 1
                 logger.error("GET %s retry %d count %d error %s", self.client.prefix_path,
@@ -194,7 +197,9 @@ class TenderSource(BaseSource):
                 raise StopIteration()
             if self.skip_until > tender['dateModified']:
                 self.last_skipped = tender['dateModified']
+                self.stat_skipped += 1
                 continue
+            self.stat_fetched += 1
             yield self.patch_version(tender)
 
     def cache_allow(self, data):
@@ -235,4 +240,5 @@ class TenderSource(BaseSource):
             item['dateModified'] = tender['data']['dateModified']
             item = self.patch_version(item)
         tender['meta'] = item
+        self.stat_getitem += 1
         return self.patch_tender(tender)

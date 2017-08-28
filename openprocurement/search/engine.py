@@ -236,7 +236,6 @@ class SearchEngine(object):
 class IndexEngine(SearchEngine):
     """Indexer Engine
     """
-    BULK_LIMIT = 80
 
     def __init__(self, config={}, role='index'):
         super(IndexEngine, self).__init__(config, role)
@@ -336,13 +335,13 @@ class IndexEngine(SearchEngine):
             self.bulk_buffer[index_name] = list()
         items_list = self.bulk_buffer[index_name]
         items_list.append(item)
-        if len(items_list) >= 500:
+        if len(items_list) >= 200:
             self.flush_bulk()
         return True
 
     def flush_bulk(self):
         for index_name, items_list in self.bulk_buffer.items():
-            if len(items_list) < IndexEngine.BULK_LIMIT or self.bulk_errors:
+            if len(items_list) < 50 or self.bulk_errors:
                 for item in items_list:
                     if not self.test_exists(index_name, item['meta']):
                         self.index_item(index_name, item, ignore_bulk=True)
@@ -356,6 +355,10 @@ class IndexEngine(SearchEngine):
                     '_source': item['data']
 
                 } for item in items_list]
+                if len(set([i['_id'] for i in bulk_items])) < len(bulk_items):
+                    logger.warning('[%s] Same id twice, skip bulk_index', index_name)
+                    self.bulk_errors = True
+                    return
                 try:
                     bulk_res = bulk(self.elastic, bulk_items,
                         request_timeout=self.es_options['request_timeout'],

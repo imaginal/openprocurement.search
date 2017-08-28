@@ -24,6 +24,11 @@ class BaseSource:
     cache_hits = 0
     cache_miss = 0
     cache_puts = 0
+    stat_resets = 0
+    stat_queries = 0
+    stat_fetched = 0
+    stat_skipped = 0
+    stat_getitem = 0
 
     @property
     def doc_type(self):
@@ -39,6 +44,7 @@ class BaseSource:
         return []
 
     def get(self, item):
+        self.stat_getitem += 1
         return item
 
     def get_all(self, items):

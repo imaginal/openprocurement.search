@@ -10,9 +10,6 @@ from logging import getLogger
 
 logger = getLogger(__name__)
 
-SUFFIX_FORMAT = "%Y-%m-%d-%H%M%S"
-INDEX_ITER = 100
-
 
 class BaseIndex(object):
     """Search Index Interface
@@ -34,6 +31,9 @@ class BaseIndex(object):
     reindex_process = None
     next_index_name = None
     last_current_index = None
+    source_last_queries = 0
+
+    SUFFIX_FORMAT = "%Y-%m-%d-%H%M%S"
 
     def __init__(self, engine, source, config={}):
         assert(self.__index_name__)
@@ -49,7 +49,9 @@ class BaseIndex(object):
             self.config.get('reindex_check', ''))
         self.source = source
         self.engine = engine
-        self.engine.add_index(self)
+        engine.add_index(self)
+        engine.config.update(self.config)
+        engine.config.update(source.config)
         self.after_init()
 
     def __del__(self):
@@ -69,7 +71,7 @@ class BaseIndex(object):
     def index_created_time(name):
         prefix, suffix = name.rsplit('_', 1)
         try:
-            s_time = time.strptime(suffix, SUFFIX_FORMAT)
+            s_time = time.strptime(suffix, BaseIndex.SUFFIX_FORMAT)
             suffix = time.mktime(s_time)
         except:
             suffix = 0
@@ -154,7 +156,7 @@ class BaseIndex(object):
         if name:
             logger.info("Use already created index %s", name)
         else:
-            suffix = time.strftime(SUFFIX_FORMAT)
+            suffix = time.strftime(BaseIndex.SUFFIX_FORMAT)
             name = "{}_{}".format(index_key, suffix)
             self.create_index(name)
             self.engine.set_index(index_key_next, name)
@@ -260,8 +262,8 @@ class BaseIndex(object):
         # heartbeat return True in slave mode only if master fail
         while self.engine.heartbeat(self.source):
             info = {}
-            items_list = self.source.items()
             iter_count = 0
+            items_list = self.source.items()
             if not items_list:
                 break
             for info in items_list:
@@ -278,7 +280,7 @@ class BaseIndex(object):
                 total_count += 1
                 iter_count += 1
                 # update heartbeat for long indexing
-                if iter_count >= INDEX_ITER:
+                if iter_count >= 1000:
                     self.engine.flush_bulk()
                     self.indexing_stat(
                         index_name, total_count, index_count,
@@ -305,8 +307,16 @@ class BaseIndex(object):
                 break
             # break on each iteration if not in full reindex mode
             if not reindex and self.config['index_parallel']:
-                logger.debug("[%s] Swith loop", index_name)
-                return
+                logger.info("[%s] Switch queue (index_parallel)", index_name)
+                break
+
+        # print source statistics
+        if self.source.stat_queries - self.source_last_queries >= 100:
+            logger.info("[%s] Source %d resets, %d  queries, %d fetched, %d skipped, %d loaded",
+                        self.source.__doc_type__, self.source.stat_resets,
+                        self.source.stat_queries, self.source.stat_fetched,
+                        self.source.stat_skipped, self.source.stat_getitem)
+            self.source_last_queries = self.source.stat_queries
 
         return index_count
 
