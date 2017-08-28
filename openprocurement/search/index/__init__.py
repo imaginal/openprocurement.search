@@ -236,7 +236,7 @@ class BaseIndex(object):
     def index_source(self, index_name=None, reset=False, reindex=False):
         if self.engine.slave_mode:
             if not self.engine.heartbeat(self.source):
-                self.engine.sleep(1)
+                self.engine.sleep(5)
                 return
 
         if not index_name:
@@ -284,9 +284,9 @@ class BaseIndex(object):
                         index_name, total_count, index_count,
                         iter_count, info.get('dateModified', '-'))
                     iter_count = 0
-                # check for heartbeat also
+                # check for heartbeat in long term ops
                 if total_count % 5000 == 0:
-                    if not self.heartbeat(self.source):
+                    if not self.engine.heartbeat(self.source):
                         break
 
             self.engine.flush_bulk()

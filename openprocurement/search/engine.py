@@ -236,6 +236,8 @@ class SearchEngine(object):
 class IndexEngine(SearchEngine):
     """Indexer Engine
     """
+    BULK_LIMIT = 80
+
     def __init__(self, config={}, role='index'):
         super(IndexEngine, self).__init__(config, role)
         logger.info("Start with config:\n\t%s", self.dump_config())
@@ -340,7 +342,7 @@ class IndexEngine(SearchEngine):
 
     def flush_bulk(self):
         for index_name, items_list in self.bulk_buffer.items():
-            if len(items_list) < 100 or self.bulk_errors:
+            if len(items_list) < IndexEngine.BULK_LIMIT or self.bulk_errors:
                 for item in items_list:
                     if not self.test_exists(index_name, item['meta']):
                         self.index_item(index_name, item, ignore_bulk=True)
