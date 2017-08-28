@@ -34,8 +34,9 @@ engine = type('engine', (), {})()
 
 def sigterm_handler(signo, frame):
     logger.info("Signal received %d", signo)
-    engine.should_exit = True
-    engine.stop_childs()
+    if engine and hasattr(engine, 'stop_childs'):
+        engine.should_exit = True
+        engine.stop_childs()
     signal.alarm(3)
     # sys.exit(0)
 
@@ -104,8 +105,9 @@ def main():
     finally:
         lock_file.close()
         os.remove(lock_filename)
+        if engine and hasattr(engine, 'stop_childs'):
+            engine.stop_childs()
         logger.info("Shutdown")
-        engine.stop_childs()
 
     return 0
 
