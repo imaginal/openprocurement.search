@@ -34,7 +34,9 @@ class SearchEngine(object):
     es_options = {
         'max_retries': 3,
         'retry_on_timeout': True,
-        'sniff_on_start': True,
+        # 'sniff_on_start': True,
+        # 'sniff_on_connection_fail': True,
+        # 'sniffer_timeout': 300,
         'request_timeout': 300,
         'timeout': 300,
     }
