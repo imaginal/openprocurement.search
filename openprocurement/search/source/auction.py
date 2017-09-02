@@ -26,6 +26,7 @@ class AuctionSource(BaseSource):
         'auction_skip_until': None,
         'auction_limit': 1000,
         'auction_preload': 10000,
+        'auction_reseteach': 3,
         'auction_resethour': 23,
         'auction_user_agent': '',
         'auction_file_cache': '',
@@ -39,6 +40,7 @@ class AuctionSource(BaseSource):
             self.config.update(config)
         self.config['auction_limit'] = int(self.config['auction_limit'] or 100)
         self.config['auction_preload'] = int(self.config['auction_preload'] or 100)
+        self.config['auction_reseteach'] = int(self.config['auction_reseteach'] or 3)
         self.config['auction_resethour'] = int(self.config['auction_resethour'] or 0)
         self.client_user_agent += " (auctions) " + self.config['auction_user_agent']
         self.cache_setpath(self.config['auction_file_cache'], self.config['auction_api_url'],
@@ -77,6 +79,8 @@ class AuctionSource(BaseSource):
 
     def need_reset(self):
         if self.should_reset:
+            return True
+        if time() - self.last_reset_time > 3600 * int(self.config['auction_reseteach']):
             return True
         if time() - self.last_reset_time > 3600:
             return datetime.now().hour == int(self.config['auction_resethour'])
@@ -215,6 +219,7 @@ class AuctionSource2(AuctionSource):
         'auction2_skip_until': None,
         'auction2_limit': 1000,
         'auction2_preload': 10000,
+        'auction2_reseteach': 3,
         'auction2_resethour': 23,
         'auction2_user_agent': '',
         'auction2_file_cache': '',
@@ -229,6 +234,7 @@ class AuctionSource2(AuctionSource):
             self.config.update(config)
         self.config['auction2_limit'] = int(self.config['auction2_limit'] or 100)
         self.config['auction2_preload'] = int(self.config['auction2_preload'] or 100)
+        self.config['auction2_reseteach'] = int(self.config['auction2_reseteach'] or 3)
         self.config['auction2_resethour'] = int(self.config['auction2_resethour'] or 0)
         self.config['auction_preload'] = int(self.config['auction2_preload'] or 100)  # FIXME
         self.client_user_agent += " (auctions) " + self.config['auction2_user_agent']
@@ -241,6 +247,8 @@ class AuctionSource2(AuctionSource):
 
     def need_reset(self):
         if self.should_reset:
+            return True
+        if time() - self.last_reset_time > 3600 * int(self.config['auction2_reseteach']):
             return True
         if time() - self.last_reset_time > 3600:
             return datetime.now().hour == int(self.config['auction2_resethour'])

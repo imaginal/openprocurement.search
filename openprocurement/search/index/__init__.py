@@ -238,7 +238,7 @@ class BaseIndex(object):
     def index_source(self, index_name=None, reset=False, reindex=False):
         if self.engine.slave_mode:
             if not self.engine.heartbeat(self.source):
-                self.engine.sleep(5)
+                self.engine.sleep(10)
                 return
 
         if not index_name:
@@ -307,7 +307,7 @@ class BaseIndex(object):
                 break
             # break on each iteration if not in full reindex mode
             if not reindex and self.config['index_parallel']:
-                logger.info("[%s] Switch queue (index_parallel)", index_name)
+                logger.debug("[%s] Switch queue (index_parallel)", index_name)
                 break
 
         # print source statistics

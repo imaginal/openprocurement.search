@@ -26,6 +26,7 @@ class TenderSource(BaseSource):
         'tender_skip_until': None,
         'tender_limit': 1000,
         'tender_preload': 10000,
+        'tender_reseteach': 3,
         'tender_resethour': 22,
         'tender_decode_orgs': False,
         'tender_fast_client': False,
@@ -41,6 +42,7 @@ class TenderSource(BaseSource):
             self.config.update(config)
         self.config['tender_limit'] = int(self.config['tender_limit'] or 0) or 100
         self.config['tender_preload'] = int(self.config['tender_preload'] or 0) or 100
+        self.config['tender_reseteach'] = int(self.config['tender_reseteach'] or 3)
         self.config['tender_resethour'] = int(self.config['tender_resethour'] or 0)
         self.client_user_agent += " (tenders) " + self.config['tender_user_agent']
         self.cache_setpath(self.config['tender_file_cache'], self.config['tender_api_url'],
@@ -90,6 +92,8 @@ class TenderSource(BaseSource):
 
     def need_reset(self):
         if self.should_reset:
+            return True
+        if time() - self.last_reset_time > 3600 * int(self.config['tender_reseteach']):
             return True
         if time() - self.last_reset_time > 3600:
             return datetime.now().hour == int(self.config['tender_resethour'])

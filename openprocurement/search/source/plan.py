@@ -27,6 +27,7 @@ class PlanSource(BaseSource):
         'plan_skip_until': None,
         'plan_limit': 1000,
         'plan_preload': 10000,
+        'plan_reseteach': 3,
         'plan_resethour': 23,
         'plan_decode_orgs': False,
         'plan_fast_client': False,
@@ -41,6 +42,7 @@ class PlanSource(BaseSource):
             self.config.update(config)
         self.config['plan_limit'] = int(self.config['plan_limit'] or 0) or 100
         self.config['plan_preload'] = int(self.config['plan_preload'] or 0) or 100
+        self.config['plan_reseteach'] = int(self.config['plan_reseteach'] or 3)
         self.config['plan_resethour'] = int(self.config['plan_resethour'] or 0)
         self.client_user_agent += " (plans) " + self.config['plan_user_agent']
         self.cache_setpath(self.config['plan_file_cache'], self.config['plan_api_url'],
@@ -77,6 +79,8 @@ class PlanSource(BaseSource):
 
     def need_reset(self):
         if self.should_reset:
+            return True
+        if time() - self.last_reset_time > 3600 * int(self.config['plan_reseteach']):
             return True
         if time() - self.last_reset_time > 3600:
             return datetime.now().hour == int(self.config['plan_resethour'])
