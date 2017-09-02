@@ -430,7 +430,7 @@ class IndexEngine(SearchEngine):
                 if retry_count > 30:
                     raise e
                 retry_count += 1
-                logger.error(u"Failed get elastic info: %s", unicode(e))
+                logger.error(u"Failed get elastic info: %s", str(e))
                 self.sleep(self.config['error_wait'])
             if self.should_exit:
                 return
@@ -464,6 +464,7 @@ class IndexEngine(SearchEngine):
                     break
                 index.process(allow_reindex)
                 self.flush_bulk()
-                self.sleep(self.config['update_wait'])
+
+            self.sleep(self.config['update_wait'])
 
         logger.info("Leave main loop")
