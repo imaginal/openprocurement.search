@@ -312,7 +312,7 @@ class BaseIndex(object):
 
         # print source statistics
         if self.source.stat_queries - self.source_last_queries >= 100:
-            logger.info("[%s/%s] Source %d resets, %d  queries, %d fetched, %d skipped, %d loaded",
+            logger.info("[%s:%s] Source %d resets, %d queries, %d fetched, %d skipped, %d loaded",
                         self.__index_name__, self.source.__doc_type__, self.source.stat_resets,
                         self.source.stat_queries, self.source.stat_fetched,
                         self.source.stat_skipped, self.source.stat_getitem)
