@@ -32,7 +32,7 @@ class AssetIndex(BaseIndex):
         return True
 
     def create_index(self, name):
-        common = 'settings/common_asset.json'
+        common = 'settings/common.json'
         tender = 'settings/asset.json'
         lang_list = self.config.get('asset_index_lang', '').split(',')
         self.create_tender_index(name, common, tender, lang_list)
