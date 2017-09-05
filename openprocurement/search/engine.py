@@ -334,9 +334,9 @@ class IndexEngine(SearchEngine):
         if index_name not in self.bulk_buffer:
             self.bulk_buffer[index_name] = list()
         items_list = self.bulk_buffer[index_name]
-        items_list.append(item)
-        if len(items_list) >= 200:
+        if len(items_list) >= 100:
             self.flush_bulk()
+        items_list.append(item)
         return True
 
     def flush_bulk(self):
@@ -352,15 +352,15 @@ class IndexEngine(SearchEngine):
                         logger.warning("[%s] BULK already exists %s",
                             index_name, str(item['meta']))
                         continue
-                    _id = item['meta']['id']
-                    if _id in bulk_dict:
-                        v1 = bulk_dict[_id]['_version']
+                    item_id = item['meta']['id']
+                    if item_id in bulk_dict:
+                        v1 = bulk_dict[item_id]['_version']
                         v2 = item['meta']['version']
                         logger.warning("[%s] BULK same id twice %s v1=%ld v2=%ld",
-                            index_name, _id, v1, v2)
+                            index_name, item_id, v1, v2)
                         if v1 > v2:
                             continue
-                    bulk_dict[_id] = {
+                    bulk_dict[item_id] = {
                         '_index': index_name,
                         '_type': item['meta']['doc_type'],
                         '_id': item['meta']['id'],
@@ -370,7 +370,7 @@ class IndexEngine(SearchEngine):
 
                     }
                 try:
-                    bulk_res = bulk(self.elastic, bulk_dict.items(),
+                    bulk_res = bulk(self.elastic, bulk_dict.values(),
                         request_timeout=self.es_options['request_timeout'],
                         timeout=self.es_options['timeout'])
                     logger.debug("[%s] BULK result %s", index_name, bulk_res)
