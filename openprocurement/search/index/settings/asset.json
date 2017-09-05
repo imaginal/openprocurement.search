@@ -219,7 +219,7 @@
         "owner": {
           "analyzer": "whitespace_lower",
           "type": "string",
-          "include_in_all": true
+          "include_in_all": false
         },
         "quantity": {
           "type": "long",
