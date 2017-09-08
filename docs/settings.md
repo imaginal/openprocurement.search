@@ -494,18 +494,19 @@ auction2_api_url = http://public.api.ea2.openprocurement.org
 ;; search.ini
 ;; common settings
 ;; ===============
-force_lower = 1
-async_reindex = 1
-ignore_errors = 1
-check_on_start = 1
+force_lower = yes
+async_reindex = no
+ignore_errors = no
+check_on_start = yes
 number_of_shards = 6
-index_parallel = 1
-index_speed = 500
-bulk_insert = 1
+index_parallel = yes
+index_speed = 1000
+bulk_insert = no
 update_wait = 5
 start_wait = 5
 timeout = 30
 ```
+
 
 `force_lower` - примусово приводити до нижнього регістру в запитах по ID та ID_like
 
@@ -533,6 +534,47 @@ elasticsearch
 `start_wait` - пауза на старті індексатора (секунд)
 
 `timeout` - загальний таймаут на мережеві операції
+
+
+**Рекомендовані значення для індексів менше 100,000 документів**
+
+```ini
+force_lower = yes
+async_reindex = no
+ignore_errors = no
+check_on_start = yes
+number_of_shards = 2
+index_parallel = no
+index_speed = 500
+bulk_insert = no
+update_wait = 10
+start_wait = 10
+timeout = 30
+```
+
+
+**Рекомендовані значення для індексів більше 100,000 документів**
+
+```ini
+force_lower = yes
+async_reindex = yes
+ignore_errors = no
+check_on_start = yes
+number_of_shards = 6
+index_parallel = yes
+index_speed = 5000
+bulk_insert = yes
+update_wait = 5
+start_wait = 5
+timeout = 30
+```
+
+
+**Для пісочниць дозволяється**
+
+```ini
+ignore_errors = yes
+```
 
 
 <a name="update_orgs"></a>
