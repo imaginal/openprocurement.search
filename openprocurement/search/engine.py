@@ -343,7 +343,8 @@ class IndexEngine(SearchEngine):
         for index_name, items_list in self.bulk_buffer.items():
             if len(items_list) < 50 or self.bulk_errors:
                 for item in items_list:
-                    self.index_item(index_name, item, ignore_bulk=True)
+                    if not self.test_exists(index_name, item['meta']):
+                        self.index_item(index_name, item, ignore_bulk=True)
             else:
                 bulk_dict = {}
                 for item in items_list:
