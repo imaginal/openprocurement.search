@@ -340,14 +340,14 @@ class BaseIndex(object):
         if not self.reindex_process or self.reindex_process.is_alive():
             return
         if self.reindex_process.exitcode == self.magic_exit_code:
-            logger.info("Reindex-%s subprocess success, reset source",
-                self.__index_name__)
+            logger.info("Reindex-%s subprocess pid %s success, reset source",
+                self.__index_name__, str(self.reindex_process.pid))
             if self.next_index_name:
                 self.set_current(self.next_index_name)
                 self.next_index_name = None
             self.source.reset()
         else:
-            logger.error("Reindex-%s [%s] subprocess fail, exitcode = %d",
+            logger.error("Reindex-%s subprocess pid %s fail, exitcode = %d",
                 self.__index_name__,
                 str(self.reindex_process.pid),
                 self.reindex_process.exitcode)
@@ -425,8 +425,8 @@ class BaseIndex(object):
             self.set_current('')
 
     def async_reindex(self):
-        logger.info("*** Start Reindex-%s in subprocess",
-            self.__index_name__)
+        logger.info("*** Start Reindex-%s in subprocess", self.__index_name__)
+
         # reconnect elatic and prevent future stop_childs
         self.engine.start_in_subprocess()
 
@@ -435,12 +435,13 @@ class BaseIndex(object):
         self.engine.flush()
 
         if self.check_index(self.next_index_name, wait=5):
+            logger.info("*** Exit subprocess (success)")
             exit_code = self.magic_exit_code
         else:
+            logger.info("*** Exit subprocess (with errors)")
             exit_code = 1
 
         # exit with specific code to signal master process reset source
-        logger.info("*** Exit subprocess")
         sys.exit(exit_code)
 
     def reindex(self):
