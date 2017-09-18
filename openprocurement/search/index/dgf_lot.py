@@ -3,17 +3,17 @@ from datetime import datetime
 from openprocurement.search.index import BaseIndex
 
 
-class AssetIndex(BaseIndex):
-    """OpenProcurement Asset Index
+class DgfLotIndex(BaseIndex):
+    """OpenProcurement DGF Lots Index
     """
-    __index_name__ = 'assets'
+    __index_name__ = 'lots'
 
     allow_async_reindex = True
 
     def after_init(self):
         self.set_reindex_options(
-            self.config.get('asset_reindex', '5,6'),
-            self.config.get('asset_check', '1,1'))
+            self.config.get('lot_reindex', '5,6'),
+            self.config.get('lot_check', '1,1'))
 
     def need_reindex(self):
         if not self.current_index:
@@ -33,6 +33,6 @@ class AssetIndex(BaseIndex):
 
     def create_index(self, name):
         common = 'settings/common_asset.json'
-        assets = 'settings/asset.json'
-        lang_list = self.config.get('asset_index_lang', '').split(',')
-        self.create_tender_index(name, common, assets, lang_list)
+        dgflot = 'settings/dgf_lot.json'
+        lang_list = self.config.get('lot_index_lang', '').split(',')
+        self.create_tender_index(name, common, dgflot, lang_list)

@@ -1,0 +1,165 @@
+{
+  "mappings": {
+    "lot": {
+      "include_in_all": false,
+      "properties": {
+        "assets": {
+          "include_in_all": false,
+          "index": "no",
+          "type": "string"
+        },
+        "auctions": {
+          "include_in_all": false,
+          "index": "no",
+          "type": "string"
+        },
+        "date": {
+          "format": "dateOptionalTime",
+          "include_in_all": false,
+          "type": "date"
+        },
+        "dateModified": {
+          "format": "dateOptionalTime",
+          "include_in_all": false,
+          "type": "date"
+        },
+        "description": {
+          "include_in_all": true,
+          "type": "string"
+        },
+        "description_en": {
+          "include_in_all": true,
+          "type": "string"
+        },
+        "description_ru": {
+          "include_in_all": true,
+          "type": "string"
+        },
+        "id": {
+          "analyzer": "whitespace_lower",
+          "include_in_all": false,
+          "type": "string"
+        },
+        "lotCustodian": {
+          "include_in_all": false,
+          "properties": {
+            "address": {
+              "include_in_all": false,
+              "properties": {
+                "countryName": {
+                  "analyzer": "whitespace_lower",
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "countryName_en": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "countryName_ru": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "locality": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "postalCode": {
+                  "analyzer": "postalcode",
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "region": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "streetAddress": {
+                  "include_in_all": true,
+                  "type": "string"
+                }
+              }
+            },
+            "contactPoint": {
+              "include_in_all": true,
+              "properties": {
+                "email": {
+                  "analyzer": "whitespace_lower",
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "faxNumber": {
+                  "analyzer": "telephone",
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "name": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "telephone": {
+                  "analyzer": "telephone",
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "url": {
+                  "include_in_all": true,
+                  "type": "string"
+                }
+              }
+            },
+            "identifier": {
+              "include_in_all": false,
+              "properties": {
+                "id": {
+                  "analyzer": "whitespace_lower",
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "legalName": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "scheme": {
+                  "analyzer": "whitespace_lower",
+                  "include_in_all": false,
+                  "type": "string"
+                },
+                "uri": {
+                  "include_in_all": false,
+                  "type": "string"
+                }
+              }
+            },
+            "name": {
+              "include_in_all": true,
+              "type": "string"
+            }
+          }
+        },
+        "lotID": {
+          "analyzer": "whitespace_lower",
+          "include_in_all": true,
+          "type": "string"
+        },
+        "lotType": {
+          "analyzer": "whitespace_lower",
+          "include_in_all": true,
+          "type": "string"
+        },
+        "owner": {
+          "include_in_all": false,
+          "type": "string"
+        },
+        "status": {
+          "analyzer": "whitespace_lower",
+          "include_in_all": true,
+          "type": "string"
+        },
+        "title": {
+          "include_in_all": true,
+          "type": "string"
+        }
+      }
+    }
+  },
+  "settings": {}
+}

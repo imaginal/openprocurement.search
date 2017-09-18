@@ -31,6 +31,9 @@ from openprocurement.search.index.auction import AuctionIndex, AuctionIndex2
 from openprocurement.search.source.asset import AssetSource
 from openprocurement.search.index.asset import AssetIndex
 
+from openprocurement.search.source.dgf_lot import DgfLotSource
+from openprocurement.search.index.dgf_lot import DgfLotIndex
+
 
 engine = type('engine', (), {})()
 
@@ -105,6 +108,9 @@ def main():
         if config.get('asset_api_url', None):
             source = AssetSource(config)
             AssetIndex(engine, source, config)
+        if config.get('lot_api_url', None):
+            source = DgfLotSource(config)
+            DgfLotIndex(engine, source, config)
         engine.run()
     except Exception as e:
         logger.exception("Unhandled Exception: %s", str(e))

@@ -10,6 +10,7 @@ from time import time
 
 from openprocurement.search.version import __version__
 from openprocurement.search.index.asset import AssetIndex
+from openprocurement.search.index.dgf_lot import DgfLotIndex
 from openprocurement.search.index.auction import AuctionIndex, AuctionIndex2
 from openprocurement.search.index.tender import TenderIndex
 from openprocurement.search.index.ocds import OcdsIndex
@@ -42,6 +43,7 @@ search_config = decode_bool_values(search_config)
 
 search_engine = SearchEngine(search_config, role='search')
 search_engine.init_search_map({
+    'lots': [DgfLotIndex],
     'assets': [AssetIndex],
     'auctions': [AuctionIndex],
     'auctions2': [AuctionIndex2],
@@ -57,6 +59,7 @@ prefix_map = {
     'asid_like': 'assetID',
     'aid_like': 'auctionID',
     'dgf_like': 'dgfID',
+    'lid_like': 'lotID',
     'tid_like': 'tenderID',
     'pid_like': 'planID',
     'cav_like': 'items.classification.id',
@@ -73,6 +76,7 @@ match_map = {
     'asid': 'assetID',
     'aid': 'auctionID',
     'dgf': 'dgfID',
+    'lid': 'lotID',
     'tid': 'tenderID',
     'pid': 'planID',
     'cav': 'items.classification.id',
@@ -83,11 +87,13 @@ match_map = {
     'asset_cpvs': 'additionalClassifications.id',
     'plan_cpv': 'classification.id',
     'plan_dkpp': 'additionalClassifications.id',
-    'custodian_edrpou': 'assetCustodian.identifier.id',
+    'asset_edrpou': 'assetCustodian.identifier.id',
+    'lot_edrpou': 'lotCustodian.identifier.id',
     'edrpou': 'procuringEntity.identifier.id',
     'procedure': 'procurementMethod',
     'proc_type': 'procurementMethodType',
     'asset_type': 'assetType',
+    'lot_type': 'lotType',
     'tender_procedure': 'tender.procurementMethod',
     'tender_proc_type': 'tender.procurementMethodType',
     'plan_procedure': 'tender.procurementMethod',
@@ -98,7 +104,8 @@ match_map = {
 range_map = {
     'region': 'procuringEntity.address.postalCode',
     'address_region': 'address.postalCode',
-    'custodian_region': 'assetCustodian.address.postalCode',
+    'asset_region': 'assetCustodian.address.postalCode',
+    'lot_region': 'lotCustodian.address.postalCode',
     'item_region': 'items.address.postalCode',
     'item_square': 'items.quantity_MTK',
     'value': 'value.amount',
@@ -365,6 +372,23 @@ def search_assets():
         res = search_engine.search(body, start, limit, index_set='assets')
     except Exception as e:
         search_server.logger.exception("Error in assets {}".format(e))
+        res = {"error": "{}: {}".format(type(e).__name__, e)}
+    if search_server.debug:
+        res['body'] = body
+    return jsonify(res)
+
+
+@search_server.route('/lots')
+def search_lots():
+    try:
+        args = request.args
+        body = prepare_search_body(args, default_sort='date')
+        start = int(args.get('start') or 0)
+        limit = int(args.get('limit') or 10)
+        limit = min(max(1, limit), 100)
+        res = search_engine.search(body, start, limit, index_set='lots')
+    except Exception as e:
+        search_server.logger.exception("Error in lots {}".format(e))
         res = {"error": "{}: {}".format(type(e).__name__, e)}
     if search_server.debug:
         res['body'] = body

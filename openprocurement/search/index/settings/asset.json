@@ -86,7 +86,7 @@
               }
             },
             "contactPoint": {
-              "include_in_all": false,
+              "include_in_all": true,
               "properties": {
                 "email": {
                   "analyzer": "whitespace_lower",
@@ -162,14 +162,14 @@
           }
         },
         "assetID": {
-          "type": "string",
           "analyzer": "whitespace_lower",
-          "include_in_all": true
+          "include_in_all": true,
+          "type": "string"
         },
         "assetType": {
           "analyzer": "whitespace_lower",
-          "type": "string",
-          "include_in_all": true
+          "include_in_all": true,
+          "type": "string"
         },
         "classification": {
           "include_in_all": false,
@@ -190,50 +190,50 @@
           }
         },
         "date": {
-          "type": "date",
           "format": "dateOptionalTime",
-          "include_in_all": false
+          "include_in_all": false,
+          "type": "date"
         },
         "dateModified": {
-          "type": "date",
           "format": "dateOptionalTime",
-          "include_in_all": false
+          "include_in_all": false,
+          "type": "date"
         },
         "description": {
-          "type": "string",
-          "include_in_all": true
+          "include_in_all": true,
+          "type": "string"
         },
         "description_en": {
-          "type": "string",
-          "include_in_all": true
+          "include_in_all": true,
+          "type": "string"
         },
         "description_ru": {
-          "type": "string",
-          "include_in_all": true
+          "include_in_all": true,
+          "type": "string"
         },
         "id": {
-          "type": "string",
           "analyzer": "whitespace_lower",
-          "include_in_all": true
+          "include_in_all": true,
+          "type": "string"
         },
         "owner": {
           "analyzer": "whitespace_lower",
-          "type": "string",
-          "include_in_all": false
+          "include_in_all": false,
+          "type": "string"
         },
         "quantity": {
-          "type": "long",
-          "include_in_all": false
+          "include_in_all": false,
+          "type": "long"
         },
         "relatedLot": {
+          "include_in_all": false,
           "index": "no",
-          "type": "string",
-          "include_in_all": false
+          "type": "string"
         },
         "status": {
           "analyzer": "whitespace_lower",
-          "type": "string",
-          "include_in_all": false
+          "include_in_all": false,
+          "type": "string"
         },
         "title": {
           "include_in_all": true,
@@ -272,7 +272,5 @@
       }
     }
   },
-  "settings": {
-
-  }
+  "settings": {}
 }
