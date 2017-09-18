@@ -68,8 +68,8 @@ prefix_map = {
     'cpvs_like': 'items.additionalClassifications.id',
     'plan_cpv_like': 'classification.id',
     'plan_dkpp_like': 'additionalClassifications.id',
-    'asset_cpv_like': 'classification.id',
-    'asset_cpvs_lile': 'additionalClassifications.id',
+    'asset_cav_like': 'classification.id',
+    'asset_cpvs_like': 'additionalClassifications.id',
 }
 match_map = {
     'id': 'id',
@@ -83,7 +83,7 @@ match_map = {
     'cpv': 'items.classification.id',
     'dkpp': 'items.additionalClassifications.id',
     'cpvs': 'items.additionalClassifications.id',
-    'asset_cpv': 'classification.id',
+    'asset_cav': 'classification.id',
     'asset_cpvs': 'additionalClassifications.id',
     'plan_cpv': 'classification.id',
     'plan_dkpp': 'additionalClassifications.id',
@@ -99,6 +99,7 @@ match_map = {
     'plan_procedure': 'tender.procurementMethod',
     'plan_proc_type': 'tender.procurementMethodType',
     'award_criteria': 'awardCriteria',
+    'unit_code': 'unit.code',
     'status': 'status',
 }
 range_map = {
@@ -110,6 +111,7 @@ range_map = {
     'item_square': 'items.quantity_MTK',
     'value': 'value.amount',
     'budget': 'budget.amount',
+    'quantity': 'quantity',
 }
 dates_map = {
     # auctions may not set endDate, use only startDate
