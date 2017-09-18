@@ -380,6 +380,15 @@ class IndexEngine(SearchEngine):
                     index.index_source()
             break
 
+    def flush_queue(self):
+        for index in self.index_list:
+            if getattr(index.source, 'queue', None):
+                index.process()
+
+    def flush(self):
+        self.flush_queue()
+        self.flush_bulk()
+
     def heartbeat(self, source=None):
         """
         In master mode update timestamp and return true

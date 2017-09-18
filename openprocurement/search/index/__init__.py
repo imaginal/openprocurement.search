@@ -291,7 +291,7 @@ class BaseIndex(object):
                     if not self.engine.heartbeat(self.source):
                         break
 
-            self.engine.flush_bulk()
+            self.engine.flush()
 
             if self.engine.should_exit:
                 return
@@ -347,14 +347,19 @@ class BaseIndex(object):
                 self.next_index_name = None
             self.source.reset()
         else:
-            logger.error("Reindex-%s subprocess fail, exitcode = %d",
-                self.__index_name__, self.reindex_process.exitcode)
+            logger.error("Reindex-%s [%s] subprocess fail, exitcode = %d",
+                self.__index_name__,
+                str(self.reindex_process.pid),
+                self.reindex_process.exitcode)
         # close process
         self.reindex_process = None
 
-    def check_index(self, index_name):
+    def check_index(self, index_name, wait=0):
         if not index_name or self.engine.should_exit:
             return False
+
+        if wait:
+            self.engine.sleep(wait)
 
         # check index mappings by check _all field
         if self.check_all_field:
@@ -385,7 +390,8 @@ class BaseIndex(object):
         }
         try:
             res = self.engine.search(body, start=0, limit=1, index=index_name)
-        except:
+        except Exception as e:
+            logger.error("[%s] match_all error %s", index_name, str(e))
             res = None
         if not res or not res.get('items'):
             logger.error("[%s] Check failed: empty or corrupted index", index_name)
@@ -426,7 +432,9 @@ class BaseIndex(object):
 
         self.index_source(self.next_index_name, reset=True, reindex=True)
 
-        if self.check_index(self.next_index_name):
+        self.engine.flush()
+
+        if self.check_index(self.next_index_name, wait=5):
             exit_code = self.magic_exit_code
         else:
             exit_code = 1
