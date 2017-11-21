@@ -55,7 +55,7 @@
               "properties": {
                 "countryName": {
                   "analyzer": "whitespace_lower",
-                  "include_in_all": true,
+                  "include_in_all": false,
                   "type": "string"
                 },
                 "countryName_en": {
@@ -67,20 +67,20 @@
                   "type": "string"
                 },
                 "locality": {
-                  "include_in_all": true,
+                  "include_in_all": false,
                   "type": "string"
                 },
                 "postalCode": {
                   "analyzer": "postalcode",
-                  "include_in_all": true,
+                  "include_in_all": false,
                   "type": "string"
                 },
                 "region": {
-                  "include_in_all": true,
+                  "include_in_all": false,
                   "type": "string"
                 },
                 "streetAddress": {
-                  "include_in_all": true,
+                  "include_in_all": false,
                   "type": "string"
                 }
               }
