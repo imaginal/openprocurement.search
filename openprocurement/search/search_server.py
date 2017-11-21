@@ -23,6 +23,7 @@ from openprocurement.search.utils import decode_bool_values
 # Flask config
 
 JSONIFY_PRETTYPRINT_REGULAR = False
+MAX_SEARCH_ARGS = 12
 NAME = 'noname'
 
 # create Flask app
@@ -236,6 +237,9 @@ def append_dates_query(body, query, args):
 def prepare_search_body(args, default_sort='dateModified'):
     force_lower = int(search_config.get('force_lower', 1))
     body = list()
+
+    if len(args) > MAX_SEARCH_ARGS:
+        raise ValueError('Too many argumets')
 
     # hierarchical classifiers
     for key in prefix_map.keys():
