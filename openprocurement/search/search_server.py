@@ -157,33 +157,43 @@ auction_map_fields = [
     'address',
     'auctionID',
     'auctionPeriod',
+    'description',
     'id',
     'items',
     'procuringEntity',
     'title',
     'value',
 ]
+short_auction_map_fields = [
+    'id',
+    'items.id'
+]
 
 
 # convert auction response to map items
 
-def convert_auction_map_items(in_items):
+def convert_auction_map_items(in_items, short=False):
     out_items = list()
 
     for auction in in_items:
         if 'items' not in auction:
             continue
         for item in auction['items']:
-            map_item = {
-                'id': '{}_{}'.format(auction['id'], item['id']),
-                'auctionID': auction.get('auctionID'),
-                'title': auction.get('title', ''),
-                # 'description': item.get('description', '') or auction.get('description', ''),
-                'auctionPeriodStartDate': auction.get('auctionPeriod', {}).get('startDate', None),
-                'procuringEntityName': auction.get('procuringEntity', {}).get('name', ''),
-                'address': item.get('address', None) or auction.get('address', None),
-                'value': item.get('value', None) or auction.get('value', None),
-            }
+            if short:
+                map_item = {
+                    'id': '{}_{}'.format(auction['id'], item['id']),
+                }
+            else:
+                map_item = {
+                    'id': '{}_{}'.format(auction['id'], item['id']),
+                    'auctionID': auction.get('auctionID'),
+                    'title': auction.get('title', ''),
+                    'description': item.get('description', '') or auction.get('description', ''),
+                    'auctionPeriodStartDate': auction.get('auctionPeriod', {}).get('startDate', None),
+                    'procuringEntityName': auction.get('procuringEntity', {}).get('name', ''),
+                    'address': item.get('address', None) or auction.get('address', None),
+                    'value': item.get('value', None) or auction.get('value', None),
+                }
             out_items.append(map_item)
 
     return out_items
@@ -408,7 +418,9 @@ def search_auctions():
 def search_auctions_map():
     try:
         args = request.args
-        body = prepare_search_body(args, default_sort='date', source_fields=auction_map_fields)
+        short = int(args.get('short') or 0)
+        fields = short_auction_map_fields if short else auction_map_fields
+        body = prepare_search_body(args, default_sort='date', source_fields=fields)
         start = int(args.get('start') or 0)
         limit = int(args.get('limit') or 100)
         limit = min(max(1, limit), 1000)
@@ -418,7 +430,7 @@ def search_auctions_map():
         if res and 'items' in res:
             items = res.pop('items')
             res['count'] = len(items)
-            res['items'] = convert_auction_map_items(items)
+            res['items'] = convert_auction_map_items(items, short)
     except Exception as e:
         search_server.logger.exception("Error in auctions.map {}".format(e))
         res = {"error": "{}: {}".format(type(e).__name__, e)}
