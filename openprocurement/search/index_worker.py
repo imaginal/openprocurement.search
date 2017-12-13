@@ -47,6 +47,28 @@ def sigterm_handler(signo, frame):
     # sys.exit(0)
 
 
+def chage_process_user_group(config):
+    from pwd import getpwuid, getpwnam
+    from grp import getgrgid, getgrnam
+    if config.get('user', ''):
+        uid = os.getuid()
+        newuid = getpwnam(config['user'])[2]
+        if uid != newuid:
+            if uid != 0:
+                logger.error("Can't change user not from root")
+                return
+            if config.get('group', ''):
+                newgid = getgrnam(config['group'])[2]
+                os.setgid(newgid)
+            os.setuid(newuid)
+    uid = os.getuid()
+    gid = os.getgid()
+    euid = os.geteuid()
+    egid = os.getegid()
+    logger.info("Process real user/group %d/%d %s/%s", uid, gid, getpwuid(uid)[0], getgrgid(gid)[0])
+    logger.info("Process effective user/group %d/%d %s/%s", euid, egid, getpwuid(euid)[0], getgrgid(egid)[0])
+
+
 def main():
     if len(sys.argv) < 2:
         print("Usage: index_worker etc/search.ini [custom_index_names_file]")
@@ -67,6 +89,11 @@ def main():
 
     logger.info("Starting ProZorro openprocurement.search.index_worker v%s", __version__)
     logger.info("Copyright (c) 2015-2016 Volodymyr Flonts <flyonts@gmail.com>")
+
+    try:
+        chage_process_user_group(config)
+    except Exception as e:
+        logger.error("Can't change process user: %s", str(e))
 
     # try get exclusive lock to prevent second start
     lock_filename = config.get('index_names', 'index_worker') + '.lock'
