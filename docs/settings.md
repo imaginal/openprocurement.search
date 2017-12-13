@@ -11,29 +11,12 @@
 
 Перелік файлів налаштувань
 
-* [gunicorn.conf](#gunicorn) - налаштування формату логу пошукових запитів
 * [circus.ini](#circus) -  налаштування менеджера процесів
 * [ftpsync.ini](#ftpsync) - налаштування FTP синхронізації OCDS файлів
+* [gunicorn.conf](#gunicorn) - налаштування формату логу пошукових запитів
 * [logrotate.conf](#logrotate) - правила ротації логів
 * [search.ini](#search) - основний файл налаштувань
 * [/etc/cron.d/search-tenders](#crontab) - періодичні операції
-
-
-<a name="gunicorn"></a>
-
-## gunicorn.conf
-
-Встановлює розміщення і формат лог файлу пошукових запитів, додає до стандартного
-формату час виконання кожного запиту
-
-```ini
-accesslog = '/var/log/search_access.log'
-access_log_format = '%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s" %(L)s'
-```
-
-Документація по [gunicorn settings](http://docs.gunicorn.org/en/stable/settings.html#access-log-format)
-
-Підключається в `circus.ini`
 
 
 <a name="circus"></a>
@@ -125,6 +108,24 @@ local_dir = /mnt/di2/ocds
 ; маска файлів що підпадають під синхронізацію
 filematch = ocds-tender-*.json
 ```
+
+
+<a name="gunicorn"></a>
+
+## gunicorn.conf
+
+Встановлює розміщення і формат лог файлу пошукових запитів, додає до стандартного
+формату час виконання кожного запиту
+
+```ini
+accesslog = '/var/log/search_access.log'
+access_log_format = '%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s" %(L)s'
+```
+
+Документація по [gunicorn settings](http://docs.gunicorn.org/en/stable/settings.html#access-log-format)
+
+Підключається в `circus.ini`
+
 
 <a name="logrotate"></a>
 
