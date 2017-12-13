@@ -11,7 +11,7 @@
 
 Перелік файлів налаштувань
 
-* [accesslog.conf](#accesslog) - налаштування формату логу пошукових запитів
+* [gunicorn.conf](#gunicorn) - налаштування формату логу пошукових запитів
 * [circus.ini](#circus) -  налаштування менеджера процесів
 * [ftpsync.ini](#ftpsync) - налаштування FTP синхронізації OCDS файлів
 * [logrotate.conf](#logrotate) - правила ротації логів
@@ -19,9 +19,9 @@
 * [/etc/cron.d/search-tenders](#crontab) - періодичні операції
 
 
-<a name="accesslog"></a>
+<a name="gunicorn"></a>
 
-## accesslog.conf
+## gunicorn.conf
 
 Встановлює розміщення і формат лог файлу пошукових запитів, додає до стандартного
 формату час виконання кожного запиту

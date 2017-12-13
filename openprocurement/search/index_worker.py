@@ -88,7 +88,7 @@ def main():
     logging.config.fileConfig(sys.argv[1])
 
     logger.info("Starting ProZorro openprocurement.search.index_worker v%s", __version__)
-    logger.info("Copyright (c) 2015-2016 Volodymyr Flonts <flyonts@gmail.com>")
+    logger.info("Copyright (c) 2015-2018 Volodymyr Flonts <flyonts@gmail.com>")
 
     try:
         chage_process_user_group(config)

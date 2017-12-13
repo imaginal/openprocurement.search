@@ -195,7 +195,7 @@ def main():
     logging.config.fileConfig(sys.argv[1])
 
     logger.info("Starting openprocurement.search.update_orgs v%s", __version__)
-    logger.info("Copyright (c) 2015-2016 Volodymyr Flonts <flyonts@gmail.com>")
+    logger.info("Copyright (c) 2015-2018 Volodymyr Flonts <flyonts@gmail.com>")
 
     # try get exclusive lock to prevent second start
     lock_filename = uo_config.get('pidfile') or 'update_orgs.pid'
