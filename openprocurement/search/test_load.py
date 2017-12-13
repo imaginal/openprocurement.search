@@ -127,7 +127,7 @@ def worker():
     query_rate = 1.0 * requests / total_time
 
     logger.info('Leaving process, %d requests, %d not found, %d errors, %1.1f r/s',
-                 requests, n_notfnd, n_errors, query_rate)
+                requests, n_notfnd, n_errors, query_rate)
 
 
 def load_json(filename):

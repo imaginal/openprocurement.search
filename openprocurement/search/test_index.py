@@ -2,10 +2,6 @@
 # -*- coding: utf-8 -*-
 import sys
 import logging
-import simplejson as json
-import urllib, urllib2
-from time import time, sleep
-from datetime import datetime, timedelta
 from ConfigParser import ConfigParser
 
 from openprocurement.search.engine import IndexEngine
@@ -25,6 +21,13 @@ from openprocurement.search.index.plan import PlanIndex
 from openprocurement.search.source.auction import AuctionSource, AuctionSource2
 from openprocurement.search.index.auction import AuctionIndex, AuctionIndex2
 
+from openprocurement.search.source.asset import AssetSource
+from openprocurement.search.index.asset import AssetIndex
+
+from openprocurement.search.source.dgf_lot import DgfLotSource
+from openprocurement.search.index.dgf_lot import DgfLotIndex
+
+
 from openprocurement.search.utils import decode_bool_values
 
 LOG_FORMAT = '%(asctime)s %(levelname)s %(message)s'
@@ -42,26 +45,42 @@ class IndexTester(object):
         if self.config.get('orgs_db', None):
             source = OrgsSource(self.config)
             OrgsIndex(self.engine, source, self.config)
+            logger.info("Add OrgsIndex")
 
         if self.config.get('tender_api_url', None):
             source = TenderSource(self.config)
             TenderIndex(self.engine, source, self.config)
+            logger.info("Add TenderIndex")
 
         if self.config.get('plan_api_url', None):
             source = PlanSource(self.config)
             PlanIndex(self.engine, source, self.config)
+            logger.info("Add PlanIndex")
 
         if self.config.get('ocds_dir', None):
             source = OcdsSource(self.config)
             OcdsIndex(self.engine, source, self.config)
+            logger.info("Add OcdsIndex")
 
         if self.config.get('auction_api_url', None):
             source = AuctionSource(self.config)
             AuctionIndex(self.engine, source, self.config)
+            logger.info("Add AuctionIndex")
 
         if self.config.get('auction2_api_url', None):
             source = AuctionSource2(self.config)
             AuctionIndex2(self.engine, source, self.config)
+            logger.info("Add AuctionIndex2")
+
+        if self.config.get('asset_api_url', None):
+            source = AssetSource(self.config)
+            AssetIndex(self.engine, source, self.config)
+            logger.info("Add AssetIndex")
+
+        if self.config.get('lot_api_url', None):
+            source = DgfLotSource(self.config)
+            DgfLotIndex(self.engine, source, self.config)
+            logger.info("Add DgfLotIndex")
 
     def test(self):
         self.init_engine()
@@ -123,6 +142,10 @@ def main():
         tester.config['auction2_api_url'] = None
     if '-ns' in sys.argv:
         tester.config['orgs_db'] = None
+    if '-nas' in sys.argv:
+        tester.config['asset_api_url'] = None
+    if '-nl' in sys.argv:
+        tester.config['lot_api_url'] = None
 
     logging.basicConfig(level=log_level, format=LOG_FORMAT)
 

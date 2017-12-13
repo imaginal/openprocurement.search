@@ -2,9 +2,8 @@
 # -*- coding: utf-8 -*-
 import sys
 import logging
+import urllib2
 import simplejson as json
-import urllib, urllib2
-from time import time, sleep
 from datetime import datetime, timedelta
 from ConfigParser import ConfigParser
 
@@ -19,6 +18,12 @@ from openprocurement.search.index.plan import PlanIndex
 
 from openprocurement.search.source.auction import AuctionSource, AuctionSource2
 from openprocurement.search.index.auction import AuctionIndex, AuctionIndex2
+
+from openprocurement.search.source.asset import AssetSource
+from openprocurement.search.index.asset import AssetIndex
+
+from openprocurement.search.source.dgf_lot import DgfLotSource
+from openprocurement.search.index.dgf_lot import DgfLotIndex
 
 
 LOG_FORMAT = '%(asctime)s %(levelname)s %(message)s'
@@ -189,12 +194,12 @@ class SearchTester(object):
                     skip_count += 1
                     continue
                 try:
-                    tender = source.get(meta)
-                    if index.test_noindex(tender):
+                    plan = source.get(meta)
+                    if index.test_noindex(plan):
                         continue
-                    if tender.data.dateModified > offset:
+                    if plan.data.dateModified > offset:
                         continue
-                    self.do_search('plans?pid=%(planID)s', tender.data)
+                    self.do_search('plans?pid=%(planID)s', plan.data)
                 except Exception as e:
                     if self.ignore:
                         logger.error("%s (ignored)", e)
@@ -260,12 +265,12 @@ class SearchTester(object):
                     skip_count += 1
                     continue
                 try:
-                    tender = source.get(meta)
-                    if index.test_noindex(tender):
+                    auction = source.get(meta)
+                    if index.test_noindex(auction):
                         continue
-                    if tender.data.dateModified > offset:
+                    if auction.data.dateModified > offset:
                         continue
-                    self.do_search('auctions?index=1&aid=%(auctionID)s', tender.data)
+                    self.do_search('auctions?index=1&aid=%(auctionID)s', auction.data)
                 except Exception as e:
                     if self.ignore:
                         logger.error("%s (ignored)", e)
@@ -331,12 +336,151 @@ class SearchTester(object):
                     skip_count += 1
                     continue
                 try:
-                    tender = source.get(meta)
-                    if index.test_noindex(tender):
+                    auction = source.get(meta)
+                    if index.test_noindex(auction):
                         continue
-                    if tender.data.dateModified > offset:
+                    if auction.data.dateModified > offset:
                         continue
-                    self.do_search('auctions?index=2&aid=%(auctionID)s', tender.data)
+                    self.do_search('auctions?index=2&aid=%(auctionID)s', auction.data)
+                except Exception as e:
+                    if self.ignore:
+                        logger.error("%s (ignored)", e)
+                        self.errors += 1
+                    else:
+                        raise
+                test_count += 1
+                skip_count = 0
+                if test_count >= test_limit:
+                    break
+            if not meta:
+                break
+
+        if test_count < 5:
+            raise RuntimeError("Not enough queries")
+
+    def test_assets(self):
+        # self.engine_config['asset_skip_until'] = ''
+        self.engine_config['asset_fast_client'] = False
+
+        source = AssetSource(self.engine_config)
+        AssetIndex(self.engine, source, self.engine_config)
+
+        offset = datetime.now() - timedelta(minutes=self.offset)
+        offset = offset.isoformat()
+
+        if self.full_test:
+            test_limit = 5000
+            skip_limit = 100
+            preload = 500000
+            limit = 1000
+        else:
+            test_limit = 5
+            skip_limit = 0
+            preload = 100
+            limit = 100
+
+        source.client_user_agent += " test_search"
+        source.reset()
+        source.client.params.update({'descending': 1, 'limit': limit})
+        source.config['asset_preload'] = preload
+        source.skip_until = None
+
+        logger.info("Client %s/api/%s mode=%s",
+            source.config['asset_api_url'],
+            source.config['asset_api_version'],
+            source.client.params.get('mode', ''))
+        logger.info("Offset %s (%s minutes)",
+            offset, self.offset)
+        logger.info("Search %s:%s",
+            self.search_config['host'],
+            self.search_config['port'])
+
+        test_count = 0
+        skip_count = skip_limit
+
+        while test_count < test_limit:
+            meta = None
+            for meta in source.items():
+                if meta.dateModified > offset:
+                    continue
+                if skip_count < skip_limit:
+                    skip_count += 1
+                    continue
+                try:
+                    asset = source.get(meta)
+                    # if index.test_noindex(asset):
+                    #     continue
+                    if asset.data.dateModified > offset:
+                        continue
+                    self.do_search('assets?asid=%(assetID)s', asset.data)
+                except Exception as e:
+                    if self.ignore:
+                        logger.error("%s (ignored)", e)
+                        self.errors += 1
+                    else:
+                        raise
+                test_count += 1
+                skip_count = 0
+                if test_count >= test_limit:
+                    break
+            if not meta:
+                break
+
+        if test_count < 5:
+            raise RuntimeError("Not enough queries")
+
+    def test_lots(self):
+        source = DgfLotSource(self.engine_config)
+        DgfLotIndex(self.engine, source, self.engine_config)
+
+        offset = datetime.now() - timedelta(minutes=self.offset)
+        offset = offset.isoformat()
+
+        if self.full_test:
+            test_limit = 5000
+            skip_limit = 100
+            preload = 500000
+            limit = 1000
+        else:
+            test_limit = 5
+            skip_limit = 0
+            preload = 100
+            limit = 100
+
+        source.client_user_agent += " test_search"
+        source.reset()
+        source.client.params.update({'descending': 1, 'limit': limit})
+        source.config['lot_preload'] = preload
+        source.skip_until = None
+
+        logger.info("Client %s/api/%s mode=%s",
+            source.config['lot_api_url'],
+            source.config['lot_api_version'],
+            source.client.params.get('mode', ''))
+        logger.info("Offset %s (%s minutes)",
+            offset, self.offset)
+        logger.info("Search %s:%s",
+            self.search_config['host'],
+            self.search_config['port'])
+
+        test_count = 0
+        skip_count = skip_limit
+
+        while test_count < test_limit:
+            meta = None
+            for meta in source.items():
+                if meta.dateModified > offset:
+                    continue
+                if skip_count < skip_limit:
+                    skip_count += 1
+                    continue
+                try:
+                    lot = source.get(meta)
+                    # if index.test_noindex(lot):
+                    #     continue
+                    if lot.data.dateModified > offset:
+                        continue
+                    self.do_search('lots?lid=%(lotID)s', lot.data)
                 except Exception as e:
                     if self.ignore:
                         logger.error("%s (ignored)", e)
@@ -366,6 +510,12 @@ class SearchTester(object):
         if self.engine_config.get('auction2_api_url', None):
             self.test_auctions2()
 
+        if self.engine_config.get('asset_api_url', None):
+            self.test_assets()
+
+        if self.engine_config.get('lot_api_url', None):
+            self.test_lots()
+
 
 def print_usage():
     print("Usage: test_search etc/search.ini [options]")
@@ -377,7 +527,9 @@ def print_usage():
     print("\t-nt\t- don't test tenders")
     print("\t-np\t- don't test plans")
     print("\t-na\t- don't test auctions")
-    print("\t-na2\t- don't test auctions")
+    print("\t-na2\t- don't test auctions2")
+    print("\t-nas\t- don't test assets")
+    print("\t-nl\t- don't test lots")
     print("\t-q\t- be quiet")
 
 
@@ -419,6 +571,10 @@ def main():
         tester.engine_config['auction_api_url'] = None
     if '-na2' in sys.argv:
         tester.engine_config['auction2_api_url'] = None
+    if '-nas' in sys.argv:
+        tester.engine_config['asset_api_url'] = None
+    if '-nl' in sys.argv:
+        tester.engine_config['lot_api_url'] = None
 
     logging.basicConfig(level=log_level, format=LOG_FORMAT)
 
