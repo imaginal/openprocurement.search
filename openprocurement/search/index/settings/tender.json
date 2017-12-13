@@ -1943,7 +1943,7 @@
                 },
                 "quantity": {
                   "include_in_all": false,
-                  "type": "long"
+                  "type": "double"
                 },
                 "relatedLot": {
                   "analyzer": "whitespace_lower",
@@ -2506,7 +2506,7 @@
             },
             "quantity": {
               "include_in_all": false,
-              "type": "long"
+              "type": "double"
             },
             "relatedLot": {
               "analyzer": "whitespace_lower",
