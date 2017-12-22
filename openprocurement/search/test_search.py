@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 from ConfigParser import ConfigParser
 
 from openprocurement.search.engine import IndexEngine
-from openprocurement.search.utils import decode_bool_values
+from openprocurement.search.utils import decode_bool_values, chage_process_user_group
 
 from openprocurement.search.source.tender import TenderSource
 from openprocurement.search.index.tender import TenderIndex
@@ -548,9 +548,10 @@ def main():
             continue
         parser.read(arg)
 
-    tester = SearchTester(
-        parser.items('search_engine'),
-        parser.items('server:main'))
+    engine_config = dict(parser.items('search_engine'))
+    server_config = dict(parser.items('server:main'))
+
+    tester = SearchTester(engine_config, server_config)
     if offset:
         tester.offset = int(offset)
 
@@ -577,6 +578,11 @@ def main():
         tester.engine_config['lot_api_url'] = None
 
     logging.basicConfig(level=log_level, format=LOG_FORMAT)
+
+    try:
+        chage_process_user_group(engine_config)
+    except Exception as e:
+        logger.error("Can't change process user: %s", str(e))
 
     try:
         tester.test()
