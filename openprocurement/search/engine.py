@@ -356,9 +356,9 @@ class IndexEngine(SearchEngine):
                     if item_id in bulk_dict:
                         v1 = bulk_dict[item_id]['_version']
                         v2 = item['meta']['version']
-                        logger.warning("[%s] BULK same id twice %s v1=%ld v2=%ld",
-                            index_name, item_id, v1, v2)
-                        if v1 > v2:
+                        if v1 > v2:  # if second value has lower version it's not normal, ignore it
+                            logger.warning("[%s] BULK same id twice %s v1=%ld v2=%ld",
+                                index_name, item_id, v1, v2)
                             continue
                     bulk_dict[item_id] = {
                         '_index': index_name,
