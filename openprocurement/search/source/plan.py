@@ -37,7 +37,7 @@ class PlanSource(BaseSource):
         'timeout': 30,
     }
 
-    def __init__(self, config={}):
+    def __init__(self, config={}, use_cache=False):
         if config:
             self.config.update(config)
         self.config['plan_limit'] = int(self.config['plan_limit'] or 0) or 100
@@ -45,8 +45,9 @@ class PlanSource(BaseSource):
         self.config['plan_reseteach'] = int(self.config['plan_reseteach'] or 3)
         self.config['plan_resethour'] = int(self.config['plan_resethour'] or 0)
         self.client_user_agent += " (plans) " + self.config['plan_user_agent']
-        self.cache_setpath(self.config['plan_file_cache'], self.config['plan_api_url'],
-            self.config['plan_api_version'], 'plans')
+        if use_cache:
+            self.cache_setpath(self.config['plan_file_cache'], self.config['plan_api_url'],
+                self.config['plan_api_version'], 'plans')
         self.fast_client = None
         self.client = None
         self.orgs_db = None
@@ -123,7 +124,7 @@ class PlanSource(BaseSource):
             logger.info("PlansClient (fast) %s", self.fast_client.headers)
         else:
             self.fast_client = None
-        if self.config['plan_file_cache']:
+        if self.config['plan_file_cache'] and self.cache_path:
             cache_minage = int(self.config['plan_cache_minage'])
             cache_date = datetime.now() - timedelta(days=cache_minage)
             self.cache_allow_dateModified = cache_date.isoformat()

@@ -35,7 +35,7 @@ class DgfLotSource(BaseSource):
         'timeout': 30,
     }
 
-    def __init__(self, config={}):
+    def __init__(self, config={}, use_cache=False):
         if config:
             self.config.update(config)
         self.config['lot_limit'] = int(self.config['lot_limit'] or 100)
@@ -43,8 +43,9 @@ class DgfLotSource(BaseSource):
         self.config['lot_reseteach'] = int(self.config['lot_reseteach'] or 3)
         self.config['lot_resethour'] = int(self.config['lot_resethour'] or 0)
         self.client_user_agent += " (lots) " + self.config['lot_user_agent']
-        self.cache_setpath(self.config['lot_file_cache'], self.config['lot_api_url'],
-            self.config['lot_api_version'], 'lots')
+        if use_cache:
+            self.cache_setpath(self.config['lot_file_cache'], self.config['lot_api_url'],
+                self.config['lot_api_version'], 'lots')
         if self.cache_path:
             self.cache_allow_status = self.config['lot_cache_allow'].split(',')
             logger.info("[lot] Cache allow status %s", self.cache_allow_status)
@@ -96,7 +97,7 @@ class DgfLotSource(BaseSource):
             params=params,
             timeout=float(self.config['timeout']),
             user_agent=self.client_user_agent)
-        if self.config['lot_file_cache']:
+        if self.config['lot_file_cache'] and self.cache_path:
             cache_minage = int(self.config['lot_cache_minage'])
             cache_date = datetime.now() - timedelta(days=cache_minage)
             self.cache_allow_dateModified = cache_date.isoformat()

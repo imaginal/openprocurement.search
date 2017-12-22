@@ -127,6 +127,9 @@ class BaseSource:
             logger.error("Can't save to cache %s error: %s", str(data), str(e))
         return data
 
+    def disable_cache(self):
+        self.cache_path = None
+
 
 class TendersClient(client.TendersClient):
     def __init__(self, *args, **kwargs):

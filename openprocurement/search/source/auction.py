@@ -35,7 +35,7 @@ class AuctionSource(BaseSource):
         'timeout': 30,
     }
 
-    def __init__(self, config={}):
+    def __init__(self, config={}, use_cache=False):
         if config:
             self.config.update(config)
         self.config['auction_limit'] = int(self.config['auction_limit'] or 100)
@@ -43,8 +43,9 @@ class AuctionSource(BaseSource):
         self.config['auction_reseteach'] = int(self.config['auction_reseteach'] or 3)
         self.config['auction_resethour'] = int(self.config['auction_resethour'] or 0)
         self.client_user_agent += " (auctions) " + self.config['auction_user_agent']
-        self.cache_setpath(self.config['auction_file_cache'], self.config['auction_api_url'],
-            self.config['auction_api_version'], 'auctions')
+        if use_cache:
+            self.cache_setpath(self.config['auction_file_cache'], self.config['auction_api_url'],
+                self.config['auction_api_version'], 'auctions')
         if self.cache_path:
             self.cache_allow_status = self.config['auction_cache_allow'].split(',')
             logger.info("[auction] Cache allow status %s", self.cache_allow_status)
@@ -105,7 +106,7 @@ class AuctionSource(BaseSource):
             params=params,
             timeout=float(self.config['timeout']),
             user_agent=self.client_user_agent)
-        if self.config['auction_file_cache']:
+        if self.config['auction_file_cache'] and self.cache_path:
             cache_minage = int(self.config['auction_cache_minage'])
             cache_date = datetime.now() - timedelta(days=cache_minage)
             self.cache_allow_dateModified = cache_date.isoformat()
@@ -229,7 +230,7 @@ class AuctionSource2(AuctionSource):
         'timeout': 30,
     }
 
-    def __init__(self, config={}):
+    def __init__(self, config={}, use_cache=False):
         if config:
             self.config.update(config)
         self.config['auction2_limit'] = int(self.config['auction2_limit'] or 100)
@@ -238,8 +239,9 @@ class AuctionSource2(AuctionSource):
         self.config['auction2_resethour'] = int(self.config['auction2_resethour'] or 0)
         self.config['auction_preload'] = int(self.config['auction2_preload'] or 100)  # FIXME
         self.client_user_agent += " (auctions) " + self.config['auction2_user_agent']
-        self.cache_setpath(self.config['auction2_file_cache'], self.config['auction2_api_url'],
-            self.config['auction2_api_version'], 'auctions')
+        if use_cache:
+            self.cache_setpath(self.config['auction2_file_cache'], self.config['auction2_api_url'],
+                self.config['auction2_api_version'], 'auctions')
         if self.cache_path:
             self.cache_allow_status = self.config['auction2_cache_allow'].split(',')
             logger.info("[auction2] Cache allow status %s", self.cache_allow_status)
@@ -273,7 +275,7 @@ class AuctionSource2(AuctionSource):
             params=params,
             timeout=float(self.config['timeout']),
             user_agent=self.client_user_agent)
-        if self.config['auction2_file_cache']:
+        if self.config['auction2_file_cache'] and self.cache_path:
             cache_minage = int(self.config['auction2_cache_minage'])
             cache_date = datetime.now() - timedelta(days=cache_minage)
             self.cache_allow_dateModified = cache_date.isoformat()

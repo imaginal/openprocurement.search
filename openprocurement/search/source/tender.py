@@ -37,7 +37,7 @@ class TenderSource(BaseSource):
         'timeout': 30,
     }
 
-    def __init__(self, config={}):
+    def __init__(self, config={}, use_cache=False):
         if config:
             self.config.update(config)
         self.config['tender_limit'] = int(self.config['tender_limit'] or 0) or 100
@@ -45,8 +45,9 @@ class TenderSource(BaseSource):
         self.config['tender_reseteach'] = int(self.config['tender_reseteach'] or 3)
         self.config['tender_resethour'] = int(self.config['tender_resethour'] or 0)
         self.client_user_agent += " (tenders) " + self.config['tender_user_agent']
-        self.cache_setpath(self.config['tender_file_cache'], self.config['tender_api_url'],
-            self.config['tender_api_version'], 'tenders')
+        if use_cache:
+            self.cache_setpath(self.config['tender_file_cache'], self.config['tender_api_url'],
+                self.config['tender_api_version'], 'tenders')
         if self.cache_path:
             self.cache_allow_status = self.config['tender_cache_allow'].split(',')
             logger.info("[tender] Cache allow status %s", self.cache_allow_status)
@@ -134,7 +135,7 @@ class TenderSource(BaseSource):
             logger.info("TendersClient (fast) %s", self.fast_client.headers)
         else:
             self.fast_client = None
-        if self.config['tender_file_cache']:
+        if self.config['tender_file_cache'] and self.cache_path:
             cache_minage = int(self.config['tender_cache_minage'])
             cache_date = datetime.now() - timedelta(days=cache_minage)
             self.cache_allow_dateModified = cache_date.isoformat()

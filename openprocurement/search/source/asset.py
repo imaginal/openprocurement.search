@@ -35,7 +35,7 @@ class AssetSource(BaseSource):
         'timeout': 30,
     }
 
-    def __init__(self, config={}):
+    def __init__(self, config={}, use_cache=False):
         if config:
             self.config.update(config)
         self.config['asset_limit'] = int(self.config['asset_limit'] or 100)
@@ -43,8 +43,9 @@ class AssetSource(BaseSource):
         self.config['asset_reseteach'] = int(self.config['asset_reseteach'] or 3)
         self.config['asset_resethour'] = int(self.config['asset_resethour'] or 0)
         self.client_user_agent += " (assets) " + self.config['asset_user_agent']
-        self.cache_setpath(self.config['asset_file_cache'], self.config['asset_api_url'],
-            self.config['asset_api_version'], 'assets')
+        if use_cache:
+            self.cache_setpath(self.config['asset_file_cache'], self.config['asset_api_url'],
+                self.config['asset_api_version'], 'assets')
         if self.cache_path:
             self.cache_allow_status = self.config['asset_cache_allow'].split(',')
             logger.info("[asset] Cache allow status %s", self.cache_allow_status)
@@ -96,7 +97,7 @@ class AssetSource(BaseSource):
             params=params,
             timeout=float(self.config['timeout']),
             user_agent=self.client_user_agent)
-        if self.config['asset_file_cache']:
+        if self.config['asset_file_cache'] and self.cache_path:
             cache_minage = int(self.config['asset_cache_minage'])
             cache_date = datetime.now() - timedelta(days=cache_minage)
             self.cache_allow_dateModified = cache_date.isoformat()

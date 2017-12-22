@@ -11,7 +11,8 @@ logger = getLogger(__name__)
 
 
 class OrgsDecoder(object):
-    def __init__(self, config={}):
+    def __init__(self, config={}, use_cache=False):
+        self.use_cache = use_cache
         self.db_conn = None
         self.db_curs = None
         self.q_cache = {}
@@ -30,6 +31,7 @@ class OrgsDecoder(object):
                 config['orgs_db'], str(e))
             self.db_conn = sqlite3.connect(config['orgs_db'])
         self.db_curs = self.db_conn.cursor()
+        self.check_count()
 
     def is_connected(self):
         return self.db_curs
@@ -45,6 +47,18 @@ class OrgsDecoder(object):
             logger.error("OrgsDecoder.close %s", str(e))
         self.db_curs = None
         self.db_conn = None
+
+    def check_count(self):
+        if not self.db_curs:
+            logger.warning("OrgsDecoder db_cursor not initialized")
+            return
+        self.db_curs.execute("SELECT COUNT(*) FROM uo")
+        row = self.db_curs.fetchone()
+        if not row:
+            logger.error("Can't select count from orgs database")
+            self.close()
+            return
+        logger.info("OrgsDecoder has %d orgs in database", int(row[0]))
 
     def purge_cache(self, limit=5, maxsize=10000):
         while len(self.q_cache) > maxsize:
@@ -79,7 +93,8 @@ class OrgsDecoder(object):
             row = self.db_curs.fetchone()
             if row and len(row) > 2:
                 row = (row[0], row[1], row[2], row[3])
-                self.q_cache[code] = [row, 1]
+                if self.use_cache:
+                    self.q_cache[code] = [row, 1]
                 return row
         except Exception as e:
             logger.error("OrgsDecoder.query %s: %s", code, str(e))
@@ -120,11 +135,12 @@ class OrgsSource(BaseSource):
         'orgs_queue': 1000,
     }
 
-    def __init__(self, config={}):
+    def __init__(self, config={}, use_cache=False):
         if config:
             self.config.update(config)
         if not self.config.get('orgs_db'):
             logger.warning("No UA-EDR database, orgs will not be decoded")
+        self.use_cache = use_cache
         self.orgs_db = None
         self.should_reset = True
         self.queue_size = int(self.config['orgs_queue'])
@@ -170,7 +186,7 @@ class OrgsSource(BaseSource):
             orgs_db_size = os.path.getsize(self.config['orgs_db'])
             logger.info("Open UA-EDR database %s size %d MB",
                 self.config['orgs_db'], orgs_db_size / 1024000)
-            self.orgs_db = OrgsDecoder(self.config)
+            self.orgs_db = OrgsDecoder(self.config, use_cache=self.use_cache)
             if not self.orgs_db.is_connected():
                 logger.warning("No UA-EDR database, orgs will not be decoded")
                 self.orgs_db = None
