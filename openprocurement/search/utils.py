@@ -37,6 +37,31 @@ def decode_bool_values(config):
     return config
 
 
+def chage_process_user_group(config, logger=None):
+    from pwd import getpwuid, getpwnam
+    from grp import getgrgid, getgrnam
+    if config.get('user', ''):
+        uid = os.getuid()
+        newuid = getpwnam(config['user'])[2]
+        if uid != newuid:
+            if uid != 0:
+                if logger:
+                    logger.error("Can't change user not from root")
+                return
+            if config.get('group', ''):
+                newgid = getgrnam(config['group'])[2]
+                os.setgid(newgid)
+            os.setuid(newuid)
+    if not logger:
+        return
+    uid = os.getuid()
+    gid = os.getgid()
+    euid = os.geteuid()
+    egid = os.getegid()
+    logger.info("Process real user/group %d/%d %s/%s", uid, gid, getpwuid(uid)[0], getgrgid(gid)[0])
+    logger.info("Process effective user/group %d/%d %s/%s", euid, egid, getpwuid(euid)[0], getgrgid(egid)[0])
+
+
 class InfoFilter(logging.Filter):
     def filter(self, rec):
         return rec.levelno < logging.WARNING
