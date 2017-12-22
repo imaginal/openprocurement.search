@@ -18,7 +18,7 @@ from openprocurement.search.source.tender import TenderSource
 from openprocurement.search.source.ocds import OcdsSource
 from openprocurement.search.source.plan import PlanSource
 from openprocurement.search.source.auction import AuctionSource
-from openprocurement.search.utils import decode_bool_values
+from openprocurement.search.utils import decode_bool_values, chage_process_user_group
 
 
 engine = type('engine', (), {})()
@@ -206,6 +206,11 @@ def main():
 
     signal.signal(signal.SIGTERM, sigterm_handler)
     # signal.signal(signal.SIGINT, sigterm_handler)
+
+    try:
+        chage_process_user_group(config)
+    except Exception as e:
+        logger.error("Can't change process user: %s", str(e))
 
     try:
         global engine
