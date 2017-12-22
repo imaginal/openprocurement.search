@@ -27,8 +27,8 @@ from openprocurement.search.index.asset import AssetIndex
 from openprocurement.search.source.dgf_lot import DgfLotSource
 from openprocurement.search.index.dgf_lot import DgfLotIndex
 
+from openprocurement.search.utils import decode_bool_values, chage_process_user_group
 
-from openprocurement.search.utils import decode_bool_values
 
 LOG_FORMAT = '%(asctime)s %(levelname)s %(message)s'
 
@@ -45,42 +45,34 @@ class IndexTester(object):
         if self.config.get('orgs_db', None):
             source = OrgsSource(self.config)
             OrgsIndex(self.engine, source, self.config)
-            logger.info("Add OrgsIndex")
 
         if self.config.get('tender_api_url', None):
             source = TenderSource(self.config)
             TenderIndex(self.engine, source, self.config)
-            logger.info("Add TenderIndex")
 
         if self.config.get('plan_api_url', None):
             source = PlanSource(self.config)
             PlanIndex(self.engine, source, self.config)
-            logger.info("Add PlanIndex")
 
         if self.config.get('ocds_dir', None):
             source = OcdsSource(self.config)
             OcdsIndex(self.engine, source, self.config)
-            logger.info("Add OcdsIndex")
 
         if self.config.get('auction_api_url', None):
             source = AuctionSource(self.config)
             AuctionIndex(self.engine, source, self.config)
-            logger.info("Add AuctionIndex")
 
         if self.config.get('auction2_api_url', None):
             source = AuctionSource2(self.config)
             AuctionIndex2(self.engine, source, self.config)
-            logger.info("Add AuctionIndex2")
 
         if self.config.get('asset_api_url', None):
             source = AssetSource(self.config)
             AssetIndex(self.engine, source, self.config)
-            logger.info("Add AssetIndex")
 
         if self.config.get('lot_api_url', None):
             source = DgfLotSource(self.config)
             DgfLotIndex(self.engine, source, self.config)
-            logger.info("Add DgfLotIndex")
 
     def test(self):
         self.init_engine()
@@ -152,6 +144,11 @@ def main():
     if log_level != logging.DEBUG:
         tracer = logging.getLogger('elasticsearch')
         tracer.setLevel(logging.WARNING)
+
+    try:
+        chage_process_user_group(config)
+    except Exception as e:
+        logger.error("Can't change process user: %s", str(e))
 
     try:
         tester.test()
