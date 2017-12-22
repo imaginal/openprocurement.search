@@ -11,7 +11,7 @@ from ConfigParser import ConfigParser
 
 from openprocurement.search.version import __version__
 from openprocurement.search.engine import IndexEngine, logger
-from openprocurement.search.utils import decode_bool_values
+from openprocurement.search.utils import decode_bool_values, chage_process_user_group
 
 from openprocurement.search.source.orgs import OrgsSource
 from openprocurement.search.index.orgs import OrgsIndex
@@ -47,28 +47,6 @@ def sigterm_handler(signo, frame):
     # sys.exit(0)
 
 
-def chage_process_user_group(config):
-    from pwd import getpwuid, getpwnam
-    from grp import getgrgid, getgrnam
-    if config.get('user', ''):
-        uid = os.getuid()
-        newuid = getpwnam(config['user'])[2]
-        if uid != newuid:
-            if uid != 0:
-                logger.error("Can't change user not from root")
-                return
-            if config.get('group', ''):
-                newgid = getgrnam(config['group'])[2]
-                os.setgid(newgid)
-            os.setuid(newuid)
-    uid = os.getuid()
-    gid = os.getgid()
-    euid = os.geteuid()
-    egid = os.getegid()
-    logger.info("Process real user/group %d/%d %s/%s", uid, gid, getpwuid(uid)[0], getgrgid(gid)[0])
-    logger.info("Process effective user/group %d/%d %s/%s", euid, egid, getpwuid(euid)[0], getgrgid(egid)[0])
-
-
 def main():
     if len(sys.argv) < 2:
         print("Usage: index_worker etc/search.ini [custom_index_names_file]")
@@ -91,7 +69,7 @@ def main():
     logger.info("Copyright (c) 2015-2018 Volodymyr Flonts <flyonts@gmail.com>")
 
     try:
-        chage_process_user_group(config)
+        chage_process_user_group(config, logger)
     except Exception as e:
         logger.error("Can't change process user: %s", str(e))
 
@@ -115,28 +93,28 @@ def main():
         global engine
         engine = IndexEngine(config)
         if config.get('orgs_db', None):
-            source = OrgsSource(config)
+            source = OrgsSource(config, True)
             OrgsIndex(engine, source, config)
         if config.get('tender_api_url', None):
-            source = TenderSource(config)
+            source = TenderSource(config, True)
             TenderIndex(engine, source, config)
         if config.get('ocds_dir', None):
             source = OcdsSource(config)
             OcdsIndex(engine, source, config)
         if config.get('plan_api_url', None):
-            source = PlanSource(config)
+            source = PlanSource(config, True)
             PlanIndex(engine, source, config)
         if config.get('auction_api_url', None):
-            source = AuctionSource(config)
+            source = AuctionSource(config, True)
             AuctionIndex(engine, source, config)
         if config.get('auction2_api_url', None):
-            source = AuctionSource2(config)
+            source = AuctionSource2(config, True)
             AuctionIndex2(engine, source, config)
         if config.get('asset_api_url', None):
-            source = AssetSource(config)
+            source = AssetSource(config, True)
             AssetIndex(engine, source, config)
         if config.get('lot_api_url', None):
-            source = DgfLotSource(config)
+            source = DgfLotSource(config, True)
             DgfLotIndex(engine, source, config)
         engine.run()
     except Exception as e:
