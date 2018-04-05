@@ -179,7 +179,7 @@
           },
           "stopwords_ukrainian": {
             "ignore_case": true,
-            "stopwords_path": "/opt/search-tenders/stopwords/ukrainian.txt",
+            "stopwords_path": "/etc/elasticsearch/stopwords/ukrainian.txt",
             "type": "stop"
           },
           "token_delimiter": {
