@@ -38,8 +38,13 @@ class TenderIndex(BaseIndex):
             proc_type = item.data.procurementMethodType
             if proc_type == 'negotiation' or proc_type == 'negotiation.quick':
                 active = 0
+                # updated Saturday, April 14th 2018, by Vasyl Zadvornyy
+                # add cancelled award status and check for complaints
                 for award in item.data.get('awards', []):
-                    if award.get('status', '') == 'active':
+                    if award.get('status', '') in ('active', 'cancelled'):
+                        active += 1
+                        break
+                    if award.get('complaints', []):
                         active += 1
                         break
                 if active == 0:
