@@ -325,6 +325,7 @@ tender_api_url = https://public.api.openprocurement.org
 tender_api_version = 2.3
 tender_api_mode = _all_
 tender_skip_until = 2016-01-01
+tender_skip_after = 2018-04-01
 tender_user_agent = search-1
 tender_fast_client = 1
 tender_decode_orgs = 1
@@ -357,6 +358,9 @@ tender_decode_orgs = 1
  * `test` - тільки тестові тендери
 
 `tender_skip_until` - не індексувати тендери, зміни в яких відбулсь до цієї
+дати, формат ISO 8601
+
+`tender_skip_after` - не індексувати тендери, зміни в яких відбулсь після цієї
 дати, формат ISO 8601
 
 `tender_user_agent` - User-Agent в HTTP запитах до openprocurement.api,
@@ -423,6 +427,7 @@ plan_api_url = https://public.api.openprocurement.org
 plan_api_version = 2.3
 plan_api_mode = _all_
 ;plan_skip_until = 2016-01-01
+;plan_skip_after = 2018-04-01
 ;plan_user_agent = search-1
 ;plan_fast_client = 1
 ;plan_decode_orgs = 1
