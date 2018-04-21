@@ -24,6 +24,7 @@ class PlanSource(BaseSource):
         'plan_api_version': '0',
         'plan_resource': 'plans',
         'plan_api_mode': '',
+        'plan_skip_after': None,
         'plan_skip_until': None,
         'plan_limit': 1000,
         'plan_preload': 10000,
@@ -88,7 +89,8 @@ class PlanSource(BaseSource):
 
     @retry(stop_max_attempt_number=5, wait_fixed=5000)
     def reset(self):
-        logger.info("Reset plans, plan_skip_until=%s", self.config['plan_skip_until'])
+        logger.info("Reset plans, plan_skip_until=%s plan_skip_after=%s",
+                    self.config['plan_skip_until'], self.config['plan_skip_after'])
         self.stat_resets += 1
         if self.config['plan_decode_orgs']:
             self.orgs_db = OrgsDecoder(self.config)
@@ -133,6 +135,9 @@ class PlanSource(BaseSource):
         self.skip_until = self.config.get('plan_skip_until', None)
         if self.skip_until and self.skip_until[:2] != '20':
             self.skip_until = None
+        self.skip_after = self.config.get('plan_skip_after', None)
+        if self.skip_after and self.skip_after[:2] != '20':
+            self.skip_after = None
         self.last_reset_time = time()
         self.should_reset = False
 
@@ -189,7 +194,11 @@ class PlanSource(BaseSource):
         for plan in self.preload():
             if self.should_exit:
                 raise StopIteration()
-            if self.skip_until > plan['dateModified']:
+            if self.skip_until and self.skip_until > plan['dateModified']:
+                self.last_skipped = plan['dateModified']
+                self.stat_skipped += 1
+                continue
+            if self.skip_after and self.skip_after < plan['dateModified']:
                 self.last_skipped = plan['dateModified']
                 self.stat_skipped += 1
                 continue

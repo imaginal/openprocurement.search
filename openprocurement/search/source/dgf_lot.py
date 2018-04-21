@@ -24,6 +24,7 @@ class DgfLotSource(BaseSource):
         'lot_resource': 'lots',
         'lot_api_mode': '',
         'lot_skip_until': None,
+        'lot_skip_after': None,
         'lot_limit': 1000,
         'lot_preload': 10000,
         'lot_reseteach': 3,
@@ -79,8 +80,8 @@ class DgfLotSource(BaseSource):
 
     @retry(stop_max_attempt_number=5, wait_fixed=5000)
     def reset(self):
-        logger.info("Reset lots, lot_skip_until=%s",
-                    self.config['lot_skip_until'])
+        logger.info("Reset lots, lot_skip_until=%s lot_skip_after=%s",
+                    self.config['lot_skip_until'], self.config['lot_skip_after'])
         self.stat_resets += 1
         if self.config.get('timeout', None):
             setdefaulttimeout(float(self.config['timeout']))
@@ -107,6 +108,9 @@ class DgfLotSource(BaseSource):
         self.skip_until = self.config.get('lot_skip_until', None)
         if self.skip_until and self.skip_until[:2] != '20':
             self.skip_until = None
+        self.skip_after = self.config.get('lot_skip_after', None)
+        if self.skip_after and self.skip_after[:2] != '20':
+            self.skip_after = None
         self.last_reset_time = time()
         self.should_reset = False
 
@@ -148,7 +152,11 @@ class DgfLotSource(BaseSource):
         for lot in self.preload():
             if self.should_exit:
                 raise StopIteration()
-            if self.skip_until > lot['dateModified']:
+            if self.skip_until and self.skip_until > lot['dateModified']:
+                self.last_skipped = lot['dateModified']
+                self.stat_skipped += 1
+                continue
+            if self.skip_after and self.skip_after < lot['dateModified']:
                 self.last_skipped = lot['dateModified']
                 self.stat_skipped += 1
                 continue

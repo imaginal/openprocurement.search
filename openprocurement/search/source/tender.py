@@ -23,6 +23,7 @@ class TenderSource(BaseSource):
         'tender_api_url': "",
         'tender_api_version': '0',
         'tender_api_mode': '',
+        'tender_skip_after': None,
         'tender_skip_until': None,
         'tender_limit': 1000,
         'tender_preload': 10000,
@@ -101,7 +102,8 @@ class TenderSource(BaseSource):
 
     @retry(stop_max_attempt_number=5, wait_fixed=5000)
     def reset(self):
-        logger.info("Reset tenders, tender_skip_until=%s", self.config['tender_skip_until'])
+        logger.info("Reset tenders, tender_skip_until=%s tender_skip_after=%s",
+                    self.config['tender_skip_until'], self.config['tender_skip_after'])
         self.stat_resets += 1
         if self.config['tender_decode_orgs']:
             self.orgs_db = OrgsDecoder(self.config)
@@ -144,6 +146,9 @@ class TenderSource(BaseSource):
         self.skip_until = self.config.get('tender_skip_until', None)
         if self.skip_until and self.skip_until[:2] != '20':
             self.skip_until = None
+        self.skip_after = self.config.get('tender_skip_after', None)
+        if self.skip_after and self.skip_after[:2] != '20':
+            self.skip_after = None
         self.last_reset_time = time()
         self.should_reset = False
 
@@ -200,7 +205,11 @@ class TenderSource(BaseSource):
         for tender in self.preload():
             if self.should_exit:
                 raise StopIteration()
-            if self.skip_until > tender['dateModified']:
+            if self.skip_until and self.skip_until > tender['dateModified']:
+                self.last_skipped = tender['dateModified']
+                self.stat_skipped += 1
+                continue
+            if self.skip_after and self.skip_after < tender['dateModified']:
                 self.last_skipped = tender['dateModified']
                 self.stat_skipped += 1
                 continue

@@ -24,6 +24,7 @@ class AuctionSource(BaseSource):
         'auction_resource': 'auctions',
         'auction_api_mode': '',
         'auction_skip_until': None,
+        'auction_skip_after': None,
         'auction_limit': 1000,
         'auction_preload': 10000,
         'auction_reseteach': 3,
@@ -88,8 +89,8 @@ class AuctionSource(BaseSource):
 
     @retry(stop_max_attempt_number=5, wait_fixed=5000)
     def reset(self):
-        logger.info("Reset auctions, auction_skip_until=%s",
-                    self.config['auction_skip_until'])
+        logger.info("Reset auctions, auction_skip_until=%s auction_skip_after=%s",
+                    self.config['auction_skip_until'], self.config['auction_skip_after'])
         self.stat_resets += 1
         if self.config.get('timeout', None):
             setdefaulttimeout(float(self.config['timeout']))
@@ -116,6 +117,9 @@ class AuctionSource(BaseSource):
         self.skip_until = self.config.get('auction_skip_until', None)
         if self.skip_until and self.skip_until[:2] != '20':
             self.skip_until = None
+        self.skip_after = self.config.get('auction_skip_after', None)
+        if self.skip_after and self.skip_after[:2] != '20':
+            self.skip_after = None
         self.last_reset_time = time()
         self.should_reset = False
 
@@ -157,7 +161,11 @@ class AuctionSource(BaseSource):
         for auction in self.preload():
             if self.should_exit:
                 raise StopIteration()
-            if self.skip_until > auction['dateModified']:
+            if self.skip_until and self.skip_until > auction['dateModified']:
+                self.last_skipped = auction['dateModified']
+                self.stat_skipped += 1
+                continue
+            if self.skip_after and self.skip_after < auction['dateModified']:
                 self.last_skipped = auction['dateModified']
                 self.stat_skipped += 1
                 continue
@@ -218,6 +226,7 @@ class AuctionSource2(AuctionSource):
         'auction2_resource': 'auctions',
         'auction2_api_mode': '',
         'auction2_skip_until': None,
+        'auction2_skip_after': None,
         'auction2_limit': 1000,
         'auction2_preload': 10000,
         'auction2_reseteach': 3,
@@ -257,8 +266,8 @@ class AuctionSource2(AuctionSource):
 
     @retry(stop_max_attempt_number=5, wait_fixed=5000)
     def reset(self):
-        logger.info("Reset auctions2, auction2_skip_until=%s",
-                    self.config['auction2_skip_until'])
+        logger.info("Reset auctions2, auction2_skip_until=%s auction2_skip_after=%s",
+                    self.config['auction2_skip_until'], self.config['auction2_skip_after'])
         self.stat_resets += 1
         if self.config.get('timeout', None):
             setdefaulttimeout(float(self.config['timeout']))
@@ -285,5 +294,8 @@ class AuctionSource2(AuctionSource):
         self.skip_until = self.config.get('auction2_skip_until', None)
         if self.skip_until and self.skip_until[:2] != '20':
             self.skip_until = None
+        self.skip_after = self.config.get('auction2_skip_after', None)
+        if self.skip_after and self.skip_after[:2] != '20':
+            self.skip_after = None
         self.last_reset_time = time()
         self.should_reset = False
