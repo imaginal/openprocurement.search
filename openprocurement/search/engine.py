@@ -10,6 +10,7 @@ from elasticsearch.helpers import bulk
 from elasticsearch.client import IndicesClient
 from elasticsearch.exceptions import ElasticsearchException, NotFoundError
 
+from openprocurement.search.version import __version__
 from openprocurement.search.utils import SharedFileDict
 
 logger = getLogger(__name__)
@@ -221,6 +222,9 @@ class SearchEngine(object):
             lag = time() - hv
             logger.info("Master heartbeat %s lag %s min",
                 strftime('%H:%M:%S', localtime(hv)), int(lag / 60))
+            if data.get('version', '') != __version__:
+                logger.warning("Master version %s not equal slave version %s",
+                               data.get('version', ''), __version__)
         except Exception as e:
             logger.error("Can't check heartbeat %s %s",
                 type(e).__name__, unicode(e))
@@ -230,6 +234,9 @@ class SearchEngine(object):
             self.names_db.update(data['index_names'])
         self.last_heartbeat_check = time()
         self.last_heartbeat_value = int(data.get('heartbeat') or 0)
+        heartbeat_diff = time() - self.last_heartbeat_value
+        if heartbeat_diff > 100:
+            logger.warning("Master died %d min ago", (heartbeat_diff / 60))
         return self.last_heartbeat_value
 
 
@@ -419,8 +426,6 @@ class IndexEngine(SearchEngine):
             heartbeat_value = self.test_heartbeat()
             heartbeat_diff = time() - heartbeat_value
             if heartbeat_diff > self.slave_wakeup:
-                logger.warning("Master died %d min ago, go slave",
-                    int(heartbeat_diff / 60))
                 return True
             else:
                 if source:
