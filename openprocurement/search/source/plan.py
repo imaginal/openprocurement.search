@@ -32,6 +32,7 @@ class PlanSource(BaseSource):
         'plan_resethour': 23,
         'plan_decode_orgs': False,
         'plan_fast_client': False,
+        'plan_fast_stepsback': 10,
         'plan_user_agent': '',
         'plan_file_cache': '',
         'plan_cache_minage': 15,
@@ -121,7 +122,8 @@ class PlanSource(BaseSource):
                 params=fast_params,
                 timeout=float(self.config['timeout']),
                 user_agent=self.client_user_agent+" fast_client")
-            self.fast_client.get_tenders()
+            for i in range(int(self.config['plan_fast_stepsback'])):
+                self.fast_client.get_tenders()
             self.fast_client.params.pop('descending')
             logger.info("PlansClient (fast) %s", self.fast_client.headers)
         else:

@@ -31,6 +31,7 @@ class TenderSource(BaseSource):
         'tender_resethour': 22,
         'tender_decode_orgs': False,
         'tender_fast_client': False,
+        'tender_fast_stepsback': 10,
         'tender_user_agent': '',
         'tender_file_cache': '',
         'tender_cache_allow': 'complete,cancelled,unsuccessful',
@@ -132,7 +133,8 @@ class TenderSource(BaseSource):
                 params=fast_params,
                 timeout=float(self.config['timeout']),
                 user_agent=self.client_user_agent+" fast_client")
-            self.fast_client.get_tenders()
+            for i in range(int(self.config['tender_fast_stepsback'])):
+                self.fast_client.get_tenders()
             self.fast_client.params.pop('descending')
             logger.info("TendersClient (fast) %s", self.fast_client.headers)
         else:
