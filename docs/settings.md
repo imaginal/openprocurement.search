@@ -327,8 +327,9 @@ tender_api_mode = _all_
 tender_skip_until = 2016-01-01
 tender_skip_after = 2018-04-01
 tender_user_agent = search-1
-tender_fast_client = 1
-tender_decode_orgs = 1
+tender_fast_stepsback = 10
+tender_fast_client = yes
+tender_decode_orgs = yes
 ;tender_file_cache = /mnt/cache/tenders
 ;tender_cache_allow = complete,cancelled,unsuccessful
 ;tender_cache_minage = 15
@@ -371,6 +372,9 @@ _перший_ курсор йде від найстаріших тендері�
 від найновішого тендера і далі до нових, як тільки вони з'являться.
 В такому режимі при повній переіндексації нові тендери будуть індексуватись
 паралельно з наповненням індексу старими тендерами.
+
+`tender_fast_stepsback` - кількість кроків назад який робить _другий_ курсор
+на старті, один крок дорівнює `tender_limit` тендерів
 
 `tender_decode_orgs` - розшифровувати назви організацій за кодом ЄДРПОУ
 
@@ -429,6 +433,7 @@ plan_api_mode = _all_
 ;plan_skip_until = 2016-01-01
 ;plan_skip_after = 2018-04-01
 ;plan_user_agent = search-1
+;plan_fast_stepsback = 10
 ;plan_fast_client = 1
 ;plan_decode_orgs = 1
 ;plan_file_cache = /mnt/cache/plans
