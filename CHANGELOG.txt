@@ -1,0 +1,221 @@
+search-tenders (0.8) stable; urgency=low
+
+ *  Release of version 0.8
+
+ -- Volodymyr Flonts <flyonts@gmail.com>  Wed May  2 15:51:24 EEST 2018
+
+search-tenders (0.8.0b16) unstable; urgency=low
+
+ * Update negotiation and negotiation.quick - index if awards.status cancelled
+ * Move stopwords/ukrainian.txt to /etc/elasticsearch in index settings json
+ * Add tender_fast_stepsback and plan_fast_stepsback config feature
+ * Add tender_skip_after and plan_skip_after config feature
+ * Add tender_use_cache and plan_use_cache option to sourse config (default False)
+ * Add chage_process_user_group to utils test_index, test_search, update_orgs
+ * Slave will check master version and warn if it differs
+ * Warn on bulk indexing only of version is greater (dateModified is later)
+ * Disable cahe usage by default for test_search, test_index and update_orgs
+ * Change process user/group for test_search, test_index and update_orgs
+ * Merge changelog from beta 13 to beta 16
+
+ -- Volodymyr Flonts <flyonts@gmail.com>  Sat Apr 28 13:55:02 EEST 2017
+
+search-tenders (0.8.0b12) unstable; urgency=low
+
+ * Add auctions.map search
+ * Add short param in auctions.map
+ * Limit max count of search filters to 10
+ * Remove assetCustodian.address from _all
+ * Remove lotCustodian.address from _all
+ * Add asset and lots idexes to test utilites
+ * Add user/group option for index_workder
+ * Chanfe items.quantity from long to double
+ * Merge changelog from beta 8 to beta 12
+
+ -- Volodymyr Flonts <flyonts@gmail.com>  Wed Dec 13 11:06:51 EET 2017
+
+search-tenders (0.8.0b7) unstable; urgency=low
+
+ * Add bulk insert
+ * Add cache_minage
+ * Add reseteach option (default 3 hr)
+ * Add source usage statistics
+ * Fix bug in index_source infinity loop
+ * Fix dependencies for setuptools and pkg_resources (beta 3)
+ * Merge changelog from beta 3 to beta 6
+
+ -- Volodymyr Flonts <flyonts@gmail.com>  Mon Aug 28 04:53:39 EEST 2017
+
+search-tenders (0.8.0b2) unstable; urgency=low
+
+ * Update test utilites for auction2
+ * Add error handling for search_server
+ * Add cav and cav_like search operators
+
+ -- Volodymyr Flonts <flyonts@gmail.com>  Fri Aug 18 23:52:24 EEST 2017
+
+search-tenders (0.8.0b1) unstable; urgency=low
+
+ * Cache feature
+ * Set alias for current index
+ * Add index_lang settings and ukrainian analyzer
+ * Add auction2 source
+ * Add index parameter for auctions search api
+ * Add cpvs and cpvs_like operators for auctions
+ * Add item_region and item_square operators for auctions
+ * Most index settings moved to common.json
+ * Async reindex by default
+ * Change default preload to 5000
+ * Fix don't start reindex process when exiting
+
+ -- Volodymyr Flonts <flyonts@gmail.com>  Mon Aug 7 02:59:30 EEST 2017
+
+search-tenders (0.7) stable; urgency=low
+
+ * Add multiple edrpou search for orgs
+ * Add sorting by tender.value and plan.budget
+ * Allow update_orgs start on slave 
+ * Change default tokenizer to standart
+ * Force read-only mode for orgs.sqlite3
+ * Add test_load utility
+ * Fix paper ocds mapping schema value.amout
+ * Fix reindex bug in orgs suggestion index
+ * Fix search by postalCode (add padding 999)
+
+ -- Volodymyr Flonts <flyonts@gmail.com>  Mon Feb 20 19:44:51 EET 2017
+
+search-tenders (0.6.2) stable; urgency=low
+
+ * Fix bug in search plans order by date
+ * Add new sorting by dateModified and value.amount desc
+ * Split search.log to access.log and error.log
+ * Verbose logging elasticsearch errors to search error.log
+ * Load official names from EDRPOU registry when indexing
+ * Add test_load utility with test_data (separate repository)
+
+ -- Volodymyr Flonts <flyonts@gmail.com>  Tue Jan 17 17:02:57 EET 2017
+
+search-tenders (0.6.1) stable; urgency=low
+
+ * Add configurable user-agent to all clients
+ * Change default search sorting to date desc
+ * Add indexing filters to fill "date" field if missed
+
+ -- Volodymyr Flonts <flyonts@gmail.com>  Tue Dec 20 10:50:40 EET 2016
+
+search-tenders (0.6) stable; urgency=low
+
+ * First stable release for ubuntu 16.04
+ * Add logrotate.conf and rotate option in cron_tasks
+ * Fix systemd reload bug where rotating logs
+ * Add fast_client options to search.ini
+ * Add two-way indexing (fast_client mode)
+ * Update init srcipt compatible with systemd
+ * Update logcheck task in cron_tasks
+ * Add new buld_deb script inside buildout/debian
+ * Circus will always start as daemon
+ * Add orgsgst static json generation
+
+ -- Volodymyr Flonts <flyonts@gmail.com>  Mon Dec 19 17:05:21 EET 2016
+
+search-tenders (0.6-beta1) unstable; urgency=low
+
+ * Run reindex in async subprocess (async_reindex option)
+ * Add tender_reindex and reindex_check options
+ * Move index settings to python package
+ * Update index model settings for orgs, tenders, plans
+ * Always create heartbeat even in slave mode
+ * Change default number_of_shards
+ * ftpsync download into tmp file
+ * Add test_search and test_index utilites
+
+ -- Volodymyr Flonts <flyonts@gmail.com>  Sat Nov 12 17:14:43 EET 2016
+
+search-tenders (0.5-3) stable; urgency=low
+
+ * Force "and" operator for query match _all
+ * Ingore errors while indexing (disabled by default)
+ * Update orgs index after each source processed
+ * Fix bug in source.reset which keep params offset
+ * Add tender_reindex and plan_reindex options
+ * Add indexer start_wait option (in seconds)
+ * Add heartbeat index statistics
+ * Add custom_index_names command line argument
+ * Update tender index settings, add analyzer
+
+ -- Volodymyr Flonts <flyonts@gmail.com>  Wed Oct 12 15:02:34 EEST 2016
+
+search-tenders (0.5-1) stable; urgency=low
+
+ * Don't index competitiveDialogueUA.stage2 with status == draft.stage2
+ * Preload feature in tender and plan index source
+ * Use limit=1000 for query changes feed
+ * Create system user `searchtenders` and run workers using it
+
+ -- Volodymyr Flonts <flyonts@gmail.com>  Sat Oct  1 21:45:05 EEST 2016
+
+search-tenders (0.4-3) stable; urgency=low
+
+ * Fix index creation bug for OCDS index
+ * Update skip_until feature for full reindex procedure
+ * Add ocds_skip_until feature for OCDS
+ * Add update_orgs_days feature for update_orgs
+ * Improve stability of update_orgs
+
+ -- Volodymyr Flonts <flyonts@gmail.com>  Wed Sep 21 19:05:03 EEST 2016
+
+search-tenders (0.4-2) stable; urgency=low
+
+ * Add orgs suggest live indexing
+ * Add standalone update_orgs indexer
+ * Add signal handler and verbose exception logging
+ * Add cron_tasks script, change cron.daily to cron.d
+ * Add range search by value.amount
+ * Fix bug with CPV search in plans
+ * Merge changelog 0.4-1 to 0.4-2
+ * Update socket setdefaulttimeout
+ * Index missing orgs in update_orgs
+
+ -- Volodymyr Flonts <flyonts@gmail.com>  Mon Sep 12 20:11:21 EEST 2016
+
+search-tenders (0.3-5) stable; urgency=low
+
+ * Merge changelog 0.3-2 to 0.3-5
+ * Change: Full reindex in weekend in any time
+ * Fix: don't leave loop on full reindexing
+ * Fix: leave indexing loop if nothing returned
+ * Improve indexer concurency and verbose logging
+ * New cron.hourly maintenance task instead of cron.daily 
+
+ -- Volodymyr Flonts <flyonts@gmail.com>  Mon Jul 25 00:07:11 EEST 2016
+
+search-tenders (0.3-1) stable; urgency=low
+
+ * Increase clean_indexes period to 10 days
+ * Add rename_{indexname} feature
+ * Add skip_until feature for tenders and plans
+ * Add possibility to disable one of indexes
+ * Update heartbeat during long indexing cycle
+ * Add retry after REST client 50x errors 
+ * Disable ocds_speed option, sleep(1) each 1k
+
+ -- Volodymyr Flonts <flyonts@gmail.com>  Fri Jul 22 15:30:53 EEST 2016
+
+search-tenders (0.2-1) stable; urgency=low
+
+ * Fix bug in search by procurementMethodType == aboveThresholdUA
+
+ -- Volodymyr Flonts <flyonts@gmail.com>  Tue Jul 12 04:18:44 EEST 2016
+
+search-tenders (0.1-2) stable; urgency=low
+
+ * Add DEBIAN/conffiles
+
+ -- Volodymyr Flonts <flyonts@gmail.com>  Thu Jun 16 12:48:47 EEST 2016
+
+search-tenders (0.1-1) stable; urgency=low
+
+ * Initial release
+
+ -- Volodymyr Flonts <flyonts@gmail.com>  Sun May  8 03:39:30 EEST 2016
+
