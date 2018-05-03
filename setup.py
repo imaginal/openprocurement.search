@@ -18,8 +18,9 @@ setup(
     author_email='flyonts@gmail.com',
     license='Apache License 2.0',
     url='https://github.com/openprocurement/openprocurement.search',
-    packages=find_packages(),
     namespace_packages=['openprocurement'],
+    packages=find_packages(),
+    package_data={'': ['*.md', '*.txt', 'openprocurement/search/index/settings/*.json']},
     include_package_data=True,
     zip_safe=False,
     install_requires=[
