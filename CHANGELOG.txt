@@ -2,11 +2,11 @@ search-tenders (0.8) stable; urgency=low
 
  *  Release of version 0.8
 
- -- Volodymyr Flonts <flyonts@gmail.com>  Wed May  2 15:51:24 EEST 2018
+ -- Volodymyr Flonts <flyonts@gmail.com>  Thu May  3 12:50:00 EEST 2018
 
 search-tenders (0.8.0b16) unstable; urgency=low
 
- * Update negotiation and negotiation.quick - index if awards.status cancelled
+ * Upd negotiation and negotiation.quick index it if award.status is cancelled
  * Move stopwords/ukrainian.txt to /etc/elasticsearch in index settings json
  * Add tender_fast_stepsback and plan_fast_stepsback config feature
  * Add tender_skip_after and plan_skip_after config feature
@@ -16,6 +16,9 @@ search-tenders (0.8.0b16) unstable; urgency=low
  * Warn on bulk indexing only of version is greater (dateModified is later)
  * Disable cahe usage by default for test_search, test_index and update_orgs
  * Change process user/group for test_search, test_index and update_orgs
+ * Add --version arg to index_worker
+ * ocds_ftp_sync returned to console_commands
+ * Old paper ocds index renamed to oldocds
  * Merge changelog from beta 13 to beta 16
 
  -- Volodymyr Flonts <flyonts@gmail.com>  Sat Apr 28 13:55:02 EEST 2017
