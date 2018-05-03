@@ -52,6 +52,10 @@ def main():
         print("Usage: index_worker etc/search.ini [custom_index_names_file]")
         sys.exit(1)
 
+    if '--version' in sys.argv:
+        print(__version__)
+        sys.exit(0)
+
     parser = ConfigParser()
     parser.read(sys.argv[1])
     config = dict(parser.items('search_engine'))
