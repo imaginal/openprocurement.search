@@ -29,6 +29,7 @@ class BaseSource:
     stat_fetched = 0
     stat_skipped = 0
     stat_getitem = 0
+    preload_wait = 0.1
 
     @property
     def doc_type(self):
@@ -96,6 +97,8 @@ class BaseSource:
             if data['data']['dateModified'] == item['dateModified']:
                 assert data['data']['id'] == item['id'], "Bad ID"
                 assert len(data['data']) > 5, "Bad data"
+                if 'meta' in data:
+                    data['meta']['from_cache'] = True
                 if self.cache_allow(data):
                     self.cache_hits += 1
                     return munchify(data)
