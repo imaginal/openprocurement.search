@@ -119,6 +119,8 @@ class SearchEngine(object):
                 key = key.__index_name__
             name = self.get_index(key)
             if not name:
+                name = self.get_index(key + '.prev')
+            if not name:
                 name = self.get_index(key + '.next')
             if name:
                 index_names.append(name)
