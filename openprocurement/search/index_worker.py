@@ -47,9 +47,27 @@ def sigterm_handler(signo, frame):
     # sys.exit(0)
 
 
+def force_reindex(config):
+    chage_process_user_group(config, logger)
+    engine = IndexEngine(config)
+    index_key = config['reindex']
+    index_prev = index_key + '.prev'
+    index_name = engine.get_index(index_key)
+    if not index_name:
+        print("Error: Can't reindex '%s', current index not found" % index_key)
+        return 1
+    old_prev = engine.get_index(index_prev) or ''
+    if old_prev:
+        old_prev = " (old prev %s)" % old_prev
+    print("Force reindex %s %s %s" % (index_key, index_name, old_prev))
+    engine.set_index(index_prev, index_name)
+    engine.set_index(index_key, '')
+    return 0
+
+
 def main():
     if len(sys.argv) < 2:
-        print("Usage: index_worker etc/search.ini [custom_index_names_file]")
+        print("Usage: index_worker etc/search.ini [option=value] [reindex=index_name]")
         sys.exit(1)
 
     if '--version' in sys.argv:
@@ -61,11 +79,13 @@ def main():
     config = dict(parser.items('search_engine'))
     config = decode_bool_values(config)
 
-    # disable slave mode if used custom_index_names
-    if len(sys.argv) > 2:
-        config['index_names'] = sys.argv[2]
-        config['slave_mode'] = ''
-        config['start_wait'] = 0
+    for arg in sys.argv[2:]:
+        if '=' in arg:
+            key, value = arg.split('=', 1)
+            config[key] = value
+
+    if 'reindex' in config:
+        return force_reindex(config)
 
     logging.config.fileConfig(sys.argv[1])
 
