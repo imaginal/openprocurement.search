@@ -135,6 +135,7 @@ class TenderSource(BaseSource):
                 user_agent=self.client_user_agent+" fast_client")
             for i in range(int(self.config['tender_fast_stepsback'])):
                 self.fast_client.get_tenders()
+                self.sleep(self.preload_wait)
             self.fast_client.params.pop('descending')
             logger.info("TendersClient (fast) %s", self.fast_client.headers)
         else:
@@ -197,7 +198,7 @@ class TenderSource(BaseSource):
             if self.preload_wait:
                 self.sleep(self.preload_wait)
 
-        if len(preload_items) >= 100 and 'dateModified' in items[-1]:
+        if len(preload_items) >= 100 and items and 'dateModified' in items[-1]:
             logger.info("Preload %d tenders, last %s", len(preload_items), items[-1]['dateModified'])
 
         return preload_items

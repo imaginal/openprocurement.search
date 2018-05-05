@@ -142,7 +142,7 @@ class DgfLotSource(BaseSource):
             if self.preload_wait:
                 self.sleep(self.preload_wait)
 
-        if len(preload_items) >= 100 and 'dateModified' in items[-1]:
+        if len(preload_items) >= 100 and items and 'dateModified' in items[-1]:
             logger.info("Preload %d lots, last %s", len(preload_items), items[-1]['dateModified'][:20])
 
         return preload_items
