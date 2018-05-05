@@ -58,7 +58,7 @@ def force_reindex(config):
         return 1
     old_prev = engine.get_index(index_prev) or ''
     if old_prev:
-        old_prev = " (old prev %s)" % old_prev
+        old_prev = "(old prev %s)" % old_prev
     print("Force reindex %s %s %s" % (index_key, index_name, old_prev))
     engine.set_index(index_prev, index_name)
     engine.set_index(index_key, '')
@@ -66,7 +66,7 @@ def force_reindex(config):
 
 
 def main():
-    if len(sys.argv) < 2:
+    if len(sys.argv) < 2 or '--help' in sys.argv:
         print("Usage: index_worker etc/search.ini [option=value] [reindex=index_name]")
         sys.exit(1)
 
@@ -154,4 +154,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
