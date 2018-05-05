@@ -188,7 +188,7 @@ class PlanSource(BaseSource):
                 self.sleep(self.preload_wait)
 
         if len(preload_items) >= 100 and items and 'dateModified' in items[-1]:
-            logger.info("Preload %d plans, last %s", len(preload_items), items[-1]['dateModified'][:20])
+            logger.info("Preload %d plans, last %s", len(preload_items), items[-1]['dateModified'])
 
         return preload_items
 
