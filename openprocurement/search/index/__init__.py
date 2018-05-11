@@ -20,6 +20,7 @@ class BaseIndex(object):
         'reindex_check': '1,10',
         'number_of_shards': 6,
         'index_parallel': 1,
+        'query_speed': 100,
         'index_speed': 500,
         'error_wait': 10,
     }
@@ -41,6 +42,7 @@ class BaseIndex(object):
         if config:
             self.config.update(config)
             self.config['index_speed'] = float(self.config['index_speed'])
+            self.config['query_speed'] = float(self.config['query_speed'])
         rename_key = 'rename_' + self.__index_name__
         if rename_key in self.config:
             self.__index_name__ = self.config[rename_key]
@@ -192,6 +194,9 @@ class BaseIndex(object):
         self.engine.set_alias(index_key, name)
         return name
 
+    def from_cache(self, item):
+        return item and item['meta'].get('from_cache')
+
     def test_exists(self, index_name, info):
         return self.engine.test_exists(index_name, info)
 
@@ -207,16 +212,22 @@ class BaseIndex(object):
         else:
             raise exc_info[0], exc_info[1], exc_info[2]
 
-    def indexing_stat(self, index_name, fetched, indexed, iter_count, last_date):
-        if not last_date and fetched < 10 and indexed < 1:
+    def indexing_stat(self, index_name, fetched, indexed, last_item={}, last_skipped=None):
+        if not last_item and not last_skipped and fetched < 10 and indexed < 1:
             return
-        logger.info("[%s] Fetched %d indexed %d last %s",
-            index_name, fetched, indexed, last_date or '-')
-        pause = float(iter_count) / float(self.config['index_speed'] or 1)
-        if pause > 2.0:
-            logger.info("Wait %1.1f sec", pause)
-        if pause > 0.01:
-            self.engine.sleep(pause)
+        if not last_item and last_skipped:
+            last_item = {'dateModified': 'skipped ' + last_skipped}
+        logger.info(
+            "[%s] Fetched %d indexed %d last %s",
+            index_name, fetched, indexed, last_item.get('dateModified', '-'))
+
+    def indexing_wait(self, query_count, index_count):
+        p1 = float(query_count) / self.config['query_speed']
+        p2 = float(index_count) / self.config['index_speed']
+        if p1 + p2 > 10:
+            logger.info("Wait %1.1f sec.", max(p1, p2))
+        if p1 + p2 > 0.001:
+            self.engine.sleep(max(p1, p2))
 
     def index_item(self, index_name, item):
         if not item.get('meta') or not item.get('data'):
@@ -257,22 +268,27 @@ class BaseIndex(object):
         if reset or self.source.need_reset():
             self.source.reset()
 
+        query_count = 0
         index_count = 0
+        index_cprev = 0
         total_count = 0
+
         # heartbeat always True in master mode
         # heartbeat return True in slave mode only if master fail
         while self.engine.heartbeat(self.source):
             info = {}
+            item = {}
+            last_skipped = {}
             iter_count = 0
-            items_list = self.source.items()
-            if not items_list:
-                break
-            for info in items_list:
+
+            for info in self.source.items():
                 if self.engine.should_exit:
                     break
                 if not self.test_exists(index_name, info):
                     try:
                         item = self.source.get(info)
+                        if not self.from_cache(item):
+                            query_count += 1
                         if self.index_item(index_name, item):
                             index_count += 1
                     except Exception as e:
@@ -283,27 +299,27 @@ class BaseIndex(object):
                 # update heartbeat for long indexing
                 if iter_count >= 1000:
                     self.engine.flush_bulk()
-                    self.indexing_stat(
-                        index_name, total_count, index_count,
-                        iter_count, info.get('dateModified', '-'))
+                    self.indexing_stat(index_name, total_count, index_count, info)
                     iter_count = 0
+                # take a break
+                if query_count >= 10 or index_count - index_cprev >= 10:
+                    self.indexing_wait(query_count, index_count - index_cprev)
+                    index_cprev = index_count
+                    query_count = 0
                 # check for heartbeat in long term ops
-                if total_count % 5000 == 0:
-                    if not self.engine.heartbeat(self.source):
-                        break
+                if iter_count == 500 and not self.engine.heartbeat(self.source):
+                    break
 
-            self.engine.flush()
+            if item or iter_count:
+                self.engine.flush()
 
             if self.engine.should_exit:
                 return
+            if not info:
+                last_skipped = getattr(self.source, 'last_skipped', None)
             # break if nothing iterated
-            if iter_count:
-                self.indexing_stat(index_name, total_count, index_count,
-                    iter_count, info.get('dateModified', '-'))
-            elif getattr(self.source, 'last_skipped', None):
-                last_skipped = self.source.last_skipped or ""
-                logger.info("[%s] Fetched %d, last_skipped %s",
-                    index_name, total_count, last_skipped or '-')
+            if iter_count or last_skipped:
+                self.indexing_stat(index_name, total_count, index_count, info, last_skipped)
             elif not info:
                 break
             # break on each iteration if not in full reindex mode
@@ -313,7 +329,7 @@ class BaseIndex(object):
 
         # print source statistics
         if self.source.stat_queries - self.source_last_queries >= 100:
-            logger.info("[%s:%s] API client %d resets, %d queries, %d listed, %d skipped, %d loaded",
+            logger.info("[%s:%s] API client %d resets, %d queries, %d fetched, %d skipped, %d loaded",
                         self.__index_name__, self.source.__doc_type__, self.source.stat_resets,
                         self.source.stat_queries, self.source.stat_fetched,
                         self.source.stat_skipped, self.source.stat_getitem)
@@ -380,8 +396,7 @@ class BaseIndex(object):
 
         if self.skip_check_count:
             if self.check_all_field:
-                logger.info("[%s] Total docs %d, last indexed not tested",
-                    index_name, stat['docs']['count'])
+                logger.info("[%s] Total docs %d", index_name, stat['docs']['count'])
             return True
 
         # check index docs count afetr reindex
