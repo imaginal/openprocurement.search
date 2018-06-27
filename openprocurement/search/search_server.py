@@ -103,6 +103,17 @@ match_map = {
     'unit_code': 'unit.code',
     'status': 'status',
 }
+match_multi_map = {
+    'sp_make': ('schema_properties.properties.make', 'items.schema_properties.properties.make'),
+    'sp_model': ('schema_properties.properties.model', 'items.schema_properties.properties.model'),
+    'sp_cadastralNumber':  ('schema_properties.properties.cadastralNumber', 'items.schema_properties.properties.cadastralNumber'),
+}
+range_multi_map = {
+    'sp_productionDate': ('schema_properties.properties.productionDate', 'items.schema_properties.properties.productionDate'),
+    'sp_area': ('schema_properties.properties.area', 'items.schema_properties.properties.area'),
+    'sp_totalArea': ('schema_properties.properties.totalArea', 'items.schema_properties.properties.totalArea'),
+    'sp_livingArea': ('schema_properties.properties.livingArea', 'items.schema_properties.properties.livingArea'),
+}
 range_map = {
     'region': 'procuringEntity.address.postalCode',
     'address_region': 'address.postalCode',
@@ -216,13 +227,23 @@ def match_query(query, field, type_=None, operator=None, analyzer=None, force_lo
     return {"match": {field: query}}
 
 
+def match_multi(query, fields, force_lower=False):
+    body = []
+    for q in query:
+        if force_lower:
+            q = q.lower()
+        for f in fields:
+            body.append({"match": {f: q}})
+    return {"bool": {"should": body}}
+
+
 def prefix_query(query, field, force_lower=False):
     body = []
     for q in query:
         if force_lower:
             q = q.lower()
-        query = {field: {"prefix": q}}
-        body.append({"prefix": query})
+        sq = {field: {"prefix": q}}
+        body.append({"prefix": sq})
     if len(body) == 1:
         return body[0]
     return {"bool": {"should": body}}
@@ -249,6 +270,16 @@ def range_query(query, field, force_float=False):
             }})
     if len(body) == 1:
         return body[0]
+    return {"bool": {"should": body}}
+
+
+def range_multi(query, fields, force_float=False):
+    body = []
+    for f in fields:
+        rq = range_query(query, f, force_float)
+        if "bool" in rq:
+            rq = rq["bool"]["should"]
+        body.append(rq)
     return {"bool": {"should": body}}
 
 
@@ -305,6 +336,24 @@ def prepare_search_body(args, default_sort='dateModified', source_fields=None):
             operator='or',
             analyzer='whitespace',
             force_lower=force_lower)
+        body.append(match)
+
+    # multi fields match
+    for key in match_multi_map.keys():
+        if not args.get(key):
+            continue
+        fields = match_multi_map[key]
+        query = args.getlist(key)
+        match = match_multi(query, fields, force_lower)
+        body.append(match)
+
+    # multi fields range query
+    for key in range_multi_map.keys():
+        if not args.get(key):
+            continue
+        fields = range_multi_map[key]
+        query = args.getlist(key)
+        match = range_multi(query, fields, True)
         body.append(match)
 
     # range values ie postal code
