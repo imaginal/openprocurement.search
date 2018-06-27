@@ -27,6 +27,8 @@ class AssetSource(BaseSource):
         'asset_skip_after': None,
         'asset_limit': 1000,
         'asset_preload': 10000,
+        'asset_fast_client': False,
+        'asset_fast_stepsback': 5,
         'asset_reseteach': 3,
         'asset_resethour': 23,
         'asset_user_agent': '',
@@ -50,6 +52,7 @@ class AssetSource(BaseSource):
         if self.cache_path:
             self.cache_allow_status = self.config['asset_cache_allow'].split(',')
             logger.info("[asset] Cache allow status %s", self.cache_allow_status)
+        self.fast_client = None
         self.client = None
 
     def procuring_entity(self, item):
@@ -105,6 +108,24 @@ class AssetSource(BaseSource):
             logger.info("[asset] Cache allow dateModified before %s",
                         self.cache_allow_dateModified)
         logger.info("AssetClient %s", self.client.headers)
+        if self.config['asset_fast_client']:
+            fast_params = dict(params)
+            fast_params['descending'] = 1
+            self.fast_client = TendersClient(
+                key=self.config['asset_api_key'],
+                host_url=self.config['asset_api_url'],
+                api_version=self.config['asset_api_version'],
+                resource=self.config['asset_resource'],
+                params=fast_params,
+                timeout=float(self.config['timeout']),
+                user_agent=self.client_user_agent + ' (fast_client)')
+            for i in range(int(self.config['asset_fast_stepsback'])):
+                self.fast_client.get_tenders()
+                self.sleep(self.preload_wait)
+            self.fast_client.params.pop('descending')
+            logger.info("AssetClient (fast) %s", self.fast_client.headers)
+        else:
+            self.fast_client = None
         self.skip_until = self.config.get('asset_skip_until', None)
         if self.skip_until and self.skip_until[:2] != '20':
             self.skip_until = None
@@ -116,6 +137,20 @@ class AssetSource(BaseSource):
 
     def preload(self):
         preload_items = []
+        # try prelaod last assets first
+        if self.fast_client:
+            try:
+                items = self.fast_client.get_tenders()
+                self.stat_queries += 1
+                if not len(items):
+                    logger.debug("Preload fast 0 assets")
+                    raise ValueError()
+                preload_items.extend(items)
+                logger.info("Preload fast %d assets, last %s",
+                    len(preload_items), items[-1]['dateModified'])
+            except:
+                pass
+
         retry_count = 0
         while True:
             if retry_count > 3 or self.should_exit:
