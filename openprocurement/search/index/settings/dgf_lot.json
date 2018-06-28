@@ -3,7 +3,11 @@
     "lot": {
       "include_in_all": false,
       "properties": {
-        "assets": {
+        "assetsRefs": {
+          "include_in_all": false,
+          "type": "string"
+        },
+        "auctionsRefs": {
           "include_in_all": false,
           "type": "string"
         },
@@ -32,7 +36,8 @@
               "properties": {
                 "startDate": {
                   "include_in_all": false,
-                  "type": "string"
+                  "format": "dateOptionalTime",
+                  "type": "date"
                 }
               }
             },
@@ -80,11 +85,13 @@
                 },
                 "dateModified": {
                   "include_in_all": false,
-                  "type": "string"
+                  "format": "dateOptionalTime",
+                  "type": "date"
                 },
                 "datePublished": {
                   "include_in_all": false,
-                  "type": "string"
+                  "format": "dateOptionalTime",
+                  "type": "date"
                 },
                 "description": {
                   "include_in_all": true,
@@ -284,7 +291,8 @@
           "properties": {
             "decisionDate": {
               "include_in_all": false,
-              "type": "string"
+              "format": "dateOptionalTime",
+              "type": "date"
             },
             "decisionID": {
               "include_in_all": false,
@@ -337,11 +345,13 @@
             },
             "dateModified": {
               "include_in_all": false,
-              "type": "string"
+              "format": "dateOptionalTime",
+              "type": "date"
             },
             "datePublished": {
               "include_in_all": false,
-              "type": "string"
+              "format": "dateOptionalTime",
+              "type": "date"
             },
             "description": {
               "include_in_all": true,
@@ -518,9 +528,11 @@
               "properties": {
                 "registrationDate": {
                   "include_in_all": false,
-                  "type": "string"
+                  "format": "dateOptionalTime",
+                  "type": "date"
                 },
                 "registrationID": {
+                  "analyzer": "whitespace_lower",
                   "include_in_all": false,
                   "type": "string"
                 },
@@ -804,6 +816,11 @@
           "include_in_all": true,
           "type": "string"
         },
+        "lotIdentifier": {
+          "analyzer": "whitespace_lower",
+          "type": "string",
+          "include_in_all": true
+        },
         "lotType": {
           "analyzer": "whitespace_lower",
           "include_in_all": true,
@@ -826,11 +843,13 @@
           "properties": {
             "endDate": {
               "include_in_all": false,
-              "type": "string"
+              "format": "dateOptionalTime",
+              "type": "date"
             },
             "startDate": {
               "include_in_all": false,
-              "type": "string"
+              "format": "dateOptionalTime",
+              "type": "date"
             }
           }
         },
