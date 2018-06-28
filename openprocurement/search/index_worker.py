@@ -2,6 +2,7 @@
 
 import os
 import sys
+import time
 import fcntl
 import signal
 import logging
@@ -105,9 +106,10 @@ def main():
         lock_file.write(str(os.getpid()) + "\n")
         lock_file.flush()
     except Exception as e:
-        logger.error("Can't get lock %s maybe already started. Error %s",
+        logger.error("Can't get lock %s maybe already started. %s",
             lock_filename, str(e))
         lock_file.close()
+        time.sleep(10)
         return 1
 
     signal.signal(signal.SIGTERM, sigterm_handler)
