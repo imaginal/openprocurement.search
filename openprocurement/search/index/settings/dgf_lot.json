@@ -7,10 +7,6 @@
           "include_in_all": false,
           "type": "string"
         },
-        "auctionsRefs": {
-          "include_in_all": false,
-          "type": "string"
-        },
         "auctions": {
           "include_in_all": false,
           "properties": {
@@ -35,8 +31,8 @@
               "include_in_all": false,
               "properties": {
                 "startDate": {
-                  "include_in_all": false,
                   "format": "dateOptionalTime",
+                  "include_in_all": false,
                   "type": "date"
                 }
               }
@@ -84,13 +80,13 @@
                   "type": "string"
                 },
                 "dateModified": {
-                  "include_in_all": false,
                   "format": "dateOptionalTime",
+                  "include_in_all": false,
                   "type": "date"
                 },
                 "datePublished": {
-                  "include_in_all": false,
                   "format": "dateOptionalTime",
+                  "include_in_all": false,
                   "type": "date"
                 },
                 "description": {
@@ -250,6 +246,10 @@
             }
           }
         },
+        "auctionsRefs": {
+          "include_in_all": false,
+          "type": "string"
+        },
         "contracts": {
           "include_in_all": false,
           "properties": {
@@ -290,8 +290,8 @@
           "include_in_all": false,
           "properties": {
             "decisionDate": {
-              "include_in_all": false,
               "format": "dateOptionalTime",
+              "include_in_all": false,
               "type": "date"
             },
             "decisionID": {
@@ -344,13 +344,13 @@
               "type": "string"
             },
             "dateModified": {
-              "include_in_all": false,
               "format": "dateOptionalTime",
+              "include_in_all": false,
               "type": "date"
             },
             "datePublished": {
-              "include_in_all": false,
               "format": "dateOptionalTime",
+              "include_in_all": false,
               "type": "date"
             },
             "description": {
@@ -527,8 +527,8 @@
               "include_in_all": false,
               "properties": {
                 "registrationDate": {
-                  "include_in_all": false,
                   "format": "dateOptionalTime",
+                  "include_in_all": false,
                   "type": "date"
                 },
                 "registrationID": {
@@ -818,8 +818,8 @@
         },
         "lotIdentifier": {
           "analyzer": "whitespace_lower",
-          "type": "string",
-          "include_in_all": true
+          "include_in_all": true,
+          "type": "string"
         },
         "lotType": {
           "analyzer": "whitespace_lower",
@@ -842,13 +842,13 @@
           "include_in_all": false,
           "properties": {
             "endDate": {
-              "include_in_all": false,
               "format": "dateOptionalTime",
+              "include_in_all": false,
               "type": "date"
             },
             "startDate": {
-              "include_in_all": false,
               "format": "dateOptionalTime",
+              "include_in_all": false,
               "type": "date"
             }
           }
