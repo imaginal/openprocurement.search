@@ -445,6 +445,7 @@ class IndexEngine(SearchEngine):
 
     def wait_for_backend(self):
         if self.config['start_wait']:
+            logger.info("Wait %s sec before start indexing", str(self.config['start_wait']))
             self.sleep(self.config['start_wait'])
         alive = False
         retry_count = 0
