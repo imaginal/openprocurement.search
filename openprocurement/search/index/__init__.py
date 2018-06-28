@@ -394,7 +394,7 @@ class BaseIndex(object):
                 self.force_next_reindex = True
                 return False
 
-        if self.skip_check_count:
+        if self.skip_check_count or not self.rc_mindocs:
             if self.check_all_field:
                 logger.info("[%s] Total docs %d", index_name, stat['docs']['count'])
             return True
