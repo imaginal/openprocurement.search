@@ -71,6 +71,14 @@ class DgfLotSource(BaseSource):
         return item
 
     def patch_lot(self, lot):
+        # fix mappings before release of ea2 lots registry 2018-06-26
+        # move old-style list of IDs of assets and auctions to separate field
+        if lot['data'].get('assets', None) and 'assetsRefs' not in lot['data']:
+            if not isinstance(lot['data']['assets'][0], dict):
+                lot['data']['assetsRefs'] = lot['data'].pop('assets')
+        if lot['data'].get('auctions', None) and 'auctionsRefs' not in lot['data']:
+            if not isinstance(lot['data']['auctions'][0], dict):
+                lot['data']['auctionsRefs'] = lot['data'].pop('auctions')
         return lot
 
     def need_reset(self):
@@ -220,11 +228,13 @@ class DgfLotSource(BaseSource):
             except Exception as e:
                 if retry_count > 3:
                     raise e
+                if self.config.get('ignore_errors', 0) and retry_count > 0:
+                    raise e
                 retry_count += 1
                 logger.error("GET %s/%s retry %d error %s", self.client.prefix_path,
                     str(item['id']), retry_count, restkit_error(e, self.client))
                 self.sleep(5 * retry_count)
-                if retry_count > 1:
+                if retry_count > 2:
                     self.reset()
                 lot = {}
             # save to cache
