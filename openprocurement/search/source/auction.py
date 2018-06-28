@@ -229,11 +229,13 @@ class AuctionSource(BaseSource):
             except Exception as e:
                 if retry_count > 3:
                     raise e
+                if self.config.get('ignore_errors', 0) and retry_count > 0:
+                    raise e
                 retry_count += 1
                 logger.error("GET %s/%s retry %d error %s", self.client.prefix_path,
                     str(item['id']), retry_count, restkit_error(e, self.client))
                 self.sleep(5 * retry_count)
-                if retry_count > 1:
+                if retry_count > 2:
                     self.reset()
                 auction = {}
             # save to cache
