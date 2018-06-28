@@ -64,7 +64,7 @@ class BaseSource:
             return
         if '://' in host:
             host = host.replace('://', '_')
-        self.cache_path = os.path.join(base, host, version, resource)
+        self.cache_path = os.path.join(base, host, str(version), resource)
         logger.info("Enable %s cahce %s", resource, self.cache_path)
 
     def cache_dirname(self, name):
