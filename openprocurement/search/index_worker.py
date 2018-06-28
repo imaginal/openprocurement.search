@@ -104,9 +104,9 @@ def main():
         fcntl.lockf(lock_file, fcntl.LOCK_EX + fcntl.LOCK_NB)
         lock_file.write(str(os.getpid()) + "\n")
         lock_file.flush()
-    except:
-        logger.error("Can't get lock %s maybe already started",
-            lock_filename)
+    except Exception as e:
+        logger.error("Can't get lock %s maybe already started. Error %s",
+            lock_filename, str(e))
         lock_file.close()
         return 1
 
