@@ -340,6 +340,7 @@ tender_decode_orgs = yes
 ;tender_check = 300000,2
 ;tender_reseteach = 3
 ;tender_resethour = 22
+;tender_skip_test = no
 ```
 
 
@@ -418,6 +419,8 @@ _перший_ курсор йде від найстаріших тендері�
 з openprocurement.api та автоматична перевірка наповнення індексу. Еквівалент
 tender_reseteach=24 але при цьому дозволяє вказати конкретну годину.
 
+`tender_skip_test` - ігнорувати цей індекс при перевірці утилітою test_search.
+
 
 <a name="plan"></a>
 
@@ -445,6 +448,7 @@ plan_api_mode = _all_
 ;plan_check = 500000,2
 ;plan_reseteach = 3
 ;plan_resethour = 23
+;plan_skip_test = no
 ```
 
 Налаштування аналогічно індексу "[Тендери ProZorro](#tender)"
@@ -475,6 +479,7 @@ auction_api_version = 2.4
 ;auction_reseteach = 3
 ;auction_resethour = 22
 ;auction_check = 1,10
+;auction_skip_test = no
 ```
 
 Налаштування аналогічно індексу "[Тендери ProZorro](#tender)"
