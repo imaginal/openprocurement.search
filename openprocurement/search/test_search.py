@@ -498,22 +498,28 @@ class SearchTester(object):
             raise RuntimeError("Not enough queries")
 
     def test(self):
-        if self.engine_config.get('tender_api_url', None):
+        if (self.engine_config.get('tender_api_url', None) and
+                not self.engine_config.get('tender_skip_test', False)):
             self.test_tenders()
 
-        if self.engine_config.get('plan_api_url', None):
+        if (self.engine_config.get('plan_api_url', None) and
+                not self.engine_config.get('plan_skip_test', False)):
             self.test_plans()
 
-        if self.engine_config.get('auction_api_url', None):
+        if (self.engine_config.get('auction_api_url', None) and
+                not self.engine_config.get('auction_skip_test', False)):
             self.test_auctions()
 
-        if self.engine_config.get('auction2_api_url', None):
+        if (self.engine_config.get('auction2_api_url', None) and
+                not self.engine_config.get('auction2_skip_test', False)):
             self.test_auctions2()
 
-        if self.engine_config.get('asset_api_url', None):
+        if (self.engine_config.get('asset_api_url', None) and
+                not self.engine_config.get('asset_skip_test', False)):
             self.test_assets()
 
-        if self.engine_config.get('lot_api_url', None):
+        if (self.engine_config.get('lot_api_url', None) and
+                not self.engine_config.get('lot_skip_test', False)):
             self.test_lots()
 
 
