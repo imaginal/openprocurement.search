@@ -3,6 +3,10 @@
     "tender": {
       "include_in_all": false,
       "properties": {
+        "NBUdiscountRate": {
+          "include_in_all": false,
+          "type": "double"
+        },
         "auctionPeriod": {
           "include_in_all": false,
           "properties": {
@@ -189,6 +193,11 @@
                       "type": "string"
                     }
                   }
+                },
+                "bid_id": {
+                  "analyzer": "whitespace_lower",
+                  "include_in_all": false,
+                  "type": "string"
                 },
                 "cancellationReason": {
                   "include_in_all": false,
@@ -446,6 +455,10 @@
             "documents": {
               "include_in_all": false,
               "properties": {
+                "author": {
+                  "include_in_all": false,
+                  "type": "string"
+                },
                 "dateModified": {
                   "format": "dateOptionalTime",
                   "include_in_all": false,
@@ -614,6 +627,11 @@
                 "identifier": {
                   "include_in_all": true,
                   "properties": {
+                    "active": {
+                      "analyzer": "whitespace_lower",
+                      "include_in_all": true,
+                      "type": "string"
+                    },
                     "id": {
                       "analyzer": "whitespace_lower",
                       "include_in_all": true,
@@ -670,12 +688,37 @@
                   "include_in_all": false,
                   "type": "double"
                 },
+                "amountPerformance": {
+                  "include_in_all": false,
+                  "type": "double"
+                },
+                "annualCostsReduction": {
+                  "include_in_all": false,
+                  "type": "double"
+                },
+                "contractDuration": {
+                  "include_in_all": false,
+                  "properties": {
+                    "days": {
+                      "include_in_all": false,
+                      "type": "long"
+                    },
+                    "years": {
+                      "include_in_all": false,
+                      "type": "long"
+                    }
+                  }
+                },
                 "currency": {
                   "include_in_all": false,
                   "type": "string"
                 },
                 "valueAddedTaxIncluded": {
                   "type": "boolean"
+                },
+                "yearlyPaymentsPercentage": {
+                  "include_in_all": false,
+                  "type": "double"
                 }
               }
             }
@@ -1173,6 +1216,11 @@
                 "identifier": {
                   "include_in_all": false,
                   "properties": {
+                    "active": {
+                      "analyzer": "whitespace_lower",
+                      "include_in_all": false,
+                      "type": "string"
+                    },
                     "id": {
                       "analyzer": "whitespace_lower",
                       "include_in_all": false,
@@ -1239,12 +1287,37 @@
                   "include_in_all": false,
                   "type": "double"
                 },
+                "amountPerformance": {
+                  "include_in_all": false,
+                  "type": "double"
+                },
+                "annualCostsReduction": {
+                  "include_in_all": false,
+                  "type": "double"
+                },
+                "contractDuration": {
+                  "include_in_all": false,
+                  "properties": {
+                    "days": {
+                      "include_in_all": false,
+                      "type": "long"
+                    },
+                    "years": {
+                      "include_in_all": false,
+                      "type": "long"
+                    }
+                  }
+                },
                 "currency": {
                   "include_in_all": false,
                   "type": "string"
                 },
                 "valueAddedTaxIncluded": {
                   "type": "boolean"
+                },
+                "yearlyPaymentsPercentage": {
+                  "include_in_all": false,
+                  "type": "double"
                 }
               }
             }
@@ -1968,6 +2041,22 @@
                     "name_ru": {
                       "include_in_all": true,
                       "type": "string"
+                    },
+                    "value": {
+                      "include_in_all": false,
+                      "properties": {
+                        "amount": {
+                          "include_in_all": false,
+                          "type": "double"
+                        },
+                        "currency": {
+                          "include_in_all": false,
+                          "type": "string"
+                        },
+                        "valueAddedTaxIncluded": {
+                          "type": "boolean"
+                        }
+                      }
                     }
                   }
                 }
@@ -2069,6 +2158,11 @@
                 "identifier": {
                   "include_in_all": false,
                   "properties": {
+                    "active": {
+                      "analyzer": "whitespace_lower",
+                      "include_in_all": false,
+                      "type": "string"
+                    },
                     "id": {
                       "analyzer": "whitespace_lower",
                       "include_in_all": false,
@@ -2117,12 +2211,37 @@
                   "include_in_all": false,
                   "type": "double"
                 },
+                "amountPerformance": {
+                  "include_in_all": false,
+                  "type": "double"
+                },
+                "annualCostsReduction": {
+                  "include_in_all": false,
+                  "type": "double"
+                },
+                "contractDuration": {
+                  "include_in_all": false,
+                  "properties": {
+                    "days": {
+                      "include_in_all": false,
+                      "type": "long"
+                    },
+                    "years": {
+                      "include_in_all": false,
+                      "type": "long"
+                    }
+                  }
+                },
                 "currency": {
                   "include_in_all": false,
                   "type": "string"
                 },
                 "valueAddedTaxIncluded": {
                   "type": "boolean"
+                },
+                "yearlyPaymentsPercentage": {
+                  "include_in_all": false,
+                  "type": "double"
                 }
               }
             }
@@ -2158,6 +2277,10 @@
         "documents": {
           "include_in_all": false,
           "properties": {
+            "author": {
+              "include_in_all": false,
+              "type": "string"
+            },
             "dateModified": {
               "format": "dateOptionalTime",
               "include_in_all": false,
@@ -2228,29 +2351,6 @@
               "include_in_all": false,
               "index": "no",
               "type": "string"
-            }
-          }
-        },
-        "dozorro": {
-          "include_in_all": false,
-          "properties": {
-            "commentCount": {
-              "include_in_all": false,
-              "type": "long"
-            },
-            "formCount": {
-              "include_in_all": false,
-              "type": "long"
-            },
-            "lastCommentDate": {
-              "format": "dateOptionalTime",
-              "include_in_all": false,
-              "type": "date"
-            },
-            "lastFormDate": {
-              "format": "dateOptionalTime",
-              "include_in_all": false,
-              "type": "date"
             }
           }
         },
@@ -2350,6 +2450,10 @@
               "type": "string"
             }
           }
+        },
+        "fundingKind": {
+          "include_in_all": false,
+          "type": "string"
         },
         "guarantee": {
           "include_in_all": false,
@@ -2531,6 +2635,22 @@
                 "name_ru": {
                   "include_in_all": true,
                   "type": "string"
+                },
+                "value": {
+                  "include_in_all": false,
+                  "properties": {
+                    "amount": {
+                      "include_in_all": false,
+                      "type": "double"
+                    },
+                    "currency": {
+                      "include_in_all": false,
+                      "type": "string"
+                    },
+                    "valueAddedTaxIncluded": {
+                      "type": "boolean"
+                    }
+                  }
                 }
               }
             }
@@ -2647,6 +2767,22 @@
             }
           }
         },
+        "minValue": {
+          "include_in_all": false,
+          "properties": {
+            "amount": {
+              "include_in_all": false,
+              "type": "double"
+            },
+            "currency": {
+              "include_in_all": false,
+              "type": "string"
+            },
+            "valueAddedTaxIncluded": {
+              "type": "boolean"
+            }
+          }
+        },
         "minimalStep": {
           "include_in_all": false,
           "properties": {
@@ -2663,12 +2799,21 @@
             }
           }
         },
+        "minimalStepPercentage": {
+          "include_in_all": false,
+          "type": "double"
+        },
         "mode": {
           "analyzer": "whitespace_lower",
           "include_in_all": false,
           "type": "string"
         },
         "next_check": {
+          "format": "dateOptionalTime",
+          "include_in_all": false,
+          "type": "date"
+        },
+        "noticePublicationDate": {
           "format": "dateOptionalTime",
           "include_in_all": false,
           "type": "date"
@@ -3019,6 +3164,11 @@
                     }
                   }
                 },
+                "bid_id": {
+                  "analyzer": "whitespace_lower",
+                  "include_in_all": false,
+                  "type": "string"
+                },
                 "cancellationReason": {
                   "analyzer": "whitespace_lower",
                   "include_in_all": false,
@@ -3216,6 +3366,10 @@
             "documents": {
               "include_in_all": false,
               "properties": {
+                "author": {
+                  "include_in_all": false,
+                  "type": "string"
+                },
                 "dateModified": {
                   "format": "dateOptionalTime",
                   "include_in_all": false,
@@ -3239,6 +3393,10 @@
                   "type": "string"
                 },
                 "documentOf": {
+                  "include_in_all": false,
+                  "type": "string"
+                },
+                "documentType": {
                   "include_in_all": false,
                   "type": "string"
                 },
@@ -3580,6 +3738,10 @@
         "version": {
           "include_in_all": false,
           "type": "long"
+        },
+        "yearlyPaymentsPercentageRange": {
+          "include_in_all": false,
+          "type": "double"
         }
       }
     }
