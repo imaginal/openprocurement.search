@@ -91,6 +91,12 @@ match_map = {
     'asset_edrpou': 'assetCustodian.identifier.id',
     'lot_edrpou': 'lotCustodian.identifier.id',
     'edrpou': 'procuringEntity.identifier.id',
+    'supplier_edrpou': 'awards.suppliers.identifier.id',
+    'supplier_active': 'awards.suppliers.identifier.active',
+    'tenderer_edrpou': 'bids.tenderers.identifier.id',
+    'contract_edrpou': 'contracts.suppliers.identifier.id',
+    'contract_active': 'contracts.suppliers.identifier.active',
+    'complaint_edrpou': 'complaints.author.identifier.id',
     'procedure': 'procurementMethod',
     'proc_type': 'procurementMethodType',
     'asset_type': 'assetType',
@@ -180,6 +186,18 @@ short_auction_map_fields = [
     'items.id'
 ]
 
+# global search map for plugins
+
+search_engine.init_search_plugins({
+    'prefix_map': prefix_map,
+    'match_map': match_map,
+    'match_multi_map': match_multi_map,
+    'range_multi_map': range_multi_map,
+    'range_map': range_map,
+    'dates_map': range_map,
+    'fulltext_map': fulltext_map,
+    'sorting_map': sorting_map,
+})
 
 # convert auction response to map items
 
@@ -588,7 +606,12 @@ def heartbeat():
         data['index_names'] = search_engine.index_names_dict()
         data['index_stats'] = search_engine.index_docs_count()
         if request.values.get('config', ''):
-            data['search_config'] = search_config
+            data['search_config'] = search_config.copy()
+            for k in data['search_config']:
+                if '_passw' in k or '_key' in k:
+                    data['search_config'][k] = '***'
+        if search_engine.search_plugins:
+            data['search_plugins'] = [repr(p) for p in search_engine.search_plugins]
         if search_server.debug:
             data['debug'] = True
     elif key:
