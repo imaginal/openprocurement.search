@@ -33,12 +33,13 @@ class BaseIndex(object):
     next_index_name = None
     last_current_index = None
     source_last_queries = 0
+    plugin_config_key = ''
 
     SUFFIX_FORMAT = "%Y-%m-%d-%H%M%S"
 
     def __init__(self, engine, source, config={}):
         assert(self.__index_name__)
-        logger.debug("Create %s index based on %s source", self.__index_name__, source.__doc_type__)
+        logger.debug("Create %s index based on %s source", self, source)
         if config:
             self.config.update(config)
             self.config['index_speed'] = float(self.config['index_speed'])
@@ -55,6 +56,7 @@ class BaseIndex(object):
         engine.add_index(self)
         engine.config.update(self.config)
         engine.config.update(source.config)
+        self.load_plugins()
         self.after_init()
 
     def __del__(self):
@@ -64,7 +66,7 @@ class BaseIndex(object):
         return self.__index_name__
 
     def __repr__(self):
-        return self.__index_name__
+        return "<%s:%s>" % (self.__class__.__name__, self.__index_name__)
 
     @classmethod
     def name(klass):
@@ -103,6 +105,25 @@ class BaseIndex(object):
             self.rc_mindocs, self.rc_max_age = map(int, reindex_check.split(','))
             self.rc_max_age *= 86400
 
+    def load_plugins(self):
+        self.plugins = []
+        if not self.plugin_config_key:
+            return
+        plugins = self.config.get(self.plugin_config_key, '').strip()
+        if not plugins:
+            return
+        for name in plugins.split(','):
+            try:
+                logger.info("Load plugin %s for %s", name, self)
+                cls = self.engine.load_plugin_class(name)
+                self.plugins.append(cls(self.config))
+            except Exception as e:
+                logger.error(
+                    "Can't load plugin %s form %s=%s error %s",
+                    name, self.plugin_config_key, plugins, e)
+                if not self.config['ignore_errors']:
+                    raise
+
     def after_init(self):
         pass
 
@@ -112,7 +133,7 @@ class BaseIndex(object):
     def create_index(self, name):
         return
 
-    def create_tender_index(self, name, common, tender, lang_list):
+    def create_tender_index(self, name, common, tender, lang_list, apply_plugins=True):
         logger.info("Create new index %s from %s %s %s", name, common, tender, lang_list)
         common = json.loads(get_data(__name__, common))
         tender = json.loads(get_data(__name__, tender))
@@ -140,6 +161,17 @@ class BaseIndex(object):
                 analysis['analyzer']['all_index']['filter'].append(stemmer)
                 analysis['analyzer']['all_search']['filter'].append(stemmer)
         tender['settings']['index']['number_of_shards'] = self.config['number_of_shards']
+        # apply plugins to index mapping before create index
+        if apply_plugins and self.plugins:
+            for plugin in self.plugins:
+                index_mappings = getattr(plugin, 'index_mappings', None)
+                if index_mappings:
+                    logger.info("Update mappings from plugin %s", plugin)
+                    tender['mappings'][doc_type]['properties'].update(index_mappings)
+                if getattr(plugin, 'before_create_index', None):
+                    logger.info("Call plugin.before_create_index %s", plugin)
+                    plugin.before_create_index(index, name, tender)
+        # create index
         self.engine.create_index(name, body=tender)
 
     def new_index(self, is_async=False):
@@ -244,6 +276,10 @@ class BaseIndex(object):
             return None
 
         self.before_index_item(item)
+
+        for plugin in self.plugins:
+            if getattr(plugin, 'before_index_item', None):
+                plugin.before_index_item(self, item)
 
         return self.engine.index_item(index_name, item)
 
@@ -446,6 +482,11 @@ class BaseIndex(object):
         # reconnect elatic and prevent future stop_childs
         self.engine.start_in_subprocess()
 
+        # also reconnect plugins
+        for plugin in self.plugins:
+            if getattr(plugin, 'start_in_subprocess', None):
+                plugin.start_in_subprocess(self)
+
         self.index_source(self.next_index_name, reset=True, reindex=True)
 
         self.engine.flush()
@@ -506,6 +547,10 @@ class BaseIndex(object):
     def process(self, allow_reindex=True):
         if self.engine.should_exit:
             return
+
+        for plugin in self.plugins:
+            if getattr(plugin, 'before_process_index', None):
+                plugin.before_process_index(self)
 
         if self.reindex_process:
             self.check_subprocess()
