@@ -35,6 +35,12 @@ class BaseSource:
     def doc_type(self):
         return self.__doc_type__
 
+    def __str__(self):
+        return self.__doc_type__
+
+    def __repr__(self):
+        return "<%s:%s>" % (self.__class__.__name__, self.__doc_type__)
+
     def need_reset(self):
         return False
 
