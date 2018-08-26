@@ -9,6 +9,7 @@ class TenderIndex(BaseIndex):
     __index_name__ = 'tenders'
 
     allow_async_reindex = True
+    plugin_config_key = 'tender_plugins'
 
     def after_init(self):
         self.set_reindex_options(
