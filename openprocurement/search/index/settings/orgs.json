@@ -29,6 +29,10 @@
           "include_in_all": true,
           "index": "no",
           "type": "string"
+        },
+        "tenderer": {
+          "include_in_all": false,
+          "type": "integer"
         }
       }
     }
