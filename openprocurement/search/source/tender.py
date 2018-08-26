@@ -78,10 +78,18 @@ class TenderSource(BaseSource):
             for award in tender['data']['awards']:
                 if award.get('status') == 'active':
                     award['activeDate'] = award.get('date')
+                    if award.get('suppliers'):
+                        for supplier in award['suppliers']:
+                            if supplier.get('identifier'):
+                                supplier['identifier']['active'] = supplier['identifier'].get('id')
         if 'contracts' in tender['data']:
             for contract in tender['data']['contracts']:
                 if contract.get('status') == 'active':
                     contract['activeDate'] = contract.get('date')
+                    if contract.get('suppliers'):
+                        for supplier in contract['suppliers']:
+                            if supplier.get('identifier'):
+                                supplier['identifier']['active'] = supplier['identifier'].get('id')
         # decode official org name from EDRPOU registry
         if self.config['tender_decode_orgs'] and self.orgs_db:
             if 'procuringEntity' in tender['data']:
