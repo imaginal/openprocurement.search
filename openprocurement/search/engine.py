@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from logging import getLogger
+from importlib import import_module
 from time import time, sleep, localtime, strftime
 from restkit import request
 from retrying import retry
@@ -11,7 +12,7 @@ from elasticsearch.client import IndicesClient
 from elasticsearch.exceptions import ElasticsearchException, NotFoundError
 
 from openprocurement.search.version import __version__
-from openprocurement.search.utils import SharedFileDict
+from openprocurement.search.utils import SharedFileDict, reset_watchdog
 
 logger = getLogger(__name__)
 
@@ -63,26 +64,59 @@ class SearchEngine(object):
         self.bulk_buffer = dict()
         self.bulk_errors = False
         self.should_exit = False
+        self.search_plugins = []
+
+    def load_plugin_class(self, name, plugin_class='SearchPlugin'):
+        if ':' in name:
+            name, plugin_class = name.split(':', 1)
+        mod = import_module(name)
+        cls = getattr(mod, plugin_class)
+        return cls
+
+    def load_search_plugins(self, plugin_config_key):
+        if not plugin_config_key:
+            return
+        plugins = self.config.get(plugin_config_key, '').strip()
+        if not plugins:
+            return
+        for name in plugins.split(','):
+            try:
+                logger.info("Load search plugin %s", name)
+                cls = self.load_plugin_class(name)
+                self.search_plugins.append(cls)
+            except Exception as e:
+                logger.error(
+                    "Can't load search plugin %s from %s=%s error %s",
+                    name, plugin_config_key, plugins, str(e))
 
     def init_search_map(self, search_map={}):
         if search_map:
             self.search_index_map.update(search_map)
-        # update index_name from config.ini
-        for k in self.search_index_map.keys():
-            names = self.config.get('search_' + k)
-            if not names:
-                continue
-            names = [s.strip() for s in names.split(',') if s]
-            self.search_index_map[k] = names
         # update index names from rename_xxx
         for k, names in self.search_index_map.items():
             for i, index in enumerate(names):
+                if hasattr(index, 'plugin_config_key'):
+                    self.load_search_plugins(index.plugin_config_key)
                 if hasattr(index, '__index_name__'):
                     names[i] = index.__index_name__
                 new_name = self.config.get('rename_' + names[i])
                 if new_name:
                     names[i] = new_name
+        # update index_name from search_xxx
+        for k in self.search_index_map.keys():
+            names = self.config.get('search_' + k)
+            if names:
+                names = [s.strip() for s in names.split(',') if s]
+                self.search_index_map[k] = names
         logger.debug("Search indexes %s", str(self.search_index_map))
+
+    def init_search_plugins(self, search_map={}):
+        for cls in self.search_plugins:
+            plugin_maps = getattr(cls, 'search_maps', {})
+            for k,v in plugin_maps.items():
+                if k in search_map:
+                    logger.debug("Update search map %s %s", k, str(v))
+                    search_map[k].update(v)
 
     def start_in_subprocess(self):
         # create copy of elastic connection
@@ -251,8 +285,9 @@ class IndexEngine(SearchEngine):
         logger.info("Start with config:\n\t%s", self.dump_config())
 
     def dump_config(self):
-        cs = "\n\t".join(["%-17s = %s" % (k, v)
-            for k, v in sorted(self.config.items())])
+        cs = "\n\t".join(["%-20s = %s" % (k, v)
+            for k, v in sorted(self.config.items())
+            if '_passw' not in k and '_key' not in k])
         return cs
 
     def dump_index_names(self):
@@ -437,6 +472,7 @@ class IndexEngine(SearchEngine):
         return True
 
     def sleep(self, seconds):
+        reset_watchdog()
         if not isinstance(seconds, float):
             seconds = float(seconds)
         while not self.should_exit and seconds > 0:
