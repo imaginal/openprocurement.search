@@ -133,6 +133,7 @@ class OrgsSource(BaseSource):
     config = {
         'orgs_db': None,
         'orgs_queue': 1000,
+        'orgs_from_bids': False
     }
 
     def __init__(self, config={}, use_cache=False):
@@ -164,6 +165,7 @@ class OrgsSource(BaseSource):
                      item_data.get('identifier', {}).get('legalName', u"")),
             "short": u"",
             "rank": 1,
+            "tenderer": item_data.get("tenderer", 0)
         }
         if self.orgs_db and item.get('id'):
             row = self.orgs_db.query(item['id'])
@@ -193,6 +195,8 @@ class OrgsSource(BaseSource):
 
     def push(self, item):
         """push item in to queue and return True if need to flush"""
+        if item.get('tenderer', 0) and not self.config['orgs_from_bids']:
+            return False
         try:
             code = item['identifier']['id']
             if code and type(code) == int:
