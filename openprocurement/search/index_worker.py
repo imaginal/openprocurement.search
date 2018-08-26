@@ -12,7 +12,7 @@ from ConfigParser import ConfigParser
 
 from openprocurement.search.version import __version__
 from openprocurement.search.engine import IndexEngine, logger
-from openprocurement.search.utils import decode_bool_values, chage_process_user_group
+from openprocurement.search.utils import decode_bool_values, chage_process_user_group, setup_watchdog
 
 from openprocurement.search.source.orgs import OrgsSource
 from openprocurement.search.index.orgs import OrgsIndex
@@ -114,6 +114,10 @@ def main():
 
     signal.signal(signal.SIGTERM, sigterm_handler)
     # signal.signal(signal.SIGINT, sigterm_handler)
+
+    if 'watchdog' in config:
+        logger.info("Setup watchdog for %s seconds", config['watchdog'])
+        setup_watchdog(config['watchdog'], logger)
 
     try:
         global engine
