@@ -287,18 +287,18 @@
             "quantity": {
               "analyzer": "whitespace_lower",
               "include_in_all": false,
-              "type": "long"
+              "type": "double"
             },
             "unit": {
               "include_in_all": false,
               "properties": {
                 "code": {
                   "analyzer": "whitespace_lower",
-                  "include_in_all": false,
+                  "include_in_all": true,
                   "type": "string"
                 },
                 "name": {
-                  "include_in_all": false,
+                  "include_in_all": true,
                   "type": "string"
                 }
               }
@@ -340,6 +340,7 @@
                   "type": "string"
                 },
                 "scheme": {
+                  "analyzer": "whitespace_lower",
                   "include_in_all": false,
                   "type": "string"
                 },
