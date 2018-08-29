@@ -63,6 +63,7 @@
               "type": "string"
             },
             "documentType": {
+              "analyzer": "whitespace_lower",
               "include_in_all": false,
               "type": "string"
             },
@@ -77,6 +78,7 @@
             },
             "language": {
               "include_in_all": false,
+              "index": "no",
               "type": "string"
             },
             "title": {
@@ -157,7 +159,7 @@
         },
         "procurementMethodType": {
           "analyzer": "whitespace_lower",
-          "include_in_all": false,
+          "include_in_all": true,
           "type": "string"
         },
         "procuringEntity": {
@@ -167,7 +169,7 @@
               "include_in_all": false,
               "properties": {
                 "countryName": {
-                  "include_in_all": false,
+                  "include_in_all": true,
                   "type": "string"
                 },
                 "postalCode": {
@@ -222,6 +224,7 @@
                   "type": "string"
                 },
                 "scheme": {
+                  "analyzer": "whitespace_lower",
                   "include_in_all": false,
                   "type": "string"
                 }
