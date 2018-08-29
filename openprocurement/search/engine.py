@@ -454,6 +454,8 @@ class IndexEngine(SearchEngine):
         if self.should_exit:
             return False
 
+        reset_watchdog()
+
         try:
             self.master_heartbeat(int(time()))
         except Exception as e:
@@ -498,7 +500,7 @@ class IndexEngine(SearchEngine):
             if self.should_exit:
                 return
 
-        info_string = "".join(["\n\t%-17s = %s" % (k, str(v))
+        info_string = "".join(["\n\t%-20s = %s" % (k, str(v))
                 for k, v in alive['version'].items()])
         logger.info(u"ElasticSearch version: %s", info_string)
 
