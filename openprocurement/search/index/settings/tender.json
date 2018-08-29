@@ -93,24 +93,24 @@
                       "include_in_all": false,
                       "properties": {
                         "countryName": {
-                          "include_in_all": false,
+                          "include_in_all": true,
                           "type": "string"
                         },
                         "countryName_en": {
-                          "include_in_all": false,
+                          "include_in_all": true,
                           "type": "string"
                         },
                         "countryName_ru": {
-                          "include_in_all": false,
+                          "include_in_all": true,
                           "type": "string"
                         },
                         "locality": {
-                          "include_in_all": false,
+                          "include_in_all": true,
                           "type": "string"
                         },
                         "postalCode": {
                           "analyzer": "postalcode",
-                          "include_in_all": false,
+                          "include_in_all": true,
                           "type": "string"
                         },
                         "region": {
@@ -174,7 +174,12 @@
                           "include_in_all": true,
                           "type": "string"
                         },
+                        "legalName_ru": {
+                          "include_in_all": false,
+                          "type": "string"
+                        },
                         "scheme": {
+                          "analyzer": "whitespace_lower",
                           "include_in_all": false,
                           "type": "string"
                         },
@@ -191,6 +196,10 @@
                     "name_en": {
                       "include_in_all": true,
                       "type": "string"
+                    },
+                    "name_ru": {
+                      "include_in_all": true,
+                      "type": "string"
                     }
                   }
                 },
@@ -200,6 +209,7 @@
                   "type": "string"
                 },
                 "cancellationReason": {
+                  "analyzer": "whitespace_lower",
                   "include_in_all": false,
                   "type": "string"
                 },
@@ -269,11 +279,11 @@
                       "type": "string"
                     },
                     "description_en": {
-                      "include_in_all": false,
+                      "include_in_all": true,
                       "type": "string"
                     },
                     "description_ru": {
-                      "include_in_all": false,
+                      "include_in_all": true,
                       "type": "string"
                     },
                     "documentOf": {
@@ -281,6 +291,7 @@
                       "type": "string"
                     },
                     "documentType": {
+                      "analyzer": "whitespace_lower",
                       "include_in_all": false,
                       "type": "string"
                     },
@@ -400,6 +411,7 @@
                       "type": "date"
                     },
                     "documentType": {
+                      "analyzer": "whitespace_lower",
                       "include_in_all": false,
                       "type": "string"
                     },
@@ -424,13 +436,13 @@
                   }
                 },
                 "id": {
-                  "include_in_all": true,
+                  "include_in_all": false,
                   "index": "no",
                   "type": "string"
                 },
                 "status": {
                   "analyzer": "whitespace_lower",
-                  "include_in_all": true,
+                  "include_in_all": false,
                   "type": "string"
                 }
               }
@@ -486,6 +498,7 @@
                   "type": "string"
                 },
                 "documentType": {
+                  "analyzer": "whitespace_lower",
                   "include_in_all": false,
                   "type": "string"
                 },
@@ -559,19 +572,19 @@
                   "include_in_all": false,
                   "properties": {
                     "countryName": {
-                      "include_in_all": false,
+                      "include_in_all": true,
                       "type": "string"
                     },
                     "countryName_en": {
-                      "include_in_all": false,
+                      "include_in_all": true,
                       "type": "string"
                     },
                     "countryName_ru": {
-                      "include_in_all": false,
+                      "include_in_all": true,
                       "type": "string"
                     },
                     "locality": {
-                      "include_in_all": false,
+                      "include_in_all": true,
                       "type": "string"
                     },
                     "postalCode": {
@@ -629,7 +642,7 @@
                   "properties": {
                     "active": {
                       "analyzer": "whitespace_lower",
-                      "include_in_all": true,
+                      "include_in_all": false,
                       "type": "string"
                     },
                     "id": {
@@ -645,8 +658,13 @@
                       "include_in_all": true,
                       "type": "string"
                     },
-                    "scheme": {
+                    "legalName_ru": {
                       "include_in_all": true,
+                      "type": "string"
+                    },
+                    "scheme": {
+                      "analyzer": "whitespace_lower",
+                      "include_in_all": false,
                       "type": "string"
                     },
                     "uri": {
@@ -770,6 +788,7 @@
                   "type": "string"
                 },
                 "documentType": {
+                  "analyzer": "whitespace_lower",
                   "include_in_all": false,
                   "type": "string"
                 },
@@ -858,6 +877,7 @@
                   "type": "string"
                 },
                 "documentType": {
+                  "analyzer": "whitespace_lower",
                   "include_in_all": false,
                   "type": "string"
                 },
@@ -942,6 +962,7 @@
                   "type": "string"
                 },
                 "documentType": {
+                  "analyzer": "whitespace_lower",
                   "include_in_all": false,
                   "type": "string"
                 },
@@ -1053,7 +1074,8 @@
               "include_in_all": false,
               "properties": {
                 "code": {
-                  "include_in_all": false,
+                  "analyzer": "whitespace_lower",
+                  "include_in_all": true,
                   "type": "string"
                 },
                 "value": {
@@ -1093,6 +1115,7 @@
                   "type": "string"
                 },
                 "documentType": {
+                  "analyzer": "whitespace_lower",
                   "include_in_all": false,
                   "type": "string"
                 },
@@ -1102,6 +1125,7 @@
                 },
                 "hash": {
                   "include_in_all": false,
+                  "index": "no",
                   "type": "string"
                 },
                 "id": {
@@ -1147,19 +1171,19 @@
                   "include_in_all": false,
                   "properties": {
                     "countryName": {
-                      "include_in_all": false,
+                      "include_in_all": true,
                       "type": "string"
                     },
                     "countryName_en": {
-                      "include_in_all": false,
+                      "include_in_all": true,
                       "type": "string"
                     },
                     "countryName_ru": {
-                      "include_in_all": false,
+                      "include_in_all": true,
                       "type": "string"
                     },
                     "locality": {
-                      "include_in_all": false,
+                      "include_in_all": true,
                       "type": "string"
                     },
                     "postalCode": {
@@ -1223,7 +1247,7 @@
                     },
                     "id": {
                       "analyzer": "whitespace_lower",
-                      "include_in_all": false,
+                      "include_in_all": true,
                       "type": "string"
                     },
                     "legalName": {
@@ -1234,8 +1258,13 @@
                       "include_in_all": true,
                       "type": "string"
                     },
+                    "legalName_ru": {
+                      "include_in_all": false,
+                      "type": "string"
+                    },
                     "scheme": {
-                      "include_in_all": true,
+                      "analyzer": "whitespace_lower",
+                      "include_in_all": false,
                       "type": "string"
                     },
                     "uri": {
@@ -1365,6 +1394,7 @@
                   "type": "string"
                 },
                 "documentType": {
+                  "analyzer": "whitespace_lower",
                   "include_in_all": false,
                   "type": "string"
                 },
@@ -1476,24 +1506,24 @@
                   "include_in_all": false,
                   "properties": {
                     "countryName": {
-                      "include_in_all": false,
+                      "include_in_all": true,
                       "type": "string"
                     },
                     "countryName_en": {
-                      "include_in_all": false,
+                      "include_in_all": true,
                       "type": "string"
                     },
                     "countryName_ru": {
-                      "include_in_all": false,
+                      "include_in_all": true,
                       "type": "string"
                     },
                     "locality": {
-                      "include_in_all": false,
+                      "include_in_all": true,
                       "type": "string"
                     },
                     "postalCode": {
                       "analyzer": "postalcode",
-                      "include_in_all": false,
+                      "include_in_all": true,
                       "type": "string"
                     },
                     "region": {
@@ -1559,7 +1589,8 @@
                       "type": "string"
                     },
                     "scheme": {
-                      "include_in_all": true,
+                      "analyzer": "whitespace_lower",
+                      "include_in_all": false,
                       "type": "string"
                     },
                     "uri": {
@@ -1583,6 +1614,7 @@
               }
             },
             "cancellationReason": {
+              "analyzer": "whitespace_lower",
               "include_in_all": false,
               "type": "string"
             },
@@ -1664,6 +1696,7 @@
                   "type": "string"
                 },
                 "documentType": {
+                  "analyzer": "whitespace_lower",
                   "include_in_all": false,
                   "type": "string"
                 },
@@ -1835,6 +1868,7 @@
                   "type": "string"
                 },
                 "documentType": {
+                  "analyzer": "whitespace_lower",
                   "include_in_all": false,
                   "type": "string"
                 },
@@ -1897,6 +1931,7 @@
                       "type": "string"
                     },
                     "scheme": {
+                      "analyzer": "whitespace_lower",
                       "include_in_all": false,
                       "type": "string"
                     }
@@ -1923,6 +1958,7 @@
                       "type": "string"
                     },
                     "scheme": {
+                      "analyzer": "whitespace_lower",
                       "include_in_all": false,
                       "type": "string"
                     }
@@ -1932,24 +1968,24 @@
                   "include_in_all": false,
                   "properties": {
                     "countryName": {
-                      "include_in_all": false,
+                      "include_in_all": true,
                       "type": "string"
                     },
                     "countryName_en": {
-                      "include_in_all": false,
+                      "include_in_all": true,
                       "type": "string"
                     },
                     "countryName_ru": {
-                      "include_in_all": false,
+                      "include_in_all": true,
                       "type": "string"
                     },
                     "locality": {
-                      "include_in_all": false,
+                      "include_in_all": true,
                       "type": "string"
                     },
                     "postalCode": {
                       "analyzer": "postalcode",
-                      "include_in_all": false,
+                      "include_in_all": true,
                       "type": "string"
                     },
                     "region": {
@@ -2027,7 +2063,8 @@
                   "include_in_all": false,
                   "properties": {
                     "code": {
-                      "include_in_all": false,
+                      "analyzer": "whitespace_lower",
+                      "include_in_all": true,
                       "type": "string"
                     },
                     "name": {
@@ -2089,24 +2126,24 @@
                   "include_in_all": false,
                   "properties": {
                     "countryName": {
-                      "include_in_all": false,
+                      "include_in_all": true,
                       "type": "string"
                     },
                     "countryName_en": {
-                      "include_in_all": false,
+                      "include_in_all": true,
                       "type": "string"
                     },
                     "countryName_ru": {
-                      "include_in_all": false,
+                      "include_in_all": true,
                       "type": "string"
                     },
                     "locality": {
-                      "include_in_all": false,
+                      "include_in_all": true,
                       "type": "string"
                     },
                     "postalCode": {
                       "analyzer": "postalcode",
-                      "include_in_all": false,
+                      "include_in_all": true,
                       "type": "string"
                     },
                     "region": {
@@ -2165,7 +2202,7 @@
                     },
                     "id": {
                       "analyzer": "whitespace_lower",
-                      "include_in_all": false,
+                      "include_in_all": true,
                       "type": "string"
                     },
                     "legalName": {
@@ -2176,7 +2213,12 @@
                       "include_in_all": true,
                       "type": "string"
                     },
+                    "legalName_ru": {
+                      "include_in_all": false,
+                      "type": "string"
+                    },
                     "scheme": {
+                      "analyzer": "whitespace_lower",
                       "include_in_all": false,
                       "type": "string"
                     },
@@ -2308,6 +2350,7 @@
               "type": "string"
             },
             "documentType": {
+              "analyzer": "whitespace_lower",
               "include_in_all": false,
               "type": "string"
             },
@@ -2384,7 +2427,7 @@
           "properties": {
             "code": {
               "analyzer": "whitespace_lower",
-              "include_in_all": false,
+              "include_in_all": true,
               "type": "string"
             },
             "description": {
@@ -2451,6 +2494,103 @@
             }
           }
         },
+        "funders": {
+          "include_in_all": false,
+          "properties": {
+            "address": {
+              "include_in_all": true,
+              "properties": {
+                "countryName": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "locality": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "postalCode": {
+                  "analyzer": "postalcode",
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "region": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "streetAddress": {
+                  "include_in_all": true,
+                  "type": "string"
+                }
+              }
+            },
+            "contactPoint": {
+              "include_in_all": true,
+              "properties": {
+                "email": {
+                  "analyzer": "whitespace_lower",
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "faxNumber": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "name": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "name_en": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "telephone": {
+                  "analyzer": "telephone",
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "url": {
+                  "include_in_all": true,
+                  "type": "string"
+                }
+              }
+            },
+            "identifier": {
+              "include_in_all": true,
+              "properties": {
+                "id": {
+                  "analyzer": "whitespace_lower",
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "legalName": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "legalName_en": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "scheme": {
+                  "analyzer": "whitespace_lower",
+                  "include_in_all": false,
+                  "type": "string"
+                }
+              }
+            },
+            "name": {
+              "include_in_all": true,
+              "type": "string"
+            },
+            "name_en": {
+              "include_in_all": true,
+              "type": "string"
+            },
+            "name_ru": {
+              "include_in_all": true,
+              "type": "string"
+            }
+          }
+        },
         "fundingKind": {
           "include_in_all": false,
           "type": "string"
@@ -2490,7 +2630,7 @@
                 },
                 "scheme": {
                   "analyzer": "whitespace_lower",
-                  "include_in_all": true,
+                  "include_in_all": false,
                   "type": "string"
                 }
               }
@@ -2517,7 +2657,7 @@
                 },
                 "scheme": {
                   "analyzer": "whitespace_lower",
-                  "include_in_all": true,
+                  "include_in_all": false,
                   "type": "string"
                 }
               }
@@ -2526,19 +2666,19 @@
               "include_in_all": false,
               "properties": {
                 "countryName": {
-                  "include_in_all": false,
+                  "include_in_all": true,
                   "type": "string"
                 },
                 "countryName_en": {
-                  "include_in_all": false,
+                  "include_in_all": true,
                   "type": "string"
                 },
                 "countryName_ru": {
-                  "include_in_all": false,
+                  "include_in_all": true,
                   "type": "string"
                 },
                 "locality": {
-                  "include_in_all": false,
+                  "include_in_all": true,
                   "type": "string"
                 },
                 "postalCode": {
@@ -2575,7 +2715,7 @@
               "include_in_all": false,
               "properties": {
                 "elevation": {
-                  "include_in_all": true,
+                  "include_in_all": false,
                   "index": "no",
                   "type": "string"
                 },
@@ -2621,7 +2761,8 @@
               "include_in_all": false,
               "properties": {
                 "code": {
-                  "include_in_all": false,
+                  "analyzer": "whitespace_lower",
+                  "include_in_all": true,
                   "type": "string"
                 },
                 "name": {
@@ -2694,6 +2835,10 @@
               "type": "string"
             },
             "description_en": {
+              "include_in_all": true,
+              "type": "string"
+            },
+            "description_ru": {
               "include_in_all": true,
               "type": "string"
             },
@@ -2843,7 +2988,7 @@
         },
         "procurementMethodType": {
           "analyzer": "whitespace_lower",
-          "include_in_all": false,
+          "include_in_all": true,
           "type": "string"
         },
         "procuringEntity": {
@@ -2873,6 +3018,10 @@
                   "include_in_all": true,
                   "type": "string"
                 },
+                "name_ru": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
                 "telephone": {
                   "analyzer": "telephone",
                   "include_in_all": true,
@@ -2888,19 +3037,19 @@
               "include_in_all": false,
               "properties": {
                 "countryName": {
-                  "include_in_all": false,
+                  "include_in_all": true,
                   "type": "string"
                 },
                 "countryName_en": {
-                  "include_in_all": false,
+                  "include_in_all": true,
                   "type": "string"
                 },
                 "countryName_ru": {
-                  "include_in_all": false,
+                  "include_in_all": true,
                   "type": "string"
                 },
                 "locality": {
-                  "include_in_all": false,
+                  "include_in_all": true,
                   "type": "string"
                 },
                 "postalCode": {
@@ -2987,7 +3136,7 @@
             },
             "kind": {
               "analyzer": "whitespace_lower",
-              "include_in_all": true,
+              "include_in_all": false,
               "type": "string"
             },
             "name": {
@@ -3062,19 +3211,19 @@
                       "include_in_all": false,
                       "properties": {
                         "countryName": {
-                          "include_in_all": false,
+                          "include_in_all": true,
                           "type": "string"
                         },
                         "countryName_en": {
-                          "include_in_all": false,
+                          "include_in_all": true,
                           "type": "string"
                         },
                         "countryName_ru": {
-                          "include_in_all": false,
+                          "include_in_all": true,
                           "type": "string"
                         },
                         "locality": {
-                          "include_in_all": false,
+                          "include_in_all": true,
                           "type": "string"
                         },
                         "postalCode": {
@@ -3133,7 +3282,7 @@
                       "properties": {
                         "id": {
                           "analyzer": "whitespace_lower",
-                          "include_in_all": false,
+                          "include_in_all": true,
                           "type": "string"
                         },
                         "legalName": {
@@ -3145,7 +3294,8 @@
                           "type": "string"
                         },
                         "scheme": {
-                          "include_in_all": true,
+                          "analyzer": "whitespace_lower",
+                          "include_in_all": false,
                           "type": "string"
                         },
                         "uri": {
@@ -3247,6 +3397,7 @@
                       "type": "string"
                     },
                     "documentType": {
+                      "analyzer": "whitespace_lower",
                       "include_in_all": false,
                       "type": "string"
                     },
@@ -3397,6 +3548,7 @@
                   "type": "string"
                 },
                 "documentType": {
+                  "analyzer": "whitespace_lower",
                   "include_in_all": false,
                   "type": "string"
                 },
@@ -3424,11 +3576,11 @@
                   "type": "string"
                 },
                 "title_en": {
-                  "include_in_all": false,
+                  "include_in_all": true,
                   "type": "string"
                 },
                 "title_ru": {
-                  "include_in_all": false,
+                  "include_in_all": true,
                   "type": "string"
                 },
                 "url": {
@@ -3464,11 +3616,11 @@
               "type": "string"
             },
             "title_en": {
-              "include_in_all": false,
+              "include_in_all": true,
               "type": "string"
             },
             "title_ru": {
-              "include_in_all": false,
+              "include_in_all": true,
               "type": "string"
             }
           }
@@ -3487,19 +3639,19 @@
                   "include_in_all": false,
                   "properties": {
                     "countryName": {
-                      "include_in_all": false,
+                      "include_in_all": true,
                       "type": "string"
                     },
                     "countryName_en": {
-                      "include_in_all": false,
+                      "include_in_all": true,
                       "type": "string"
                     },
                     "countryName_ru": {
-                      "include_in_all": false,
+                      "include_in_all": true,
                       "type": "string"
                     },
                     "locality": {
-                      "include_in_all": false,
+                      "include_in_all": true,
                       "type": "string"
                     },
                     "postalCode": {
@@ -3569,8 +3721,13 @@
                       "include_in_all": true,
                       "type": "string"
                     },
-                    "scheme": {
+                    "legalName_ru": {
                       "include_in_all": true,
+                      "type": "string"
+                    },
+                    "scheme": {
+                      "analyzer": "whitespace_lower",
+                      "include_in_all": false,
                       "type": "string"
                     },
                     "uri": {
@@ -3647,6 +3804,7 @@
                   "type": "string"
                 },
                 "scheme": {
+                  "analyzer": "whitespace_lower",
                   "include_in_all": false,
                   "type": "string"
                 }
