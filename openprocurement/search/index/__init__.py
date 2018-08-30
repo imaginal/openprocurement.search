@@ -521,6 +521,7 @@ class BaseIndex(object):
             self.index_source(self.next_index_name, reset=True, reindex=True)
             if self.check_index(self.next_index_name):
                 self.set_current(self.next_index_name)
+                self.next_index_name = None
                 return True
             return False
 
