@@ -258,8 +258,7 @@ class BaseIndex(object):
         p2 = float(index_count) / self.config['index_speed']
         if p1 + p2 > 10:
             logger.info("Wait %1.1f sec.", max(p1, p2))
-        if p1 + p2 > 0.001:
-            self.engine.sleep(max(p1, p2))
+        self.engine.sleep(max(p1, p2))
 
     def index_item(self, index_name, item):
         if not item.get('meta') or not item.get('data'):
