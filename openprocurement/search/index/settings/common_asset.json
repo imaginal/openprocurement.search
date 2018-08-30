@@ -139,10 +139,6 @@
             "name": "english",
             "type": "stemmer"
           },
-          "stemmer_romanian": {
-            "name": "romanian",
-            "type": "stemmer"
-          },
           "stemmer_russian": {
             "name": "light_russian",
             "type": "stemmer"
@@ -154,17 +150,13 @@
             "stopwords": "_english_",
             "type": "stop"
           },
-          "stopwords_romanian": {
-            "stopwords": "_romanian_",
-            "type": "stop"
-          },
           "stopwords_russian": {
             "stopwords": "_russian_",
             "type": "stop"
           },
           "stopwords_ukrainian": {
             "ignore_case": true,
-            "stopwords_path": "/etc/elasticsearch/stopwords/ukrainian.txt",
+            "stopwords_path": "ukrainian.txt",
             "type": "stop"
           },
           "token_delimiter": {
