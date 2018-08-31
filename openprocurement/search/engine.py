@@ -363,6 +363,8 @@ class IndexEngine(SearchEngine):
                     body=item['data'])
                 return res
             except ElasticsearchException as e:
+                if meta.get('ignore_exists', False) and self.test_exists(index_name, meta):
+                    return None
                 if retry_count > 3:
                     raise e
                 retry_count += 1
@@ -393,8 +395,9 @@ class IndexEngine(SearchEngine):
                 bulk_dict = {}
                 for item in items_list:
                     if self.test_exists(index_name, item['meta']):
-                        logger.warning("[%s] BULK already exists %s",
-                            index_name, str(item['meta']))
+                        if not item['meta'].get('ignore_exists', False):
+                            logger.warning("[%s] BULK already exists %s",
+                                index_name, str(item['meta']))
                         continue
                     item_id = item['meta']['id']
                     if item_id in bulk_dict:
