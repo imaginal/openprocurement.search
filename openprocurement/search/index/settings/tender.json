@@ -742,6 +742,11 @@
             }
           }
         },
+        "awardSuppliers": {
+          "analyzer": "whitespace_lower",
+          "include_in_all": false,
+          "type": "string"
+        },
         "bids": {
           "include_in_all": false,
           "properties": {
@@ -1351,6 +1356,11 @@
               }
             }
           }
+        },
+        "bidsTenderes": {
+          "analyzer": "whitespace_lower",
+          "include_in_all": false,
+          "type": "string"
         },
         "cancellations": {
           "include_in_all": false,
@@ -2288,6 +2298,11 @@
               }
             }
           }
+        },
+        "contractSuppliers": {
+          "analyzer": "whitespace_lower",
+          "include_in_all": false,
+          "type": "string"
         },
         "date": {
           "format": "dateOptionalTime",
