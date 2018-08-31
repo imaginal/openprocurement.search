@@ -162,6 +162,9 @@ dates_map = {
 }
 fulltext_map = {
     'query': '_all',
+    'tenderers': 'bidsTenderes',
+    'award_suppliers': 'awardSuppliers',
+    'contract_suppliers': 'contractSuppliers',
 }
 sorting_map = {
     'date': 'date',
