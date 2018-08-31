@@ -91,6 +91,7 @@ match_map = {
     'asset_edrpou': 'assetCustodian.identifier.id',
     'lot_edrpou': 'lotCustodian.identifier.id',
     'edrpou': 'procuringEntity.identifier.id',
+    'award_edrpou': 'awards.suppliers.identifier.id',
     'supplier_edrpou': 'awards.suppliers.identifier.id',
     'supplier_active': 'awards.suppliers.identifier.active',
     'tenderer_edrpou': 'bids.tenderers.identifier.id',
@@ -162,9 +163,12 @@ dates_map = {
 }
 fulltext_map = {
     'query': '_all',
-    'tenderers': 'bidsTenderes',
-    'award_suppliers': 'awardSuppliers',
-    'contract_suppliers': 'contractSuppliers',
+    'award_edrpou_all': 'awards.suppliers.identifier.id',
+    'supplier_edrpou_all': 'awards.suppliers.identifier.id',
+    'bid_edrpou_all': 'bids.tenderers.identifier.id',
+    'tenderer_edrpou_all': 'bids.tenderers.identifier.id',
+    'contract_edrpou_all': 'contracts.suppliers.identifier.id',
+    'complaint_edrpou_all': 'complaints.author.identifier.id',
 }
 sorting_map = {
     'date': 'date',
