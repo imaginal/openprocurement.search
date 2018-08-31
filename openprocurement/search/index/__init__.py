@@ -168,7 +168,7 @@ class BaseIndex(object):
                 if index_mappings:
                     logger.info("Update mappings from plugin %s", plugin)
                     tender['mappings'][doc_type]['properties'].update(index_mappings)
-                if getattr(plugin, 'before_create_index', None):
+                if callable(plugin.before_create_index):
                     logger.info("Call plugin.before_create_index %s", plugin)
                     plugin.before_create_index(index, name, tender)
         # create index
@@ -244,6 +244,21 @@ class BaseIndex(object):
         else:
             raise exc_info[0], exc_info[1], exc_info[2]
 
+    def source_reset(self):
+        for plugin in self.plugins:
+            if callable(plugin.before_source_reset):
+                plugin.before_source_reset(self)
+        return self.source.reset()
+
+    def source_items(self):
+        for plugin in self.plugins:
+            if callable(plugin.before_source_items):
+                for item in plugin.before_source_items(self):
+                    yield item
+
+        for item in self.source.items():
+            yield item
+
     def indexing_stat(self, index_name, fetched, indexed, last_item={}, last_skipped=None):
         if not last_item and not last_skipped and fetched < 10 and indexed < 1:
             return
@@ -277,7 +292,7 @@ class BaseIndex(object):
         self.before_index_item(item)
 
         for plugin in self.plugins:
-            if getattr(plugin, 'before_index_item', None):
+            if callable(plugin.before_index_item):
                 plugin.before_index_item(self, item)
 
         return self.engine.index_item(index_name, item)
@@ -301,7 +316,7 @@ class BaseIndex(object):
             return
 
         if reset or self.source.need_reset():
-            self.source.reset()
+            self.source_reset()
 
         query_count = 0
         index_count = 0
@@ -316,7 +331,7 @@ class BaseIndex(object):
             last_skipped = {}
             iter_count = 0
 
-            for info in self.source.items():
+            for info in self.source_items():
                 if self.engine.should_exit:
                     break
                 if not self.test_exists(index_name, info):
@@ -397,7 +412,7 @@ class BaseIndex(object):
             if self.next_index_name:
                 self.set_current(self.next_index_name)
                 self.next_index_name = None
-            self.source.reset()
+            self.source_reset()
         else:
             logger.error("Reindex-%s subprocess pid %s fail, exitcode = %d",
                 self.__index_name__,
@@ -483,7 +498,7 @@ class BaseIndex(object):
 
         # also reconnect plugins
         for plugin in self.plugins:
-            if getattr(plugin, 'start_in_subprocess', None):
+            if callable(plugin.start_in_subprocess):
                 plugin.start_in_subprocess(self)
 
         self.index_source(self.next_index_name, reset=True, reindex=True)
@@ -549,7 +564,7 @@ class BaseIndex(object):
             return
 
         for plugin in self.plugins:
-            if getattr(plugin, 'before_process_index', None):
+            if callable(plugin.before_process_index):
                 plugin.before_process_index(self)
 
         if self.reindex_process:
