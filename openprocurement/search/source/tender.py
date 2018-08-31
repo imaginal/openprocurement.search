@@ -75,41 +75,21 @@ class TenderSource(BaseSource):
             pos = tenderID.find('-20')
             tender['data']['date'] = tenderID[pos+1:pos+11]
         if 'awards' in tender['data']:
-            awardSuppliers = []
             for award in tender['data']['awards']:
                 if award.get('status') == 'active':
                     award['activeDate'] = award.get('date')
-                if award.get('suppliers'):
-                    for supplier in award['suppliers']:
-                        if supplier.get('identifier'):
-                            if award.get('status') == 'active':
+                    if award.get('suppliers'):
+                        for supplier in award['suppliers']:
+                            if supplier.get('identifier'):
                                 supplier['identifier']['active'] = supplier['identifier'].get('id')
-                            awardSuppliers.append(str(supplier['identifier'].get('id')))
-            if awardSuppliers:
-                tender['data']['awardSuppliers'] = " ".join(awardSuppliers)
         if 'contracts' in tender['data']:
-            contractSuppliers = []
             for contract in tender['data']['contracts']:
                 if contract.get('status') == 'active':
                     contract['activeDate'] = contract.get('date')
-                if contract.get('suppliers'):
-                    for supplier in contract['suppliers']:
-                        if supplier.get('identifier'):
-                            if contract.get('status') == 'active':
+                    if contract.get('suppliers'):
+                        for supplier in contract['suppliers']:
+                            if supplier.get('identifier'):
                                 supplier['identifier']['active'] = supplier['identifier'].get('id')
-                            contractSuppliers.append(str(supplier['identifier'].get('id')))
-            if contractSuppliers:
-                tender['data']['contractSuppliers'] = " ".join(contractSuppliers)
-        # collect all bids.tenderers in one field
-        if 'bids' in tender['data']:
-            bidsTenderes = []
-            for bid in tender['data']['bids']:
-                if 'tenderers' in bid:
-                    for tenderer in bid['tenderers']:
-                        if tenderer.get('identifier'):
-                            bidsTenderes.append(str(tenderer['identifier'].get('id', '')))
-            if bidsTenderes:
-                tender['data']['bidsTenderes'] = " ".join(bidsTenderes)
         # decode official org name from EDRPOU registry
         if self.config['tender_decode_orgs'] and self.orgs_db:
             if 'procuringEntity' in tender['data']:
