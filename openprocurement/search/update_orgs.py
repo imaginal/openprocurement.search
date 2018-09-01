@@ -128,9 +128,11 @@ class IndexOrgsEngine(IndexEngine):
         self.flush_orgs_map()
 
     def flush_orgs_map(self):
+        if self.should_exit:
+            return
         index_name = self.get_current_indexes()
         logger.info("[%s] Flush orgs to index", index_name)
-        if not index_name:
+        if not index_name or not self.orgs_map:
             return
         iter_count = 0
         update_count = 0
