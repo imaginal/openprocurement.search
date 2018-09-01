@@ -576,6 +576,7 @@ def orgsuggest():
         return jsonify(res)
     # fulltext search
     query = request.args.get('query', '')
+    tenderer = request.args.get('tenderer', None)
     if not query or len(query) > 50:
         return jsonify({"error": "bad query"})
     fuzziness = 0
@@ -590,6 +591,14 @@ def orgsuggest():
         "query": {"match": {"_all": _all}},
         "sort": {"rank": {"order": "desc"}},
     }
+    if tenderer is not None:
+        tenderer = int(tenderer or 0)
+        body["query"] = {
+            "filtered": {
+                "query": body["query"],
+                "filter": {"term": {"tenderer": tenderer}}
+            }
+        }
     limit = int(request.args.get('limit') or 10)
     if limit < 1 or limit > 100:
         return jsonify({"error": "bad limit"})
@@ -597,6 +606,8 @@ def orgsuggest():
     if not res.get('items'):
         _all["fuzziness"] += 1
         res = search_engine.search(body, limit=limit, index_set='orgs')
+    if search_server.debug and res:
+        res["body"] = body
     return jsonify(res)
 
 
