@@ -26,6 +26,8 @@ engine = type('engine', (), {})()
 
 def sigterm_handler(signo, frame):
     logger.warning("Signal received %d", signo)
+    if hasattr(engine, 'current_source'):
+        engine.current_source.should_exit = True
     engine.should_exit = True
     signal.alarm(2)
     sys.exit(0)
@@ -82,23 +84,27 @@ class IndexOrgsEngine(IndexEngine):
     def process_source(self, source):
         logger.info("Process source [%s]", source.doc_type)
         source.client_user_agent += " update_orgs"
+        engine.current_source = source
         items_list = True
         items_count = 0
         flush_count = 0
         while True:
             if self.should_exit:
-                break
+                return
             try:
                 save_count = items_count
                 items_list = source.items()
                 for meta in items_list:
                     if self.should_exit:
-                        break
+                        return
                     items_count += 1
                     item = source.get(meta)
                     entity = source.procuring_entity(item)
                     if entity:
                         self.process_entity(entity)
+                    if self.config.get('orgs_from_bids', False):
+                        for entity in source.bids_tenderers():
+                            self.process_entity(entity)
                     # log progress
                     if items_count % 100 == 0:
                         logger.info("[%s] Processed %d last %s orgs_found %d",
@@ -208,7 +214,7 @@ def main():
             logger.info("Update config %s=%s", key, value)
 
     signal.signal(signal.SIGTERM, sigterm_handler)
-    # signal.signal(signal.SIGINT, sigterm_handler)
+    signal.signal(signal.SIGINT, sigterm_handler)
 
     try:
         chage_process_user_group(config)
@@ -237,6 +243,8 @@ def main():
             source = AuctionSource(config)
             engine.process_source(source)
         engine.flush_orgs_map()
+    except KeyboardInterrupt:
+        return 1
     except Exception as e:
         logger.exception("Exception: %s", str(e))
     finally:
