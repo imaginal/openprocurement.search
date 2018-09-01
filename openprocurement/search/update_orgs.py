@@ -17,7 +17,9 @@ from openprocurement.search.source.orgs import OrgsSource
 from openprocurement.search.source.tender import TenderSource
 from openprocurement.search.source.ocds import OcdsSource
 from openprocurement.search.source.plan import PlanSource
-from openprocurement.search.source.auction import AuctionSource
+from openprocurement.search.source.auction import AuctionSource, AuctionSource2
+from openprocurement.search.source.asset import AssetSource
+from openprocurement.search.source.dgf_lot import DgfLotSource
 from openprocurement.search.utils import decode_bool_values, chage_process_user_group
 
 
@@ -45,6 +47,9 @@ class IndexOrgsEngine(IndexEngine):
         config['tender_fast_client'] = False
         config['plan_fast_client'] = False
         config['auction_fast_client'] = False
+        config['auction2_fast_client'] = False
+        config['lot_fast_client'] = False
+        config['asset_fast_client'] = False
         config['tender_preload'] = int(1e6)
         config['plan_preload'] = int(1e6)
         config['ocds_preload'] = int(1e6)
@@ -243,6 +248,15 @@ def main():
             engine.process_source(source)
         if config.get('auction_api_url', None):
             source = AuctionSource(config)
+            engine.process_source(source)
+        if config.get('auction2_api_url', None):
+            source = AuctionSource2(config)
+            engine.process_source(source)
+        if config.get('asset_api_url', None):
+            source = AssetSource(config)
+            engine.process_source(source)
+        if config.get('lot_api_url', None):
+            source = DgfLotSource(config)
             engine.process_source(source)
         engine.flush_orgs_map()
     except KeyboardInterrupt:
