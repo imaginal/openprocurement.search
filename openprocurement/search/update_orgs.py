@@ -103,7 +103,7 @@ class IndexOrgsEngine(IndexEngine):
                     if entity:
                         self.process_entity(entity)
                     if self.config.get('orgs_from_bids', False):
-                        for entity in source.bids_tenderers():
+                        for entity in source.bids_tenderers(item):
                             self.process_entity(entity)
                     # log progress
                     if items_count % 100 == 0:
