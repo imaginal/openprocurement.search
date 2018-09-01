@@ -51,6 +51,7 @@ class BaseIndex(object):
             self.allow_async_reindex = self.config['async_reindex']
         self.set_reindex_options(self.config.get('reindex', ''),
             self.config.get('reindex_check', ''))
+        source.engine = engine
         self.source = source
         self.engine = engine
         engine.add_index(self)
