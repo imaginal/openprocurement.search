@@ -50,6 +50,12 @@ class BaseSource:
     def items(self, name=None):
         return []
 
+    def procuring_entity(self, item):
+        return None
+
+    def bids_tenderers(self, item):
+        return []
+
     def get(self, item):
         self.stat_getitem += 1
         return item
@@ -59,6 +65,8 @@ class BaseSource:
         return out
 
     def sleep(self, seconds):
+        if getattr(self, 'engine', None):
+            return self.engine.sleep(seconds)
         if not isinstance(seconds, float):
             seconds = float(seconds)
         while not self.should_exit and seconds > 0:
