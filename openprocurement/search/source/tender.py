@@ -54,6 +54,7 @@ class TenderSource(BaseSource):
         if self.cache_path:
             self.cache_allow_status = self.config['tender_cache_allow'].split(',')
             logger.info("[tender] Cache allow status %s", self.cache_allow_status)
+        self.preload_wait = 1.0 / float(config.get('query_speed', 100))
         self.fast_client = None
         self.client = None
         self.orgs_db = None
@@ -208,6 +209,9 @@ class TenderSource(BaseSource):
 
             preload_items.extend(items)
 
+            if len(preload_items) >= 100 and items and 'dateModified' in items[-1]:
+                logger.info("Preload %d tenders, last %s", len(preload_items), items[-1]['dateModified'])
+
             if len(items) < 10:
                 self.fast_client = None
                 break
@@ -215,9 +219,6 @@ class TenderSource(BaseSource):
                 break
             if self.preload_wait:
                 self.sleep(self.preload_wait)
-
-        if len(preload_items) >= 100 and items and 'dateModified' in items[-1]:
-            logger.info("Preload %d tenders, last %s", len(preload_items), items[-1]['dateModified'])
 
         return preload_items
 

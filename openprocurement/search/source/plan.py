@@ -50,6 +50,7 @@ class PlanSource(BaseSource):
         if use_cache:
             self.cache_setpath(self.config['plan_file_cache'], self.config['plan_api_url'],
                 self.config['plan_api_version'], 'plans')
+        self.preload_wait = 1.0 / float(config.get('query_speed', 100))
         self.fast_client = None
         self.client = None
         self.orgs_db = None
@@ -179,6 +180,9 @@ class PlanSource(BaseSource):
 
             preload_items.extend(items)
 
+            if len(preload_items) >= 100 and items and 'dateModified' in items[-1]:
+                logger.info("Preload %d plans, last %s", len(preload_items), items[-1]['dateModified'])
+
             if len(items) < 10:
                 self.fast_client = None
                 break
@@ -186,9 +190,6 @@ class PlanSource(BaseSource):
                 break
             if self.preload_wait:
                 self.sleep(self.preload_wait)
-
-        if len(preload_items) >= 100 and items and 'dateModified' in items[-1]:
-            logger.info("Preload %d plans, last %s", len(preload_items), items[-1]['dateModified'])
 
         return preload_items
 
