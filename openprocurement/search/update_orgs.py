@@ -180,7 +180,7 @@ class IndexOrgsEngine(IndexEngine):
 
 def main():
     if len(sys.argv) < 2 or '-h' in sys.argv:
-        print("Usage: update_orgs etc/search.ini [custom_index_names]")
+        print("Usage: update_orgs etc/search.ini [index_names=custom_index_names] [orgs_from_bids=1]")
         sys.exit(1)
 
     parser = ConfigParser()
@@ -188,9 +188,6 @@ def main():
     config = dict(parser.items('search_engine'))
     config = decode_bool_values(config)
     uo_config = dict(parser.items('update_orgs'))
-
-    if len(sys.argv) > 2:
-        config['index_names'] = sys.argv[2]
 
     logging.config.fileConfig(sys.argv[1])
 
@@ -203,6 +200,12 @@ def main():
     fcntl.lockf(lock_file, fcntl.LOCK_EX + fcntl.LOCK_NB)
     lock_file.write(str(os.getpid()) + "\n")
     lock_file.flush()
+
+    for arg in sys.argv[2:]:
+        if '=' in arg:
+            key, value = arg.split('=', 1)
+            config[key] = value
+            logger.info("Update config %s=%s", key, value)
 
     signal.signal(signal.SIGTERM, sigterm_handler)
     # signal.signal(signal.SIGINT, sigterm_handler)
