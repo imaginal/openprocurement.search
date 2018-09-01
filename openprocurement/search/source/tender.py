@@ -63,13 +63,15 @@ class TenderSource(BaseSource):
         return item.data.get('procuringEntity', None)
 
     def bids_tenderers(self, item):
-        if not self.config['tender_bids_tenderers'] or not item.data.get('bids', None):
+        if not self.config['tender_bids_tenderers']:
             return
-        for bid in item.data['bids']:
-            for tenderer in bid['tenderers']:
-                tenderer_copy = tenderer.copy()
-                tenderer_copy['tenderer'] = 1
-                yield tenderer_copy
+        if item.data.get('bids', None):
+            for bid in item.data['bids']:
+                if bid.get('tenderers', None):
+                    for tenderer in bid['tenderers']:
+                        tenderer_copy = tenderer.copy()
+                        tenderer_copy['tenderer'] = 1
+                        yield tenderer_copy
 
     def patch_version(self, item):
         """Convert dateModified to long version
