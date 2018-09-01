@@ -212,7 +212,7 @@ class OrgsSource(BaseSource):
         if code not in self.queue:
             data = {
                 'id': code,
-                'dateModified': "",
+                'dateModified': code,
                 'doc_type': self.doc_type,
                 'version': 1L,
                 'data': item,
