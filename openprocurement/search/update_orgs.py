@@ -107,8 +107,8 @@ class IndexOrgsEngine(IndexEngine):
                             self.process_entity(entity)
                     # log progress
                     if items_count % 100 == 0:
-                        logger.info("[%s] Processed %d last %s orgs_found %d",
-                            source.doc_type, items_count,
+                        logger.info("Processed %d %ss, last %s orgs_found %d",
+                            items_count, source.doc_type,
                             meta.get('dateModified'), len(self.orgs_map))
                     # flush orgs_map each 10k
                     if items_count - flush_count > 10000:
