@@ -588,7 +588,7 @@ def orgsuggest():
         "query": {"match": {"_all": _all}},
         "sort": {"rank": {"order": "desc"}},
     }
-    if len(query) > 8:
+    if len(query) > 10:
         _all["fuzziness"] = 1
     if tenderer is not None:
         tenderer = int(tenderer or 0)
