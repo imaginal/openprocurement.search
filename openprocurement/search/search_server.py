@@ -22,7 +22,7 @@ from openprocurement.search.utils import decode_bool_values
 
 # Flask config
 
-JSONIFY_PRETTYPRINT_REGULAR = False
+JSON_AS_ASCII = False
 MAX_SEARCH_ARGS = 12
 NAME = 'noname'
 
@@ -587,7 +587,7 @@ def orgsuggest():
         "query": {"match": {"_all": _all}},
         "sort": {"rank": {"order": "desc"}},
     }
-    if len(query) >= 10:
+    if len(query) > 8:
         _all["fuzziness"] = 1
     if tenderer is not None:
         tenderer = int(tenderer or 0)
