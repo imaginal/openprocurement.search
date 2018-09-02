@@ -22,6 +22,7 @@ from openprocurement.search.utils import decode_bool_values
 
 # Flask config
 
+JSONIFY_PRETTYPRINT_REGULAR = False
 JSON_AS_ASCII = False
 MAX_SEARCH_ARGS = 12
 NAME = 'noname'
