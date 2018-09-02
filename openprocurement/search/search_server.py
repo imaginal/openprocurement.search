@@ -580,7 +580,7 @@ def orgsuggest():
     if not query or len(query) > 50:
         return jsonify({"error": "bad query"})
     fuzziness = 0
-    if len(query) > 8:
+    if len(query) > 10:
         fuzziness = 1
     _all = {
         "query": query,
@@ -603,6 +603,8 @@ def orgsuggest():
     if limit < 1 or limit > 100:
         return jsonify({"error": "bad limit"})
     res = search_engine.search(body, limit=limit, index_set='orgs')
+    if not res.get('items') and "filtered" in body["query"]:
+        body["query"] = body["query"]["filtered"]["query"]
     if not res.get('items'):
         _all["fuzziness"] += 1
         res = search_engine.search(body, limit=limit, index_set='orgs')
