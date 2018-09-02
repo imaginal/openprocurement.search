@@ -37,6 +37,8 @@ def worker():
     n_errors = 0
     n_notfnd = 0
 
+    query_stat = dict(sort=[0, 0, 0.0])
+
     start_time = time()
 
     while requests < max_reqs:
@@ -83,6 +85,10 @@ def worker():
             args.append((key, code))
         if sort:
             args.append(('sort', sort))
+            query_stat['sort'][0] += 1
+        if key not in query_stat:
+            query_stat[key] = [0, 0, 0.0]
+        query_stat[key][0] += 1
         if sort and order:
             args.append(('order', order))
         qs = urllib.urlencode(args, True)
@@ -107,6 +113,7 @@ def worker():
             if error:
                 raise ValueError(error)
             if not items or not total:
+                query_stat[key][1] += 1
                 n_notfnd += 1
             logger.debug("%d %d %s total %d", code, len(resp), url, total)
         except Exception as e:
@@ -125,6 +132,13 @@ def worker():
 
     total_time = time() - start_time
     query_rate = 1.0 * requests / total_time
+
+    if g_args.stat:
+        stat = ""
+        for k, v in sorted(query_stat.items()):
+            if v[0]: v[2] = round(100.0 * v[1] / float(v[0]), 1)
+            stat += "\n{:28} {:10} {:5} {:5} {:5} %".format("", k, *v)
+        logger.info('Query statistics (type, total, not_found):{}'.format(stat))
 
     logger.info('Leaving process, %d requests, %d not found, %d errors, %1.1f r/s',
                 requests, n_notfnd, n_errors, query_rate)
@@ -148,6 +162,7 @@ def prepare():
     parser.add_argument('-t', metavar='timeout', type=int, default=10)
     parser.add_argument('-v', metavar='verbosity', help='10 = debug, 40 = error',
         type=int, default=logging.INFO)
+    parser.add_argument('--stat', help='log statistics', action='store_true')
     parser.add_argument('--log', metavar='output.log', nargs=1)
     parser.add_argument('--aid', metavar='auction_id.json', nargs=1)
     parser.add_argument('--tid', metavar='tender_id.json', nargs=1)
