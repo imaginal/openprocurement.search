@@ -579,18 +579,16 @@ def orgsuggest():
     tenderer = request.args.get('tenderer', None)
     if not query or len(query) > 50:
         return jsonify({"error": "bad query"})
-    fuzziness = 0
-    if len(query) > 10:
-        fuzziness = 1
     _all = {
         "query": query,
-        "operator": "and",
-        "fuzziness": fuzziness
+        "operator": "and"
     }
     body = {
         "query": {"match": {"_all": _all}},
         "sort": {"rank": {"order": "desc"}},
     }
+    if len(query) >= 10:
+        _all["fuzziness"] = 1
     if tenderer is not None:
         tenderer = int(tenderer or 0)
         body["query"] = {
@@ -606,7 +604,7 @@ def orgsuggest():
     if not res.get('items') and "filtered" in body["query"]:
         body["query"] = body["query"]["filtered"]["query"]
     if not res.get('items'):
-        _all["fuzziness"] += 1
+        _all["fuzziness"] = _all.get("fuzziness", 0) + 1
         res = search_engine.search(body, limit=limit, index_set='orgs')
     if search_server.debug and res:
         res["body"] = body
