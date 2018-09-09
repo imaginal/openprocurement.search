@@ -325,7 +325,7 @@ class BaseIndex(object):
 
         for plugin in self.plugins:
             if callable(plugin.before_index_source):
-                plugin.before_index_source(self, index_name)
+                plugin.before_index_source(self)
 
         query_count = 0
         index_count = 0
