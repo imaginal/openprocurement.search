@@ -31,9 +31,10 @@ class SearchEngine(object):
         'slave_wakeup': 600,
         'check_on_start': 1,
         'bulk_insert': False,
+        'reindex_wait': 5,
         'update_wait': 5,
         'error_wait': 10,
-        'start_wait': 1,
+        'start_wait': 0,
     }
     es_options = {
         'max_retries': 3,
@@ -130,6 +131,10 @@ class SearchEngine(object):
         for index in self.index_list:
             if getattr(index, 'reindex_process', None):
                 index.reindex_process = None
+        # wait before start re-indexing
+        if self.config['reindex_wait']:
+            logger.info("Wait %s sec before start re-indexing", str(self.config['reindex_wait']))
+            self.sleep(self.config['reindex_wait'])
 
     def stop_childs(self):
         for index in self.index_list:
