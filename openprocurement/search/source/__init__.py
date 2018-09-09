@@ -19,7 +19,7 @@ class BaseSource:
     should_exit = False
     should_reset = False
     last_reset_time = 0
-    client_user_agent = 'Search-Tenders/%s' % __version__
+    client_user_agent = 'op.search/%s' % __version__
     cache_path = None
     cache_hits = 0
     cache_miss = 0
