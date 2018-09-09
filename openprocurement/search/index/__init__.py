@@ -17,12 +17,16 @@ class BaseIndex(object):
     config = {
         'async_reindex': 1,
         'ignore_errors': 0,
-        'reindex_check': '1,10',
-        'number_of_shards': 6,
         'index_parallel': 1,
-        'query_speed': 100,
         'index_speed': 500,
-        'error_wait': 10,
+        'query_speed': 100,
+        'reindex_check': '1000,1',
+        # common mappings settings
+        'dynamic': False,
+        'dynamic_templates': True,
+        'date_detection': False,
+        'numeric_detection': False,
+        'number_of_shards': 6
     }
     allow_async_reindex = False
     force_next_reindex = False
@@ -138,9 +142,16 @@ class BaseIndex(object):
         logger.info("Create new index %s from %s %s %s", name, common, tender, lang_list)
         common = json.loads(get_data(__name__, common))
         tender = json.loads(get_data(__name__, tender))
-        # merge
+        # prepare for merge
         mappings = common['mappings']['_doc_type_']
         settings = common['settings']
+        # overwrite some settings
+        if not self.config['dynamic_templates']:
+            mappings.pop('dynamic_templates', None)
+        for key in ['dynamic', 'date_detection', 'numeric_detection']:
+            if self.config[key]:
+                mappings[key] = True
+        # merge
         doc_type = self.source.__doc_type__
         for k, v in mappings.items():
             if k in tender['mappings'][doc_type]:
@@ -157,11 +168,15 @@ class BaseIndex(object):
             if stopwords in analysis['filter']:
                 analysis['analyzer']['all_index']['filter'].append(stopwords)
                 analysis['analyzer']['all_search']['filter'].append(stopwords)
+            else:
+                logger.warning("[%s] unknown language '%s' %s", name, index_lang, stopwords)
             stemmer = 'stemmer_' + index_lang.strip()
             if stemmer in analysis['filter']:
                 analysis['analyzer']['all_index']['filter'].append(stemmer)
                 analysis['analyzer']['all_search']['filter'].append(stemmer)
-        tender['settings']['index']['number_of_shards'] = self.config['number_of_shards']
+            else:
+                logger.warning("[%s] unknown language '%s' %s", name, index_lang, stemmer)
+        tender['settings']['index']['number_of_shards'] = int(self.config['number_of_shards'])
         # apply plugins to index mapping before create index
         if apply_plugins and self.plugins:
             for plugin in self.plugins:
