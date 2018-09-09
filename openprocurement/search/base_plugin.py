@@ -1,17 +1,20 @@
 # -*- coding: utf-8 -*-
 
+PLUGIN_API_VERSION = 2.0
+
 
 class BasePlugin(object):
     __name__ = __name__
+    plugin_api_version = 0
     index_mappings = {}
     search_maps = {}
 
     # Plugin api
-    start_in_subprocess = None
+    before_fork_process = None
     before_create_index = None
     before_source_reset = None
     before_source_items = None
-    before_process_index = None
+    before_index_source = None
     before_index_item = None
 
     def __init__(self, config):

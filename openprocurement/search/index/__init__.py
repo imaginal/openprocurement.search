@@ -245,11 +245,15 @@ class BaseIndex(object):
         else:
             raise exc_info[0], exc_info[1], exc_info[2]
 
-    def source_reset(self):
+    def plugins_reset(self):
         for plugin in self.plugins:
             if callable(plugin.before_source_reset):
                 plugin.before_source_reset(self)
-        return self.source.reset()
+
+    def source_reset(self, reset_plugins=True):
+        if reset_plugins:
+            self.plugins_reset()
+        self.source.reset()
 
     def source_items(self):
         for plugin in self.plugins:
@@ -318,6 +322,10 @@ class BaseIndex(object):
 
         if reset or self.source.need_reset():
             self.source_reset()
+
+        for plugin in self.plugins:
+            if callable(plugin.before_index_source):
+                plugin.before_index_source(self, index_name)
 
         query_count = 0
         index_count = 0
@@ -497,11 +505,6 @@ class BaseIndex(object):
         # reconnect elatic and prevent future stop_childs
         self.engine.start_in_subprocess()
 
-        # also reconnect plugins
-        for plugin in self.plugins:
-            if callable(plugin.start_in_subprocess):
-                plugin.start_in_subprocess(self)
-
         self.index_source(self.next_index_name, reset=True, reindex=True)
 
         self.engine.flush()
@@ -541,6 +544,11 @@ class BaseIndex(object):
                 return True
             return False
 
+        # also notify plugins before fork
+        for plugin in self.plugins:
+            if callable(plugin.before_fork_process):
+                plugin.before_fork_process(self)
+
         # reindex in async mode, start new reindex process
         proc_name = "Reindex-%s" % self.__index_name__
         self.reindex_process = Process(
@@ -563,10 +571,6 @@ class BaseIndex(object):
     def process(self, allow_reindex=True):
         if self.engine.should_exit:
             return
-
-        for plugin in self.plugins:
-            if callable(plugin.before_process_index):
-                plugin.before_process_index(self)
 
         if self.reindex_process:
             self.check_subprocess()

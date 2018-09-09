@@ -13,6 +13,8 @@ from elasticsearch.exceptions import ElasticsearchException, NotFoundError
 
 from openprocurement.search.version import __version__
 from openprocurement.search.utils import SharedFileDict, reset_watchdog
+from openprocurement.search.base_plugin import PLUGIN_API_VERSION
+
 
 logger = getLogger(__name__)
 
@@ -71,6 +73,8 @@ class SearchEngine(object):
             name, plugin_class = name.split(':', 1)
         mod = import_module(name)
         cls = getattr(mod, plugin_class)
+        if cls.plugin_api_version > PLUGIN_API_VERSION or cls.plugin_api_version < int(PLUGIN_API_VERSION):
+            raise ImportError("Plugin version {} but requried {}".format(cls.plugin_api_version, PLUGIN_API_VERSION))
         return cls
 
     def load_search_plugins(self, plugin_config_key):
