@@ -234,7 +234,7 @@ class SearchEngine(object):
         return res
 
     def master_heartbeat(self, value=None):
-        filename = "%s.heartbeat" % self.config.get('index_names')
+        filename = "{}.beat".format(self.config.get('index_names'))
         if value:
             if value - getattr(self, 'last_saved_heartbeat', 0) < 10:
                 return value
