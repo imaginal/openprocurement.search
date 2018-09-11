@@ -27,6 +27,7 @@ setup(
         'elasticsearch==1.9.0',
         'openprocurement_client==1.0b3',
         'Flask',
+        'pytz',
         'iso8601',
         'PyYAML',
         'requests',
