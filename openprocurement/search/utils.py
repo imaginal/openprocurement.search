@@ -3,9 +3,24 @@ import os
 import fcntl
 import yaml
 import time
+import pytz
+import iso8601
 import signal
 import logging
 import threading
+
+TZ = pytz.timezone(os.environ['TZ'] if 'TZ' in os.environ else 'Europe/Kiev')
+
+
+def long_version(dt, local_timezone=TZ):
+    if not dt:
+        return 0
+    if isinstance(dt, (str, unicode)):
+        dt = iso8601.parse_date(dt, default_timezone=None)
+    if dt.tzinfo:
+        dt = dt.astimezone(local_timezone)
+    unixtime = time.mktime(dt.timetuple())
+    return int(1e6 * unixtime + dt.microsecond)
 
 
 def restkit_error(e, client=None):
