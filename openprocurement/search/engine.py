@@ -2,6 +2,7 @@
 from logging import getLogger
 from importlib import import_module
 from time import time, sleep, localtime, strftime
+from datetime import datetime
 from restkit import request
 from retrying import retry
 import simplejson as json
@@ -12,7 +13,7 @@ from elasticsearch.client import IndicesClient
 from elasticsearch.exceptions import ElasticsearchException, NotFoundError
 
 from openprocurement.search.version import __version__
-from openprocurement.search.utils import SharedFileDict, reset_watchdog
+from openprocurement.search.utils import SharedFileDict, long_version, reset_watchdog
 from openprocurement.search.base_plugin import PLUGIN_API_VERSION
 
 
@@ -345,6 +346,9 @@ class IndexEngine(SearchEngine):
 
     @retry(stop_max_attempt_number=5, wait_fixed=5000)
     def test_exists(self, index_name, meta):
+        if self.debug:
+            if meta['version'] > long_version(datetime.now()):
+                logger.error("Item version overflow {}".format(meta))
         try:
             found = self.elastic.get(index_name,
                 doc_type=meta.get('doc_type'),
