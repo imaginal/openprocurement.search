@@ -285,8 +285,8 @@ class BaseIndex(object):
         if not last_item and last_skipped:
             last_item = {'dateModified': 'skipped ' + last_skipped}
         logger.info(
-            "[%s] Fetched %d indexed %d last %s",
-            index_name, fetched, indexed, last_item.get('dateModified', '-'))
+            "Fetched %d %s, indexed %d last %s",
+            fetched, self.__index_name__, indexed, last_item.get('dateModified', '-'))
 
     def indexing_wait(self, query_count, index_count):
         p1 = float(query_count) / self.config['query_speed']
@@ -403,7 +403,7 @@ class BaseIndex(object):
 
         # print source statistics
         if self.source.stat_queries - self.source_last_queries >= 100:
-            logger.info("[%s:%s] API client %d resets, %d queries, %d fetched, %d skipped, %d loaded",
+            logger.info("[%s:%s] client %d resets, %d queries, %d fetched, %d skipped, %d loaded",
                         self.__index_name__, self.source.__doc_type__, self.source.stat_resets,
                         self.source.stat_queries, self.source.stat_fetched,
                         self.source.stat_skipped, self.source.stat_getitem)
