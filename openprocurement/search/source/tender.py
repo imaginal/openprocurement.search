@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
-from time import time, mktime
-from iso8601 import parse_date
+from time import time
 from datetime import datetime, timedelta
 from socket import setdefaulttimeout
 from retrying import retry
 
 from openprocurement.search.source import BaseSource, TendersClient
 from openprocurement.search.source.orgs import OrgsDecoder
-from openprocurement.search.utils import restkit_error
+from openprocurement.search.utils import long_version, restkit_error
 
 from logging import getLogger
 logger = getLogger(__name__)
@@ -26,8 +25,8 @@ class TenderSource(BaseSource):
         'tender_skip_after': None,
         'tender_skip_until': None,
         'tender_limit': 1000,
-        'tender_preload': 10000,
-        'tender_reseteach': 3,
+        'tender_preload': 5000,
+        'tender_reseteach': 22,
         'tender_resethour': 22,
         'tender_bids_tenderers': False,
         'tender_decode_orgs': False,
@@ -77,9 +76,7 @@ class TenderSource(BaseSource):
         """Convert dateModified to long version
         """
         item['doc_type'] = self.__doc_type__
-        dt = parse_date(item['dateModified'])
-        version = 1e6 * mktime(dt.timetuple()) + dt.microsecond
-        item['version'] = long(version)
+        item['version'] = long_version(item['dateModified'])
         return item
 
     def patch_tender(self, tender):
@@ -124,7 +121,7 @@ class TenderSource(BaseSource):
 
     @retry(stop_max_attempt_number=5, wait_fixed=5000)
     def reset(self):
-        logger.info("Reset tenders, tender_skip_until=%s tender_skip_after=%s",
+        logger.info("Reset tenders client, tender_skip_until=%s tender_skip_after=%s",
                     self.config['tender_skip_until'], self.config['tender_skip_after'])
         self.stat_resets += 1
         if self.config['tender_decode_orgs']:
@@ -211,9 +208,6 @@ class TenderSource(BaseSource):
 
             preload_items.extend(items)
 
-            if len(preload_items) >= 100 and items and 'dateModified' in items[-1]:
-                logger.info("Preload %d tenders, last %s", len(preload_items), items[-1]['dateModified'])
-
             if len(items) < 10:
                 self.fast_client = None
                 break
@@ -221,6 +215,9 @@ class TenderSource(BaseSource):
                 break
             if self.preload_wait:
                 self.sleep(self.preload_wait)
+
+        if len(preload_items) >= 100 and items and 'dateModified' in items[-1]:
+            logger.info("Preload %d tenders, last %s", len(preload_items), items[-1]['dateModified'])
 
         return preload_items
 
@@ -263,8 +260,8 @@ class TenderSource(BaseSource):
                 if retry_count > 3:
                     raise e
                 retry_count += 1
-                logger.error("GET %s/%s retry %d error %s", self.client.prefix_path,
-                    str(item['id']), retry_count, restkit_error(e, self.client))
+                logger.error("GET %s/%s meta %s retry %d error %s", self.client.prefix_path,
+                    str(item['id']), str(item), retry_count, restkit_error(e, self.client))
                 self.sleep(5 * retry_count)
                 if retry_count > 1:
                     self.reset()

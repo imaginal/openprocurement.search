@@ -2,11 +2,10 @@
 from time import time, mktime
 from datetime import datetime, timedelta
 from retrying import retry
-from iso8601 import parse_date
 from socket import setdefaulttimeout
 
 from openprocurement.search.source import BaseSource, TendersClient
-from openprocurement.search.utils import restkit_error
+from openprocurement.search.utils import long_version, restkit_error
 
 from logging import getLogger
 logger = getLogger(__name__)
@@ -26,10 +25,10 @@ class AssetSource(BaseSource):
         'asset_skip_until': None,
         'asset_skip_after': None,
         'asset_limit': 1000,
-        'asset_preload': 10000,
+        'asset_preload': 5000,
         'asset_fast_client': False,
         'asset_fast_stepsback': 5,
-        'asset_reseteach': 3,
+        'asset_reseteach': 23,
         'asset_resethour': 23,
         'asset_user_agent': '',
         'asset_file_cache': '',
@@ -65,9 +64,7 @@ class AssetSource(BaseSource):
         """Convert dateModified to long version
         """
         item['doc_type'] = self.__doc_type__
-        dt = parse_date(item['dateModified'])
-        version = 1e6 * mktime(dt.timetuple()) + dt.microsecond
-        item['version'] = long(version)
+        item['version'] = long_version(item['dateModified'])
         return item
 
     def patch_asset(self, asset):
@@ -83,7 +80,7 @@ class AssetSource(BaseSource):
 
     @retry(stop_max_attempt_number=5, wait_fixed=5000)
     def reset(self):
-        logger.info("Reset assets, asset_skip_until=%s asset_skip_after=%s",
+        logger.info("Reset assets client, asset_skip_until=%s asset_skip_after=%s",
                     self.config['asset_skip_until'], self.config['asset_skip_after'])
         self.stat_resets += 1
         if self.config.get('timeout', None):
@@ -223,8 +220,8 @@ class AssetSource(BaseSource):
                 if self.config.get('ignore_errors', 0) and retry_count > 0:
                     raise e
                 retry_count += 1
-                logger.error("GET %s/%s retry %d error %s", self.client.prefix_path,
-                    str(item['id']), retry_count, restkit_error(e, self.client))
+                logger.error("GET %s/%s meta %s retry %d error %s", self.client.prefix_path,
+                    str(item['id']), str(item), retry_count, restkit_error(e, self.client))
                 self.sleep(5 * retry_count)
                 if retry_count > 2:
                     self.reset()

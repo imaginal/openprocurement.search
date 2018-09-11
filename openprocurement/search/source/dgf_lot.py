@@ -2,11 +2,10 @@
 from time import time, mktime
 from datetime import datetime, timedelta
 from retrying import retry
-from iso8601 import parse_date
 from socket import setdefaulttimeout
 
 from openprocurement.search.source import BaseSource, TendersClient
-from openprocurement.search.utils import restkit_error
+from openprocurement.search.utils import long_version, restkit_error
 
 from logging import getLogger
 logger = getLogger(__name__)
@@ -26,10 +25,10 @@ class DgfLotSource(BaseSource):
         'lot_skip_until': None,
         'lot_skip_after': None,
         'lot_limit': 1000,
-        'lot_preload': 10000,
+        'lot_preload': 5000,
         'lot_fast_client': False,
         'lot_fast_stepsback': 5,
-        'lot_reseteach': 3,
+        'lot_reseteach': 23,
         'lot_resethour': 23,
         'lot_user_agent': '',
         'lot_file_cache': '',
@@ -65,9 +64,7 @@ class DgfLotSource(BaseSource):
         """Convert dateModified to long version
         """
         item['doc_type'] = self.__doc_type__
-        dt = parse_date(item['dateModified'])
-        version = 1e6 * mktime(dt.timetuple()) + dt.microsecond
-        item['version'] = long(version)
+        item['version'] = long_version(item['dateModified'])
         return item
 
     def patch_lot(self, lot):
@@ -91,7 +88,7 @@ class DgfLotSource(BaseSource):
 
     @retry(stop_max_attempt_number=5, wait_fixed=5000)
     def reset(self):
-        logger.info("Reset lots, lot_skip_until=%s lot_skip_after=%s",
+        logger.info("Reset lots client, lot_skip_until=%s lot_skip_after=%s",
                     self.config['lot_skip_until'], self.config['lot_skip_after'])
         self.stat_resets += 1
         if self.config.get('timeout', None):
@@ -231,8 +228,8 @@ class DgfLotSource(BaseSource):
                 if self.config.get('ignore_errors', 0) and retry_count > 0:
                     raise e
                 retry_count += 1
-                logger.error("GET %s/%s retry %d error %s", self.client.prefix_path,
-                    str(item['id']), retry_count, restkit_error(e, self.client))
+                logger.error("GET %s/%s meta %s retry %d error %s", self.client.prefix_path,
+                    str(item['id']), str(item), retry_count, restkit_error(e, self.client))
                 self.sleep(5 * retry_count)
                 if retry_count > 2:
                     self.reset()

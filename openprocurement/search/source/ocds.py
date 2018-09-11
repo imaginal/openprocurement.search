@@ -2,12 +2,12 @@
 from os import path, listdir
 from time import mktime, time, sleep
 from fnmatch import fnmatch
-from iso8601 import parse_date
 from munch import munchify
 import simplejson as json
 import re
 
 from openprocurement.search.source import BaseSource, logger
+from openprocurement.search.utils import long_version
 
 
 re_postalCode = re.compile(r"\d\d\d\d\d")
@@ -40,9 +40,7 @@ class OcdsSource(BaseSource):
         """Convert dateModified to long version
         """
         item['doc_type'] = self.__doc_type__
-        dt = parse_date(item['dateModified'])
-        version = 1e6 * mktime(dt.timetuple()) + dt.microsecond
-        item['version'] = long(version)
+        item['version'] = long_version(item['dateModified'])
         return item
 
     def patch_tender(self, item):
