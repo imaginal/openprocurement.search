@@ -32,7 +32,7 @@ class DgfLotIndex(BaseIndex):
         return True
 
     def create_index(self, name):
-        common = 'settings/common_asset.json'
+        common = 'settings/common_sale.json'
         dgflot = 'settings/dgf_lot.json'
         lang_list = self.config.get('lot_index_lang', '').split(',')
         self.create_tender_index(name, common, dgflot, lang_list)

@@ -32,7 +32,7 @@ class AuctionIndex(BaseIndex):
         return True
 
     def create_index(self, name):
-        common = 'settings/common.json'
+        common = 'settings/common_sale.json'
         tender = 'settings/auction.json'
         lang_list = self.config.get('auction_index_lang', '').split(',')
         self.create_tender_index(name, common, tender, lang_list)
@@ -49,7 +49,7 @@ class AuctionIndex2(AuctionIndex):
             self.config.get('auction2_check', '1,1'))
 
     def create_index(self, name):
-        common = 'settings/common.json'
+        common = 'settings/common_sale.json'
         tender = 'settings/auction.json'
         lang_list = self.config.get('auction2_index_lang', '').split(',')
         self.create_tender_index(name, common, tender, lang_list)
