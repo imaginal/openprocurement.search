@@ -6,7 +6,8 @@
         "index_analyzer": "all_index",
         "search_analyzer": "all_search"
       },
-      "date_detection": false
+      "date_detection": false,
+      "numeric_detection": false
     }
   },
   "settings": {
