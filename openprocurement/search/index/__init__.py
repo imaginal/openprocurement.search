@@ -284,9 +284,8 @@ class BaseIndex(object):
             return
         if not last_item and last_skipped:
             last_item = {'dateModified': 'skipped ' + last_skipped}
-        logger.info(
-            "Fetched %d %s, indexed %d last %s",
-            fetched, self.__index_name__, indexed, last_item.get('dateModified', '-'))
+        logger.info("[%s] Fetched %d %s, indexed %d last %s", index_name, fetched,
+                    self.__index_name__, indexed, last_item.get('dateModified', '-'))
 
     def indexing_wait(self, query_count, index_count):
         p1 = float(query_count) / self.config['query_speed']
