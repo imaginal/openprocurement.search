@@ -193,6 +193,18 @@ short_auction_map_fields = [
     'id',
     'items.id'
 ]
+short_tender_map_fields = [
+    'description',
+    'id',
+    'procurementMethod',
+    'procurementMethodType',
+    'procuringEntity.address',
+    'procuringEntity.identifier',
+    'status',
+    'tenderID',
+    'title',
+    'value',
+]
 
 # global search map for plugins
 
@@ -440,7 +452,9 @@ def prepare_search_body(args, default_sort='dateModified', source_fields=None):
 def search_tenders():
     try:
         args = request.args
-        body = prepare_search_body(args, default_sort='date')
+        short = int(args.get('short') or 0)
+        fields = short_tender_map_fields if short else None
+        body = prepare_search_body(args, default_sort='date', source_fields=fields)
         start = int(args.get('start') or 0)
         limit = int(args.get('limit') or 10)
         limit = min(max(1, limit), 100)
