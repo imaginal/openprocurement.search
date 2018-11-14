@@ -519,6 +519,7 @@ ignore_errors = no
 check_on_start = yes
 number_of_shards = 6
 index_parallel = yes
+reindex_loops = 2
 query_speed = 100
 index_speed = 500
 bulk_insert = no
@@ -543,6 +544,8 @@ elasticsearch
 
 `index_parallel` - дозволити паралельну перевірку повноти одразу декількох
 індексів, прискорює старт і вихід на робочий режим
+
+`reindex_loops` - кількість проходів при повній переіндексації (default: 2)
 
 `query_speed` - обмежити запити до API такою кількістю запитів на секунду
 (приблизно, додає sleep)
