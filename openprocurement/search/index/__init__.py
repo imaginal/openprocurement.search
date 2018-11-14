@@ -20,6 +20,7 @@ class BaseIndex(object):
         'index_parallel': 1,
         'index_speed': 500,
         'query_speed': 100,
+        'reindex_loops': 2,
         'reindex_check': '1000,1',
         # common mappings settings
         'dynamic': False,
@@ -48,6 +49,7 @@ class BaseIndex(object):
             self.config.update(config)
             self.config['index_speed'] = float(self.config['index_speed'])
             self.config['query_speed'] = float(self.config['query_speed'])
+            self.config['reindex_loops'] = int(self.config['reindex_loops'])
         rename_key = 'rename_' + self.__index_name__
         if rename_key in self.config:
             self.__index_name__ = self.config[rename_key]
@@ -519,9 +521,9 @@ class BaseIndex(object):
         # reconnect elatic and prevent future stop_childs
         self.engine.start_in_subprocess()
 
-        self.index_source(self.next_index_name, reset=True, reindex=True)
-
-        self.engine.flush()
+        for n in range(self.config['reindex_loops']):
+            self.index_source(self.next_index_name, reset=True, reindex=True)
+            self.engine.flush()
 
         if self.check_index(self.next_index_name, wait=5):
             logger.info("*** Exit subprocess (success)")
@@ -551,7 +553,9 @@ class BaseIndex(object):
 
         # reindex in old-way sync mode
         if not self.allow_async_reindex:
-            self.index_source(self.next_index_name, reset=True, reindex=True)
+            for n in range(self.config['reindex_loops']):
+                self.index_source(self.next_index_name, reset=True, reindex=True)
+                self.engine.flush()
             if self.check_index(self.next_index_name):
                 self.set_current(self.next_index_name)
                 self.next_index_name = None
