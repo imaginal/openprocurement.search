@@ -30,7 +30,7 @@ class TenderSource(BaseSource):
         'tender_resethour': 22,
         'tender_bids_tenderers': False,
         'tender_decode_orgs': False,
-        'tender_fast_client': False,
+        'tender_fast_client': 0,
         'tender_fast_stepsback': 10,
         'tender_user_agent': '',
         'tender_file_cache': '',
@@ -141,7 +141,24 @@ class TenderSource(BaseSource):
             timeout=float(self.config['timeout']),
             user_agent=self.client_user_agent)
         logger.info("TendersClient %s", self.client.headers)
-        if self.config['tender_fast_client']:
+        if str(self.config['tender_fast_client']) == "2":
+            # main client from present to future
+            self.client.params['descending'] = 1
+            self.client.get_tenders()
+            self.client.params.pop('descending')
+            self.client.get_tenders()
+            # fast client from present to past
+            fast_params = dict(params)
+            fast_params['descending'] = 1
+            self.fast_client = TendersClient(
+                key=self.config['tender_api_key'],
+                host_url=self.config['tender_api_url'],
+                api_version=self.config['tender_api_version'],
+                params=fast_params,
+                timeout=float(self.config['timeout']),
+                user_agent=self.client_user_agent+" back_client")
+            logger.info("TendersClient (back) %s", self.fast_client.headers)
+        elif self.config['tender_fast_client']:
             fast_params = dict(params)
             fast_params['descending'] = 1
             self.fast_client = TendersClient(
@@ -176,18 +193,35 @@ class TenderSource(BaseSource):
     def preload(self):
         preload_items = []
         # try prelaod last tenders first
-        if self.fast_client:
+        retry_count = 0
+        while self.fast_client:
+            if retry_count > 3 or self.should_exit:
+                break
             try:
                 items = self.fast_client.get_tenders()
                 self.stat_queries += 1
-                if not len(items):
-                    logger.debug("Preload fast 0 tenders")
-                    raise ValueError()
-                preload_items.extend(items)
-                logger.info("Preload fast %d tenders, last %s",
-                    len(preload_items), items[-1]['dateModified'])
-            except:
-                pass
+            except Exception as e:
+                retry_count += 1
+                logger.error("GET %s retry %d count %d error %s", self.client.prefix_path,
+                    retry_count, len(preload_items), restkit_error(e, self.client))
+                self.sleep(5 * retry_count)
+                if retry_count > 1:
+                    self.reset()
+                continue
+            if not items:
+                break
+
+            preload_items.extend(items)
+
+            if len(items) < 10:
+                break
+            if len(preload_items) >= self.config['tender_preload']:
+                break
+            if self.preload_wait:
+                self.sleep(self.preload_wait)
+
+        if len(preload_items) >= 100 and items and 'dateModified' in items[-1]:
+            logger.info("Preload %d tenders, last %s", len(preload_items), items[-1]['dateModified'])
 
         retry_count = 0
         while True:
@@ -201,7 +235,8 @@ class TenderSource(BaseSource):
                 logger.error("GET %s retry %d count %d error %s", self.client.prefix_path,
                     retry_count, len(preload_items), restkit_error(e, self.client))
                 self.sleep(5 * retry_count)
-                self.reset()
+                if retry_count > 1:
+                    self.reset()
                 continue
             if not items:
                 break
@@ -209,12 +244,14 @@ class TenderSource(BaseSource):
             preload_items.extend(items)
 
             if len(items) < 10:
-                self.fast_client = None
                 break
             if len(preload_items) >= self.config['tender_preload']:
                 break
             if self.preload_wait:
                 self.sleep(self.preload_wait)
+
+        if len(preload_items) < 10 and self.fast_client:
+            self.fast_client = None
 
         if len(preload_items) >= 100 and items and 'dateModified' in items[-1]:
             logger.info("Preload %d tenders, last %s", len(preload_items), items[-1]['dateModified'])

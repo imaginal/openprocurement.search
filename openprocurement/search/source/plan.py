@@ -30,7 +30,7 @@ class PlanSource(BaseSource):
         'plan_reseteach': 23,
         'plan_resethour': 23,
         'plan_decode_orgs': False,
-        'plan_fast_client': False,
+        'plan_fast_client': 0,
         'plan_fast_stepsback': 10,
         'plan_user_agent': '',
         'plan_file_cache': '',
@@ -109,7 +109,25 @@ class PlanSource(BaseSource):
             timeout=float(self.config['timeout']),
             user_agent=self.client_user_agent)
         logger.info("PlansClient %s", self.client.headers)
-        if self.config['plan_fast_client']:
+        if str(self.config['plan_fast_client']) == "2":
+            # main client from present to future
+            self.client.params['descending'] = 1
+            self.client.get_tenders()
+            self.client.params.pop('descending')
+            self.client.get_tenders()
+            # fast client from present to past
+            fast_params = dict(params)
+            fast_params['descending'] = 1
+            self.fast_client = TendersClient(
+                key=self.config['plan_api_key'],
+                host_url=self.config['plan_api_url'],
+                api_version=self.config['plan_api_version'],
+                resource=self.config['plan_resource'],
+                params=fast_params,
+                timeout=float(self.config['timeout']),
+                user_agent=self.client_user_agent+" back_client")
+            logger.info("PlansClient (back) %s", self.fast_client.headers)
+        elif self.config['plan_fast_client']:
             fast_params = dict(params)
             fast_params['descending'] = 1
             self.fast_client = TendersClient(
@@ -142,21 +160,53 @@ class PlanSource(BaseSource):
         self.last_reset_time = time()
         self.should_reset = False
 
+    def get_tenders(self, client):
+        items = []
+        retry_count = 0
+        while retry_count < 5 and not self.should_exit:
+            try:
+                self.stat_queries += 1
+                return client.get_tenders()
+            except Exception as e:
+                retry_count += 1
+                logger.error("GET %s retry %d count %d error %s", client.prefix_path,
+                    retry_count, len(preload_items), restkit_error(e, client))
+                self.sleep(5 * retry_count)
+                if retry_count > 1:
+                    self.reset()
+
     def preload(self):
         preload_items = []
         # try prelaod last plans first
-        if self.fast_client:
+        retry_count = 0
+        while self.fast_client:
+            if retry_count > 3 or self.should_exit:
+                break
             try:
                 items = self.fast_client.get_tenders()
                 self.stat_queries += 1
-                if not len(items):
-                    logger.debug("Preload fast 0 plans")
-                    raise ValueError()
-                preload_items.extend(items)
-                logger.info("Preload fast %d plans, last %s",
-                    len(preload_items), items[-1]['dateModified'])
-            except:
-                pass
+            except Exception as e:
+                retry_count += 1
+                logger.error("GET %s retry %d count %d error %s", self.client.prefix_path,
+                    retry_count, len(preload_items), restkit_error(e, self.client))
+                self.sleep(5 * retry_count)
+                if retry_count > 1:
+                    self.reset()
+                continue
+            if not items:
+                break
+
+            preload_items.extend(items)
+
+            if len(items) < 10:
+                break
+            if len(preload_items) >= self.config['plan_preload']:
+                break
+            if self.preload_wait:
+                self.sleep(self.preload_wait)
+
+        if len(preload_items) >= 100 and items and 'dateModified' in items[-1]:
+            logger.info("Preload %d plans, last %s", len(preload_items), items[-1]['dateModified'])
 
         retry_count = 0
         while True:
@@ -170,7 +220,8 @@ class PlanSource(BaseSource):
                 logger.error("GET %s retry %d count %d error %s", self.client.prefix_path,
                     retry_count, len(preload_items), restkit_error(e, self.client))
                 self.sleep(5 * retry_count)
-                self.reset()
+                if retry_count > 1:
+                    self.reset()
                 continue
             if not items:
                 break
@@ -178,12 +229,14 @@ class PlanSource(BaseSource):
             preload_items.extend(items)
 
             if len(items) < 10:
-                self.fast_client = None
                 break
             if len(preload_items) >= self.config['plan_preload']:
                 break
             if self.preload_wait:
                 self.sleep(self.preload_wait)
+
+        if len(preload_items) < 10 and self.fast_client:
+            self.fast_client = None
 
         if len(preload_items) >= 100 and items and 'dateModified' in items[-1]:
             logger.info("Preload %d plans, last %s", len(preload_items), items[-1]['dateModified'])
