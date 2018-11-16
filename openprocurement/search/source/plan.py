@@ -198,15 +198,14 @@ class PlanSource(BaseSource):
 
             preload_items.extend(items)
 
+            if len(items) >= 10 and 'dateModified' in items[-1]:
+                logger.info("Preload %d plans, last %s", len(preload_items), items[-1]['dateModified'])
             if len(items) < 10:
                 break
             if len(preload_items) >= self.config['plan_preload']:
                 break
             if self.preload_wait:
                 self.sleep(self.preload_wait)
-
-        if len(preload_items) >= 100 and items and 'dateModified' in items[-1]:
-            logger.info("Preload %d plans, last %s", len(preload_items), items[-1]['dateModified'])
 
         retry_count = 0
         while True:
@@ -228,6 +227,8 @@ class PlanSource(BaseSource):
 
             preload_items.extend(items)
 
+            if len(items) >= 10 and 'dateModified' in items[-1]:
+                logger.info("Preload %d plans, last %s", len(preload_items), items[-1]['dateModified'])
             if len(items) < 10:
                 break
             if len(preload_items) >= self.config['plan_preload']:
@@ -235,11 +236,11 @@ class PlanSource(BaseSource):
             if self.preload_wait:
                 self.sleep(self.preload_wait)
 
-        if len(preload_items) < 10 and self.fast_client:
-            self.fast_client = None
-
-        if len(preload_items) >= 100 and items and 'dateModified' in items[-1]:
-            logger.info("Preload %d plans, last %s", len(preload_items), items[-1]['dateModified'])
+        if not preload_items and self.fast_client:
+            if 'descending' in self.fast_client.params:
+                self.fast_client.params.pop('offset', '')
+            else:
+                self.fast_client = None
 
         return preload_items
 
