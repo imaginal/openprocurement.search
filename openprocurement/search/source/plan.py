@@ -114,7 +114,7 @@ class PlanSource(BaseSource):
             self.client.params['descending'] = 1
             self.client.get_tenders()
             self.client.params.pop('descending')
-            self.client.get_tenders()
+            # self.client.get_tenders()
             # fast client from present to past
             fast_params = dict(params)
             fast_params['descending'] = 1
@@ -159,21 +159,6 @@ class PlanSource(BaseSource):
             self.skip_after = None
         self.last_reset_time = time()
         self.should_reset = False
-
-    def get_tenders(self, client):
-        items = []
-        retry_count = 0
-        while retry_count < 5 and not self.should_exit:
-            try:
-                self.stat_queries += 1
-                return client.get_tenders()
-            except Exception as e:
-                retry_count += 1
-                logger.error("GET %s retry %d count %d error %s", client.prefix_path,
-                    retry_count, len(preload_items), restkit_error(e, client))
-                self.sleep(5 * retry_count)
-                if retry_count > 1:
-                    self.reset()
 
     def preload(self):
         preload_items = []

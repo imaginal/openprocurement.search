@@ -146,7 +146,7 @@ class TenderSource(BaseSource):
             self.client.params['descending'] = 1
             self.client.get_tenders()
             self.client.params.pop('descending')
-            self.client.get_tenders()
+            # self.client.get_tenders()
             # fast client from present to past
             fast_params = dict(params)
             fast_params['descending'] = 1
