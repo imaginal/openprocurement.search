@@ -26,7 +26,7 @@ class AuctionSource(BaseSource):
         'auction_skip_after': None,
         'auction_limit': 1000,
         'auction_preload': 5000,
-        'auction_fast_client': False,
+        'auction_fast_client': 0,
         'auction_fast_stepsback': 5,
         'auction_reseteach': 23,
         'auction_resethour': 23,
@@ -114,7 +114,25 @@ class AuctionSource(BaseSource):
             logger.info("[auction2] Cache allow dateModified before %s",
                         self.cache_allow_dateModified)
         logger.info("AuctionClient %s", self.client.headers)
-        if self.config['auction_fast_client']:
+        if str(self.config['auction_fast_client']) == "2":
+            # main client from present to future
+            self.client.params['descending'] = 1
+            self.client.get_tenders()
+            self.client.params.pop('descending')
+            # self.client.get_tenders()
+            # fast client from present to past
+            fast_params = dict(params)
+            fast_params['descending'] = 1
+            self.fast_client = TendersClient(
+                key=self.config['auction_api_key'],
+                host_url=self.config['auction_api_url'],
+                api_version=self.config['auction_api_version'],
+                resource=self.config['auction_resource'],
+                params=fast_params,
+                timeout=float(self.config['timeout']),
+                user_agent=self.client_user_agent + ' (back_client)')
+            logger.info("AuctionClient (back) %s", self.fast_client.headers)
+        elif self.config['auction_fast_client']:
             fast_params = dict(params)
             fast_params['descending'] = 1
             self.fast_client = TendersClient(
@@ -144,18 +162,33 @@ class AuctionSource(BaseSource):
     def preload(self):
         preload_items = []
         # try prelaod last auctions first
-        if self.fast_client:
+        while self.fast_client:
+            if retry_count > 3 or self.should_exit:
+                break
             try:
                 items = self.fast_client.get_tenders()
                 self.stat_queries += 1
-                if not len(items):
-                    logger.debug("Preload fast 0 auctions")
-                    raise ValueError()
-                preload_items.extend(items)
-                logger.info("Preload fast %d auctions, last %s",
-                    len(preload_items), items[-1]['dateModified'])
-            except:
-                pass
+            except Exception as e:
+                retry_count += 1
+                logger.error("GET %s retry %d count %d error %s", self.client.prefix_path,
+                    retry_count, len(preload_items), restkit_error(e, self.fast_client))
+                self.sleep(5 * retry_count)
+                if retry_count > 1:
+                    self.reset()
+                continue
+            if not items:
+                break
+
+            preload_items.extend(items)
+
+            if len(items) >= 10 and 'dateModified' in items[-1]:
+                logger.info("Preload %d auctions, last %s", len(preload_items), items[-1]['dateModified'])
+            if len(items) < 10:
+                break
+            if len(preload_items) >= self.config['auction_preload']:
+                break
+            if self.preload_wait:
+                self.sleep(self.preload_wait)
 
         retry_count = 0
         while True:
@@ -169,13 +202,16 @@ class AuctionSource(BaseSource):
                 logger.error("GET %s retry %d count %d error %s", self.client.prefix_path,
                     retry_count, len(preload_items), restkit_error(e, self.client))
                 self.sleep(5 * retry_count)
-                self.reset()
+                if retry_count > 1:
+                    self.reset()
                 continue
             if not items:
                 break
 
             preload_items.extend(items)
 
+            if len(items) >= 10 and 'dateModified' in items[-1]:
+                logger.info("Preload %d auctions, last %s", len(preload_items), items[-1]['dateModified'])
             if len(items) < 10:
                 break
             if len(preload_items) >= self.config['auction_preload']:
@@ -183,8 +219,11 @@ class AuctionSource(BaseSource):
             if self.preload_wait:
                 self.sleep(self.preload_wait)
 
-        if len(preload_items) >= 100 and items and 'dateModified' in items[-1]:
-            logger.info("Preload %d auctions, last %s", len(preload_items), items[-1]['dateModified'])
+        if not preload_items and self.fast_client:
+            if 'descending' in self.fast_client.params:
+                self.fast_client.params.pop('offset', '')
+            else:
+                self.fast_client = None
 
         return preload_items
 
@@ -330,7 +369,25 @@ class AuctionSource2(AuctionSource):
             logger.info("[auction2] Cache allow dateModified before %s",
                         self.cache_allow_dateModified)
         logger.info("Auction2Client %s", self.client.headers)
-        if self.config['auction2_fast_client']:
+        if str(self.config['auction2_fast_client']) == "2":
+            # main client from present to future
+            self.client.params['descending'] = 1
+            self.client.get_tenders()
+            self.client.params.pop('descending')
+            # self.client.get_tenders()
+            # fast client from present to past
+            fast_params = dict(params)
+            fast_params['descending'] = 1
+            self.fast_client = TendersClient(
+                key=self.config['auction2_api_key'],
+                host_url=self.config['auction2_api_url'],
+                api_version=self.config['auction2_api_version'],
+                resource=self.config['auction2_resource'],
+                params=fast_params,
+                timeout=float(self.config['timeout']),
+                user_agent=self.client_user_agent + ' (back_client)')
+            logger.info("Auction2Client (back) %s", self.fast_client.headers)
+        elif self.config['auction2_fast_client']:
             fast_params = dict(params)
             fast_params['descending'] = 1
             self.fast_client = TendersClient(
