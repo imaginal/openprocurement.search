@@ -203,7 +203,7 @@ class TenderSource(BaseSource):
             except Exception as e:
                 retry_count += 1
                 logger.error("GET %s retry %d count %d error %s", self.client.prefix_path,
-                    retry_count, len(preload_items), restkit_error(e, self.client))
+                    retry_count, len(preload_items), restkit_error(e, self.fast_client))
                 self.sleep(5 * retry_count)
                 if retry_count > 1:
                     self.reset()
