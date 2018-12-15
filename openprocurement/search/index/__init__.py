@@ -22,6 +22,7 @@ class BaseIndex(object):
         'query_speed': 100,
         'reindex_loops': 2,
         'reindex_check': '1000,1',
+        'new_index_diff': 0.99,
         # common mappings settings
         'dynamic': False,
         'dynamic_templates': True,
@@ -434,6 +435,9 @@ class BaseIndex(object):
         if self.reindex_process.exitcode == self.magic_exit_code:
             logger.info("Reindex-%s subprocess pid %s success, reset source",
                 self.__index_name__, str(self.reindex_process.pid))
+            if self.current_index:
+                logger.info("Check indexes before change")
+                self.check_index(self.current_index, update_mindocs=True)
             if self.next_index_name:
                 self.set_current(self.next_index_name)
                 self.next_index_name = None
@@ -446,7 +450,7 @@ class BaseIndex(object):
         # close process
         self.reindex_process = None
 
-    def check_index(self, index_name, wait=0):
+    def check_index(self, index_name, wait=0, update_mindocs=False):
         if not index_name or self.engine.should_exit:
             return False
 
@@ -495,6 +499,11 @@ class BaseIndex(object):
             logger.error("[%s] Check index failed: not enought docs %d, required %d",
                 index_name, res['total'], self.rc_mindocs)
             return False
+
+        if self.rc_mindocs and update_mindocs and self.config['new_index_diff']:
+            new_index_diff = float(self.config['new_index_diff'])
+            self.rc_mindocs = int(new_index_diff * res['total'])
+            logger.info("Update minimal docs count to %d", self.rc_mindocs)
 
         if self.rc_max_age:
             min_date = datetime.now() - timedelta(seconds=self.rc_max_age)
@@ -556,6 +565,9 @@ class BaseIndex(object):
             for n in range(self.config['reindex_loops']):
                 self.index_source(self.next_index_name, reset=True, reindex=True)
                 self.engine.flush()
+            if self.current_index:
+                logger.info("Check indexes before change")
+                self.check_index(self.current_index, update_mindocs=True)
             if self.check_index(self.next_index_name):
                 self.set_current(self.next_index_name)
                 self.next_index_name = None
