@@ -22,7 +22,7 @@ class BaseIndex(object):
         'query_speed': 100,
         'reindex_loops': 2,
         'reindex_check': '1000,1',
-        'new_index_diff': 0.99,
+        'new_index_diff': 0.999,
         # common mappings settings
         'dynamic': False,
         'dynamic_templates': True,
@@ -503,7 +503,7 @@ class BaseIndex(object):
         if self.rc_mindocs and update_mindocs and self.config['new_index_diff']:
             new_index_diff = float(self.config['new_index_diff'])
             self.rc_mindocs = int(new_index_diff * res['total'])
-            logger.info("Update minimal docs count to %d", self.rc_mindocs)
+            logger.info("Update min docs count for %s to %d", self.__index_name__, self.rc_mindocs)
 
         if self.rc_max_age:
             min_date = datetime.now() - timedelta(seconds=self.rc_max_age)
