@@ -9,6 +9,7 @@ class PlanIndex(BaseIndex):
     __index_name__ = 'plans'
 
     allow_async_reindex = True
+    plugin_config_key = 'plan_plugins'
 
     def after_init(self):
         self.set_reindex_options(
