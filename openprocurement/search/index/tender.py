@@ -15,6 +15,8 @@ class TenderIndex(BaseIndex):
         self.set_reindex_options(
             self.config.get('tender_reindex', '5,6'),
             self.config.get('tender_check', '1,1'))
+        if self.config.get('tender_noindex', False):
+            self.noindex_prefix = 'noindex_'
 
     def need_reindex(self):
         if not self.current_index:
@@ -31,6 +33,13 @@ class TenderIndex(BaseIndex):
         if entity:
             self.engine.index_by_type('org', entity)
         return True
+
+    def test_exists(self, index_name, info):
+        res = self.engine.test_exists(index_name, info)
+        if res is None and self.noindex_prefix:
+            index_name = self.noindex_prefix + index_name
+            res = self.engine.test_exists(index_name, info)
+        return res
 
     def test_noindex(self, item):
         # noindex filter by procurementMethodType should working
@@ -71,3 +80,6 @@ class TenderIndex(BaseIndex):
         tender = 'settings/tender.json'
         lang_list = self.config.get('tender_index_lang', '').split(',')
         self.create_tender_index(name, common, tender, lang_list)
+        if self.noindex_prefix:
+            noindex_name = self.noindex_prefix + name
+            self.create_tender_index(noindex_name, common, tender, lang_list)
