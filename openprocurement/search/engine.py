@@ -170,6 +170,13 @@ class SearchEngine(object):
                 index_names.append(name)
         return ','.join(index_names)
 
+    def get_index_doc_types(self, index_keys):
+        doc_type = list()
+        for key in index_keys:
+            if hasattr(key, '__search_doc_type__'):
+                doc_type.append(key.__search_doc_types__)
+        return ','.join(doc_type)
+
     def index_names_dict(self):
         self.names_db.read()
         return dict(self.names_db.cache or {})
@@ -210,8 +217,8 @@ class SearchEngine(object):
         if self.debug:
             logger.debug("SEARCH %s %d %d %s", index, start, limit, body)
         try:
-            res = self.elastic.search(index=index,
-                body=body, from_=start, size=limit)
+            kw = dict(index=index, body=body, from_=start, size=limit)
+            res = self.elastic.search(**kw)
         except ElasticsearchException as e:
             logger.error("elastic.search %s", str(e))
             res = {"error": unicode(e), "items": []}
@@ -355,7 +362,7 @@ class IndexEngine(SearchEngine):
                 id=meta['id'],
                 _source=False)
         except NotFoundError:
-            return False
+            return None
         return found['_version'] >= meta['version']
 
     def index_item(self, index_name, item, ignore_bulk=False):
