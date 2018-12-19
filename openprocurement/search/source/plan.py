@@ -27,8 +27,8 @@ class PlanSource(BaseSource):
         'plan_skip_until': None,
         'plan_limit': 1000,
         'plan_preload': 5000,
-        'plan_reseteach': 23,
-        'plan_resethour': 23,
+        'plan_reseteach': 12,
+        'plan_resethour': 0,
         'plan_decode_orgs': False,
         'plan_fast_client': 0,
         'plan_fast_stepsback': 10,
@@ -43,7 +43,7 @@ class PlanSource(BaseSource):
             self.config.update(config)
         self.config['plan_limit'] = int(self.config['plan_limit'] or 0) or 100
         self.config['plan_preload'] = int(self.config['plan_preload'] or 0) or 100
-        self.config['plan_reseteach'] = int(self.config['plan_reseteach'] or 3)
+        self.config['plan_reseteach'] = int(self.config['plan_reseteach'] or 0)
         self.config['plan_resethour'] = int(self.config['plan_resethour'] or 0)
         self.client_user_agent += " (plans) " + self.config['plan_user_agent']
         if use_cache:
@@ -81,9 +81,9 @@ class PlanSource(BaseSource):
     def need_reset(self):
         if self.should_reset:
             return True
-        if time() - self.last_reset_time > 3600 * int(self.config['plan_reseteach']):
+        if self.config['plan_reseteach'] and (time() - self.last_reset_time > 3600 * int(self.config['plan_reseteach'])):
             return True
-        if time() - self.last_reset_time > 3600:
+        if self.config['plan_resethour'] and (time() - self.last_reset_time > 3600):
             return datetime.now().hour == int(self.config['plan_resethour'])
 
     @retry(stop_max_attempt_number=5, wait_fixed=5000)
@@ -232,20 +232,29 @@ class PlanSource(BaseSource):
     def items(self):
         if not self.client:
             self.reset()
-        self.last_skipped = None
-        for plan in self.preload():
-            if self.should_exit:
-                raise StopIteration()
-            if self.skip_until and self.skip_until > plan['dateModified']:
-                self.last_skipped = plan['dateModified']
-                self.stat_skipped += 1
-                continue
-            if self.skip_after and self.skip_after < plan['dateModified']:
-                self.last_skipped = plan['dateModified']
-                self.stat_skipped += 1
-                continue
-            self.stat_fetched += 1
-            yield self.patch_version(plan)
+
+        while not self.should_exit:
+            self.last_skipped = None
+            self.last_yielded = None
+
+            for plan in self.preload():
+                if self.should_exit:
+                    raise StopIteration()
+                if self.skip_until and self.skip_until > plan['dateModified']:
+                    self.last_skipped = plan['dateModified']
+                    self.stat_skipped += 1
+                    continue
+                if self.skip_after and self.skip_after < plan['dateModified']:
+                    self.last_skipped = plan['dateModified']
+                    self.stat_skipped += 1
+                    continue
+                self.last_yielded = plan['dateModified']
+                self.stat_fetched += 1
+                yield self.patch_version(plan)
+
+            if self.last_yielded or not self.last_skipped:
+                break
+
 
     def cache_allow(self, data):
         if data and data['data']['dateModified'] < self.cache_allow_dateModified:
@@ -263,7 +272,7 @@ class PlanSource(BaseSource):
             try:
                 plan = self.client.get_tender(item['id'])
                 assert plan['data']['id'] == item['id'], "plan.id"
-                assert plan['data']['dateModified'] >= item['dateModified'], "plan.dateModified"
+                # assert plan['data']['dateModified'] >= item['dateModified'], "plan.dateModified"
             except Exception as e:
                 if retry_count > 3:
                     raise e
@@ -279,9 +288,10 @@ class PlanSource(BaseSource):
                 self.cache_put(plan)
 
         if item['dateModified'] != plan['data']['dateModified']:
-            logger.debug("Plan dateModified mismatch %s %s %s",
-                item['id'], item['dateModified'],
-                plan['data']['dateModified'])
+            if not item.pop('ignore_dateModified', False):
+                logger.debug("[plan] dateModified mismatch %s %s %s",
+                    item['id'], item['dateModified'],
+                    plan['data']['dateModified'])
             item['dateModified'] = plan['data']['dateModified']
             item = self.patch_version(item)
         plan['meta'] = item
