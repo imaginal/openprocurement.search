@@ -26,8 +26,8 @@ class TenderSource(BaseSource):
         'tender_skip_until': None,
         'tender_limit': 1000,
         'tender_preload': 5000,
-        'tender_reseteach': 22,
-        'tender_resethour': 22,
+        'tender_reseteach': 8,
+        'tender_resethour': 0,
         'tender_bids_tenderers': False,
         'tender_decode_orgs': False,
         'tender_fast_client': 0,
@@ -44,7 +44,7 @@ class TenderSource(BaseSource):
             self.config.update(config)
         self.config['tender_limit'] = int(self.config['tender_limit'] or 0) or 100
         self.config['tender_preload'] = int(self.config['tender_preload'] or 0) or 100
-        self.config['tender_reseteach'] = int(self.config['tender_reseteach'] or 3)
+        self.config['tender_reseteach'] = int(self.config['tender_reseteach'] or 0)
         self.config['tender_resethour'] = int(self.config['tender_resethour'] or 0)
         self.client_user_agent += " (tenders) " + self.config['tender_user_agent']
         if use_cache:
@@ -114,9 +114,9 @@ class TenderSource(BaseSource):
     def need_reset(self):
         if self.should_reset:
             return True
-        if time() - self.last_reset_time > 3600 * int(self.config['tender_reseteach']):
+        if self.config['tender_reseteach'] and (time() - self.last_reset_time > 3600 * int(self.config['tender_reseteach'])):
             return True
-        if time() - self.last_reset_time > 3600:
+        if self.config['tender_resethour'] and (time() - self.last_reset_time > 3600):
             return datetime.now().hour == int(self.config['tender_resethour'])
 
     @retry(stop_max_attempt_number=5, wait_fixed=5000)
@@ -262,20 +262,28 @@ class TenderSource(BaseSource):
     def items(self):
         if not self.client:
             self.reset()
-        self.last_skipped = None
-        for tender in self.preload():
-            if self.should_exit:
-                raise StopIteration()
-            if self.skip_until and self.skip_until > tender['dateModified']:
-                self.last_skipped = tender['dateModified']
-                self.stat_skipped += 1
-                continue
-            if self.skip_after and self.skip_after < tender['dateModified']:
-                self.last_skipped = tender['dateModified']
-                self.stat_skipped += 1
-                continue
-            self.stat_fetched += 1
-            yield self.patch_version(tender)
+
+        while not self.should_exit:
+            self.last_skipped = None
+            self.last_yielded = None
+
+            for tender in self.preload():
+                if self.should_exit:
+                    raise StopIteration()
+                if self.skip_until and self.skip_until > tender['dateModified']:
+                    self.last_skipped = tender['dateModified']
+                    self.stat_skipped += 1
+                    continue
+                if self.skip_after and self.skip_after < tender['dateModified']:
+                    self.last_skipped = tender['dateModified']
+                    self.stat_skipped += 1
+                    continue
+                self.last_yielded = tender['dateModified']
+                self.stat_fetched += 1
+                yield self.patch_version(tender)
+
+            if self.last_yielded or not self.last_skipped:
+                break
 
     def cache_allow(self, data):
         if data and data['data']['status'] in self.cache_allow_status:
@@ -309,9 +317,10 @@ class TenderSource(BaseSource):
                 self.cache_put(tender)
 
         if item['dateModified'] != tender['data']['dateModified']:
-            logger.debug("Tender dateModified mismatch %s %s %s",
-                item['id'], item['dateModified'],
-                tender['data']['dateModified'])
+            if not item.pop('ignore_dateModified', False):
+                logger.debug("[tender] dateModified mismatch %s %s %s",
+                    item['id'], item['dateModified'],
+                    tender['data']['dateModified'])
             item['dateModified'] = tender['data']['dateModified']
             item = self.patch_version(item)
         tender['meta'] = item
