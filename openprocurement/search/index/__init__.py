@@ -8,6 +8,8 @@ from multiprocessing import Process
 from pkgutil import get_data
 from logging import getLogger
 
+from openprocurement.search.utils import long_version
+
 logger = getLogger(__name__)
 
 
@@ -23,6 +25,7 @@ class BaseIndex(object):
         'reindex_loops': 2,
         'reindex_check': '1000,1',
         'new_index_diff': 0.999,
+        'log_not_index': False,
         # common mappings settings
         'dynamic': False,
         'dynamic_templates': True,
@@ -38,6 +41,7 @@ class BaseIndex(object):
     reindex_process = None
     next_index_name = None
     last_current_index = None
+    noindex_prefix = None
     source_last_queries = 0
     plugin_config_key = ''
 
@@ -277,19 +281,26 @@ class BaseIndex(object):
         for plugin in self.plugins:
             if callable(plugin.before_source_items):
                 for item in plugin.before_source_items(self):
+                    if 'doc_type' not in item:
+                        item['doc_type'] = self.source.__doc_type__
+                    if 'version' not in item:
+                        item['version'] = long_version(item.get('dateModified'))
                     yield item
 
         for item in self.source.items():
             yield item
 
-    def indexing_stat(self, index_name, fetched, indexed, last_item={}, last_skipped=None):
+    def indexing_stat(self, index_name, fetched, indexed, not_indexed, exists, last_item={}, last_skipped=None):
         if not last_item and not last_skipped and fetched < 10 and indexed < 1:
             return
         if not last_item and last_skipped:
             last_item = {'dateModified': 'skipped ' + last_skipped}
-        if fetched and indexed and last_item:
-            logger.info("[%s] Fetched %d %s, indexed %d last %s", index_name, fetched,
-                        self.__index_name__, indexed, last_item.get('dateModified', '-'))
+        if indexed or not_indexed or exists > 10:
+            exists = (" exists %d" % exists) if exists else ""
+            indexed = (" indexed %d" % indexed) if indexed else ""
+            not_indexed = (" not_indexed %d" % not_indexed) if not_indexed else ""
+            logger.info("[%s] Fetched %d%s%s%s last %s", index_name, fetched, exists,
+                        indexed, not_indexed, last_item.get('dateModified', '-'))
 
     def indexing_wait(self, query_count, index_count):
         p1 = float(query_count) / self.config['query_speed']
@@ -298,7 +309,7 @@ class BaseIndex(object):
             logger.info("Wait %1.1f sec.", max(p1, p2))
         self.engine.sleep(max(p1, p2))
 
-    def index_item(self, index_name, item):
+    def index_item(self, index_name, item, ignore_bulk=False):
         if not item.get('meta') or not item.get('data'):
             logger.error("[%s] No data %s", index_name, str(item))
             return None
@@ -306,11 +317,16 @@ class BaseIndex(object):
             logger.error("[%s] dateModified mismatch %s", index_name, str(item))
             return None
         if self.test_noindex(item):
-            if self.engine.debug:
-                logger.debug("[%s] Noindex %s %s", index_name,
-                             item['data'].get('id', ''),
-                             item['data'].get('tenderID', ''))
-            return None
+            if self.engine.debug or self.config['log_not_index']:
+                logger.info("[%s] Noindex %s %s %s", index_name,
+                            item['data'].get('id', ''),
+                            item['data'].get('tenderID', ''),
+                            item['data'].get('dateModified', ''))
+            if self.noindex_prefix:
+                index_name = self.noindex_prefix + index_name
+                ignore_bulk = True
+            else:
+                return None
 
         self.before_index_item(item)
 
@@ -318,7 +334,7 @@ class BaseIndex(object):
             if callable(plugin.before_index_item):
                 plugin.before_index_item(self, item)
 
-        return self.engine.index_item(index_name, item)
+        return self.engine.index_item(index_name, item, ignore_bulk=ignore_bulk)
 
     def index_source(self, index_name=None, reset=False, reindex=False):
         if self.engine.slave_mode:
@@ -347,7 +363,9 @@ class BaseIndex(object):
 
         query_count = 0
         index_count = 0
-        index_cprev = 0
+        index_exist = 0
+        not_indexed = 0
+        index_prevc = 0
         total_count = 0
 
         # heartbeat always True in master mode
@@ -368,20 +386,24 @@ class BaseIndex(object):
                             query_count += 1
                         if self.index_item(index_name, item):
                             index_count += 1
+                        else:
+                            not_indexed += 1
                     except Exception as e:
                         self.handle_error(e, sys.exc_info())
+                else:
+                    index_exist += 1
                 # update statistics
                 total_count += 1
                 iter_count += 1
                 # update heartbeat for long indexing
                 if iter_count >= 1000:
                     self.engine.flush_bulk()
-                    self.indexing_stat(index_name, total_count, index_count, info)
+                    self.indexing_stat(index_name, total_count, index_count, not_indexed, index_exist, info)
                     iter_count = 0
                 # take a break
-                if query_count >= 10 or index_count - index_cprev >= 10:
-                    self.indexing_wait(query_count, index_count - index_cprev)
-                    index_cprev = index_count
+                if query_count >= 10 or index_count - index_prevc >= 10:
+                    self.indexing_wait(query_count, index_count - index_prevc)
+                    index_prevc = index_count
                     query_count = 0
                 # check for heartbeat in long term ops
                 if iter_count == 500 and not self.engine.heartbeat(self.source):
@@ -396,7 +418,7 @@ class BaseIndex(object):
                 last_skipped = getattr(self.source, 'last_skipped', None)
             # break if nothing iterated
             if iter_count or last_skipped:
-                self.indexing_stat(index_name, total_count, index_count, info, last_skipped)
+                self.indexing_stat(index_name, total_count, index_count, not_indexed, index_exist, info, last_skipped)
             elif not info:
                 break
             # break on each iteration if not in full reindex mode
