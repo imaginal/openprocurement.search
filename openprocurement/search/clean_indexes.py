@@ -62,6 +62,9 @@ def process_all(elastic_host, index_list, index_yaml):
             logger.info("Skip fresh %s (%1.1f days)", name, days)
             continue
         candidates.append(name)
+        noindex_name = 'noindex_' + name
+        if noindex_name in index_list:
+            candidates.append(noindex_name)
 
     if len(candidates) < 1:
         logger.info("Not enought candidates")
