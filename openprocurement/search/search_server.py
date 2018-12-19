@@ -53,6 +53,7 @@ search_engine.init_search_map({
     'tenders': [TenderIndex, OcdsIndex],
     'plans': [PlanIndex],
     'orgs': [OrgsIndex],
+    'ocds': [OcdsIndex],
 })
 
 # query fileds map
@@ -449,7 +450,7 @@ def prepare_search_body(args, default_sort='dateModified', source_fields=None):
 
 
 @search_server.route('/tenders')
-def search_tenders():
+def search_tenders(index_set='tenders'):
     try:
         args = request.args
         short = int(args.get('short') or 0)
@@ -458,13 +459,18 @@ def search_tenders():
         start = int(args.get('start') or 0)
         limit = int(args.get('limit') or 10)
         limit = min(max(1, limit), 100)
-        res = search_engine.search(body, start, limit, index_set='tenders')
+        res = search_engine.search(body, start, limit, index_set=index_set)
     except Exception as e:
         search_server.logger.exception("Error in tenders {}".format(e))
         res = {"error": "{}: {}".format(type(e).__name__, e)}
     if search_server.debug:
         res['body'] = body
     return jsonify(res)
+
+
+@search_server.route('/oldocds')
+def search_oldocds():
+    return search_tenders(index_set='ocds')
 
 
 @search_server.route('/plans')
