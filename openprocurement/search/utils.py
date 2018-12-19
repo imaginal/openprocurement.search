@@ -6,10 +6,15 @@ import time
 import pytz
 import iso8601
 import signal
+import datetime
 import logging
 import threading
 
 TZ = pytz.timezone(os.environ['TZ'] if 'TZ' in os.environ else 'Europe/Kiev')
+
+
+def get_now(tz=TZ):
+    return datetime.datetime.now(tz)
 
 
 def long_version(dt, local_timezone=TZ):
