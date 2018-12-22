@@ -308,7 +308,7 @@ class IndexEngine(SearchEngine):
         return cs
 
     def dump_index_names(self):
-        ns = "\n\t".join(["%-17s = %s" % (k, v)
+        ns = "\n\t".join(["%-20s = %s" % (k, v)
             for k, v in self.index_names_dict().items()])
         return ns or "(index_names is empty)"
 
