@@ -81,9 +81,13 @@ class PlanSource(BaseSource):
     def need_reset(self):
         if self.should_reset:
             return True
+        if self.last_preload_count >= 50:
+            return False
         if self.config['plan_reseteach'] and (time() - self.last_reset_time > 3600 * int(self.config['plan_reseteach'])):
+            logger.info("Reset by plan_reseteach=%s", self.config['plan_reseteach'])
             return True
         if self.config['plan_resethour'] and (time() - self.last_reset_time > 3600):
+            logger.info("Reset by plan_resethour=%s", self.config['plan_resethour'])
             return datetime.now().hour == int(self.config['plan_resethour'])
 
     @retry(stop_max_attempt_number=5, wait_fixed=5000)
@@ -158,6 +162,7 @@ class PlanSource(BaseSource):
         if self.skip_after and self.skip_after[:2] != '20':
             self.skip_after = None
         self.last_reset_time = time()
+        self.last_preload_count = 0
         self.should_reset = False
 
     def preload(self):
@@ -226,6 +231,8 @@ class PlanSource(BaseSource):
                 self.fast_client.params.pop('offset', '')
             else:
                 self.fast_client = None
+
+        self.last_preload_count = len(preload_items)
 
         return preload_items
 
