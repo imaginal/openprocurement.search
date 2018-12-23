@@ -114,14 +114,14 @@ class TenderSource(BaseSource):
     def need_reset(self):
         if self.should_reset:
             return True
-        if self.last_preload_count >= 50:
+        if self.last_preload_count >= 50 or time() - self.last_reset_time < 3600:
             return False
         if self.config['tender_reseteach'] and (time() - self.last_reset_time > 3600 * int(self.config['tender_reseteach'])):
             logger.info("Reset by tender_reseteach=%s", self.config['tender_reseteach'])
             return True
-        if self.config['tender_resethour'] and (time() - self.last_reset_time > 3600):
+        if self.config['tender_resethour'] and (datetime.now().hour == int(self.config['tender_resethour'])):
             logger.info("Reset by tender_resethour=%s", self.config['tender_resethour'])
-            return datetime.now().hour == int(self.config['tender_resethour'])
+            return True
 
     @retry(stop_max_attempt_number=5, wait_fixed=5000)
     def reset(self):

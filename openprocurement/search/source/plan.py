@@ -81,14 +81,14 @@ class PlanSource(BaseSource):
     def need_reset(self):
         if self.should_reset:
             return True
-        if self.last_preload_count >= 50:
+        if self.last_preload_count >= 50 or time() - self.last_reset_time < 3600:
             return False
         if self.config['plan_reseteach'] and (time() - self.last_reset_time > 3600 * int(self.config['plan_reseteach'])):
             logger.info("Reset by plan_reseteach=%s", self.config['plan_reseteach'])
             return True
-        if self.config['plan_resethour'] and (time() - self.last_reset_time > 3600):
+        if self.config['plan_resethour'] and (datetime.now().hour == int(self.config['plan_resethour'])):
             logger.info("Reset by plan_resethour=%s", self.config['plan_resethour'])
-            return datetime.now().hour == int(self.config['plan_resethour'])
+            return True
 
     @retry(stop_max_attempt_number=5, wait_fixed=5000)
     def reset(self):
