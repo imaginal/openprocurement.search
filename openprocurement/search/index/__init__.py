@@ -247,6 +247,12 @@ class BaseIndex(object):
             self.engine.set_index(index_key_next, '')
         # set alias
         self.engine.set_alias(index_key, name)
+        # noindex
+        if self.noindex_prefix:
+            noindex_key = self.noindex_prefix + index_key
+            noindex_name = self.noindex_prefix + name
+            self.engine.set_index(noindex_key, noindex_name)
+            self.engine.set_alias(noindex_key, noindex_name)
         return name
 
     def from_cache(self, item):
