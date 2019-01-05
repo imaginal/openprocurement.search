@@ -27,6 +27,9 @@ class OrgsIndex(BaseIndex):
 
     def index_item(self, index_name, item):
         try:
+            prev_item = self.engine.get_item(index_name, item['meta'])
+            if prev_item and prev_item['_source'].get('rank', 0) > 1:
+                item['data']['rank'] = prev_item['_source']['rank']
             return self.engine.index_item(index_name, item, ignore_bulk=True)
         except Exception as e:
             if self.config['ignore_errors']:
@@ -35,7 +38,7 @@ class OrgsIndex(BaseIndex):
                 raise e
 
     def index_source(self, index_name=None, reset=False, reindex=False):
-        res = BaseIndex.index_source(self, index_name, reset, reindex)
+        res = super(OrgsIndex, self).index_source(index_name, reset, reindex)
         # allow create empty index on reindex (only for orgs)
         if res == 0 and reset:
             return 1
