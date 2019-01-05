@@ -50,19 +50,26 @@ class IndexOrgsEngine(IndexEngine):
         config['auction2_fast_client'] = False
         config['lot_fast_client'] = False
         config['asset_fast_client'] = False
+        # preload
         config['tender_preload'] = int(1e6)
         config['plan_preload'] = int(1e6)
         config['ocds_preload'] = int(1e6)
         config['auction_preload'] = int(1e6)
+        config['auction2_preload'] = int(1e6)
+        config['asset_preload'] = int(1e6)
+        config['lot_preload'] = int(1e6)
         # update skip_until
         update_days = update_config.get('update_days') or 30
         date = datetime.now() - timedelta(days=int(update_days))
         date = date.strftime("%Y-%m-%d")
         logger.info("Patch config: update_days = %s -> skip_until = %s", update_days, date)
-        config['auction_skip_until'] = date
         config['tender_skip_until'] = date
         config['plan_skip_until'] = date
         config['ocds_skip_until'] = date
+        config['auction_skip_until'] = date
+        config['auction2_skip_until'] = date
+        config['asset_skip_until'] = date
+        config['lot_skip_until'] = date
 
     def process_entity(self, entity):
         code = None
