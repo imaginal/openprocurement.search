@@ -341,12 +341,12 @@ class IndexEngine(SearchEngine):
         indices.create(index_name, body=body)
 
     @retry(stop_max_attempt_number=5, wait_fixed=5000)
-    def get_item(self, index_name, meta):
+    def get_item(self, index_name, meta, source=True):
         try:
             found = self.elastic.get(index_name,
                 doc_type=meta.get('doc_type'),
                 id=meta['id'],
-                _source=True)
+                _source=source)
         except NotFoundError:
             return None
         return found
