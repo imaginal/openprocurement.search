@@ -2,6 +2,7 @@
 import os
 import os.path
 import sqlite3
+from time import time
 from munch import munchify
 
 from openprocurement.search.source import BaseSource
@@ -133,7 +134,8 @@ class OrgsSource(BaseSource):
     config = {
         'orgs_db': None,
         'orgs_queue': 1000,
-        'orgs_from_bids': False
+        'orgs_from_bids': False,
+        'orgs_update_period': 30,
     }
 
     def __init__(self, config={}, use_cache=False):
@@ -141,6 +143,7 @@ class OrgsSource(BaseSource):
             self.config.update(config)
         if not self.config.get('orgs_db'):
             logger.warning("No UA-EDR database, orgs will not be decoded")
+        self.update_period = 86400 * int(self.config['orgs_update_period'])
         self.use_cache = use_cache
         self.orgs_db = None
         self.should_reset = True
@@ -210,11 +213,12 @@ class OrgsSource(BaseSource):
         if not name or len(name) < 3:
             return False
         if code not in self.queue:
+            version = int(time() / self.update_period) * self.update_period + 1L
             data = {
                 'id': code,
                 'dateModified': code,
                 'doc_type': self.doc_type,
-                'version': 1L,
+                'version': long(version),
                 'data': item,
             }
             self.queue[code] = munchify(data)
