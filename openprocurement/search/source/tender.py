@@ -82,6 +82,15 @@ class TenderSource(BaseSource):
             for contract in tender['data']['contracts']:
                 if contract.get('status') == 'active':
                     contract['activeDate'] = contract.get('date')
+        # 11-03-2019 add milestones
+        if 'milestones' in tender['data']:
+            for milestone in tender['data']['milestones']:
+                if 'percentage' in milestone:
+                    percentage = int(milestone['percentage'] or 0)
+                    milestone['codePercentage'] = "{}_{:03d}".format(milestone['code'], percentage)
+                if 'duration' in milestone:
+                    duration = int(milestone['duration'].get('days', 0) or 0)
+                    milestone['codeDuration'] = "{}_{:03d}".format(milestone['code'], duration)
         # decode official org name from EDRPOU registry
         if self.config['tender_decode_orgs'] and self.orgs_db:
             if 'procuringEntity' in tender['data']:
@@ -236,13 +245,13 @@ class TenderSource(BaseSource):
                 assert tender['data']['id'] == item['id'], "tender.id"
                 assert tender['data']['dateModified'] >= item['dateModified'], "tender.dateModified"
             except Exception as e:
-                if retry_count > 3:
+                if retry_count > 7:
                     raise e
                 retry_count += 1
                 logger.error("GET %s/%s retry %d error %s", self.client.prefix_path,
                     str(item['id']), retry_count, restkit_error(e, self.client))
-                self.sleep(5 * retry_count)
-                if retry_count > 1:
+                self.sleep(10 * retry_count)
+                if retry_count > 5:
                     self.reset()
                 tender = {}
             # save to cache

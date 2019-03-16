@@ -225,13 +225,13 @@ class PlanSource(BaseSource):
                 assert plan['data']['id'] == item['id'], "plan.id"
                 assert plan['data']['dateModified'] >= item['dateModified'], "plan.dateModified"
             except Exception as e:
-                if retry_count > 3:
+                if retry_count > 7:
                     raise e
                 retry_count += 1
                 logger.error("GET %s/%s retry %d error %s", self.client.prefix_path,
                     str(item['id']), retry_count, restkit_error(e, self.client))
-                self.sleep(5 * retry_count)
-                if retry_count > 1:
+                self.sleep(10 * retry_count)
+                if retry_count > 5:
                     self.reset()
                 plan = {}
             # save to cache
