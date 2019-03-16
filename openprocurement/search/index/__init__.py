@@ -40,6 +40,7 @@ class BaseIndex(object):
         assert(self.__index_name__)
         logger.debug("Create %s index based on %s source", self.__index_name__, source.__doc_type__)
         if config:
+            self.config = dict(self.config)
             self.config.update(config)
             self.config['index_speed'] = float(self.config['index_speed'])
             self.config['reindex_loops'] = int(self.config['reindex_loops'])
