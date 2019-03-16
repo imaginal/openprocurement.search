@@ -3,6 +3,814 @@
     "tender": {
       "include_in_all": false,
       "properties": {
+        "NBUdiscountRate": {
+          "include_in_all": false,
+          "type": "double"
+        },
+        "agreementDuration": {
+          "analyzer": "whitespace_lower",
+          "include_in_all": true,
+          "type": "string"
+        },
+        "agreements": {
+          "include_in_all": false,
+          "properties": {
+            "agreementID": {
+              "analyzer": "whitespace_lower",
+              "include_in_all": true,
+              "type": "string"
+            },
+            "agreementNumber": {
+              "analyzer": "whitespace_lower",
+              "include_in_all": true,
+              "type": "string"
+            },
+            "contracts": {
+              "include_in_all": false,
+              "properties": {
+                "activeDate": {
+                  "format": "dateOptionalTime",
+                  "include_in_all": false,
+                  "type": "date"
+                },
+                "awardID": {
+                  "analyzer": "whitespace_lower",
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "bidID": {
+                  "analyzer": "whitespace_lower",
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "date": {
+                  "format": "dateOptionalTime",
+                  "include_in_all": false,
+                  "type": "date"
+                },
+                "id": {
+                  "include_in_all": false,
+                  "index": "no",
+                  "type": "string"
+                },
+                "parameters": {
+                  "include_in_all": false,
+                  "properties": {
+                    "code": {
+                      "include_in_all": false,
+                      "type": "string"
+                    },
+                    "value": {
+                      "include_in_all": false,
+                      "type": "double"
+                    }
+                  }
+                },
+                "status": {
+                  "analyzer": "whitespace_lower",
+                  "include_in_all": false,
+                  "type": "string"
+                },
+                "suppliers": {
+                  "include_in_all": false,
+                  "properties": {
+                    "address": {
+                      "include_in_all": false,
+                      "properties": {
+                        "countryName": {
+                          "include_in_all": false,
+                          "type": "string"
+                        },
+                        "countryName_en": {
+                          "include_in_all": false,
+                          "type": "string"
+                        },
+                        "countryName_ru": {
+                          "include_in_all": false,
+                          "type": "string"
+                        },
+                        "locality": {
+                          "include_in_all": false,
+                          "type": "string"
+                        },
+                        "postalCode": {
+                          "analyzer": "postalcode",
+                          "include_in_all": false,
+                          "type": "string"
+                        },
+                        "region": {
+                          "include_in_all": true,
+                          "type": "string"
+                        },
+                        "streetAddress": {
+                          "include_in_all": true,
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "contactPoint": {
+                      "include_in_all": false,
+                      "properties": {
+                        "email": {
+                          "analyzer": "whitespace_lower",
+                          "include_in_all": true,
+                          "type": "string"
+                        },
+                        "faxNumber": {
+                          "include_in_all": false,
+                          "type": "string"
+                        },
+                        "name": {
+                          "include_in_all": true,
+                          "type": "string"
+                        },
+                        "name_en": {
+                          "include_in_all": true,
+                          "type": "string"
+                        },
+                        "name_ru": {
+                          "include_in_all": true,
+                          "type": "string"
+                        },
+                        "telephone": {
+                          "analyzer": "telephone",
+                          "include_in_all": true,
+                          "type": "string"
+                        },
+                        "url": {
+                          "include_in_all": false,
+                          "index": "no",
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "identifier": {
+                      "include_in_all": false,
+                      "properties": {
+                        "id": {
+                          "analyzer": "whitespace_lower",
+                          "include_in_all": false,
+                          "type": "string"
+                        },
+                        "legalName": {
+                          "include_in_all": true,
+                          "type": "string"
+                        },
+                        "legalName_en": {
+                          "include_in_all": true,
+                          "type": "string"
+                        },
+                        "scheme": {
+                          "include_in_all": false,
+                          "type": "string"
+                        },
+                        "uri": {
+                          "include_in_all": true,
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "name": {
+                      "include_in_all": true,
+                      "type": "string"
+                    },
+                    "name_en": {
+                      "include_in_all": true,
+                      "type": "string"
+                    },
+                    "name_ru": {
+                      "include_in_all": true,
+                      "type": "string"
+                    }
+                  }
+                },
+                "unitPrices": {
+                  "include_in_all": false,
+                  "properties": {
+                    "relatedItem": {
+                      "analyzer": "whitespace_lower",
+                      "include_in_all": false,
+                      "type": "string"
+                    },
+                    "value": {
+                      "include_in_all": false,
+                      "properties": {
+                        "amount": {
+                          "include_in_all": false,
+                          "type": "double"
+                        },
+                        "currency": {
+                          "include_in_all": false,
+                          "type": "string"
+                        },
+                        "valueAddedTaxIncluded": {
+                          "type": "boolean"
+                        }
+                      }
+                    }
+                  }
+                },
+                "value": {
+                  "include_in_all": false,
+                  "properties": {
+                    "amount": {
+                      "include_in_all": false,
+                      "type": "double"
+                    },
+                    "currency": {
+                      "include_in_all": false,
+                      "type": "string"
+                    },
+                    "valueAddedTaxIncluded": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            },
+            "date": {
+              "format": "dateOptionalTime",
+              "include_in_all": false,
+              "type": "date"
+            },
+            "dateModified": {
+              "format": "dateOptionalTime",
+              "include_in_all": false,
+              "type": "date"
+            },
+            "dateSigned": {
+              "format": "dateOptionalTime",
+              "include_in_all": false,
+              "type": "date"
+            },
+            "description": {
+              "include_in_all": true,
+              "type": "string"
+            },
+            "description_en": {
+              "include_in_all": true,
+              "type": "string"
+            },
+            "description_ru": {
+              "include_in_all": true,
+              "type": "string"
+            },
+            "documents": {
+              "include_in_all": false,
+              "properties": {
+                "dateModified": {
+                  "format": "dateOptionalTime",
+                  "include_in_all": false,
+                  "type": "date"
+                },
+                "datePublished": {
+                  "format": "dateOptionalTime",
+                  "include_in_all": false,
+                  "type": "date"
+                },
+                "description": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "description_en": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "description_ru": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "documentOf": {
+                  "include_in_all": false,
+                  "type": "string"
+                },
+                "documentType": {
+                  "include_in_all": false,
+                  "type": "string"
+                },
+                "format": {
+                  "include_in_all": false,
+                  "type": "string"
+                },
+                "hash": {
+                  "include_in_all": false,
+                  "index": "no",
+                  "type": "string"
+                },
+                "id": {
+                  "include_in_all": false,
+                  "index": "no",
+                  "type": "string"
+                },
+                "language": {
+                  "include_in_all": false,
+                  "index": "no",
+                  "type": "string"
+                },
+                "title": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "title_en": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "title_ru": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "url": {
+                  "include_in_all": false,
+                  "index": "no",
+                  "type": "string"
+                }
+              }
+            },
+            "features": {
+              "include_in_all": false,
+              "properties": {
+                "code": {
+                  "analyzer": "whitespace_lower",
+                  "include_in_all": false,
+                  "type": "string"
+                },
+                "description": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "description_en": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "description_ru": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "enum": {
+                  "include_in_all": false,
+                  "properties": {
+                    "description": {
+                      "include_in_all": true,
+                      "type": "string"
+                    },
+                    "description_en": {
+                      "include_in_all": true,
+                      "type": "string"
+                    },
+                    "description_ru": {
+                      "include_in_all": true,
+                      "type": "string"
+                    },
+                    "title": {
+                      "include_in_all": true,
+                      "type": "string"
+                    },
+                    "title_en": {
+                      "include_in_all": true,
+                      "type": "string"
+                    },
+                    "title_ru": {
+                      "include_in_all": true,
+                      "type": "string"
+                    },
+                    "value": {
+                      "include_in_all": false,
+                      "type": "double"
+                    }
+                  }
+                },
+                "featureOf": {
+                  "include_in_all": false,
+                  "type": "string"
+                },
+                "relatedItem": {
+                  "analyzer": "whitespace_lower",
+                  "include_in_all": false,
+                  "type": "string"
+                },
+                "title": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "title_en": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "title_ru": {
+                  "include_in_all": true,
+                  "type": "string"
+                }
+              }
+            },
+            "id": {
+              "include_in_all": false,
+              "index": "no",
+              "type": "string"
+            },
+            "items": {
+              "include_in_all": false,
+              "properties": {
+                "additionalClassifications": {
+                  "include_in_all": true,
+                  "properties": {
+                    "description": {
+                      "include_in_all": true,
+                      "type": "string"
+                    },
+                    "id": {
+                      "analyzer": "whitespace_lower",
+                      "include_in_all": true,
+                      "type": "string"
+                    },
+                    "scheme": {
+                      "analyzer": "whitespace_lower",
+                      "include_in_all": true,
+                      "type": "string"
+                    }
+                  }
+                },
+                "classification": {
+                  "include_in_all": false,
+                  "properties": {
+                    "description": {
+                      "include_in_all": true,
+                      "type": "string"
+                    },
+                    "description_en": {
+                      "include_in_all": true,
+                      "type": "string"
+                    },
+                    "description_ru": {
+                      "include_in_all": true,
+                      "type": "string"
+                    },
+                    "id": {
+                      "analyzer": "whitespace_lower",
+                      "include_in_all": true,
+                      "type": "string"
+                    },
+                    "scheme": {
+                      "analyzer": "whitespace_lower",
+                      "include_in_all": true,
+                      "type": "string"
+                    }
+                  }
+                },
+                "deliveryAddress": {
+                  "include_in_all": false,
+                  "properties": {
+                    "countryName": {
+                      "include_in_all": false,
+                      "type": "string"
+                    },
+                    "countryName_en": {
+                      "include_in_all": false,
+                      "type": "string"
+                    },
+                    "countryName_ru": {
+                      "include_in_all": false,
+                      "type": "string"
+                    },
+                    "locality": {
+                      "include_in_all": false,
+                      "type": "string"
+                    },
+                    "postalCode": {
+                      "analyzer": "postalcode",
+                      "include_in_all": true,
+                      "type": "string"
+                    },
+                    "region": {
+                      "include_in_all": true,
+                      "type": "string"
+                    },
+                    "streetAddress": {
+                      "include_in_all": true,
+                      "type": "string"
+                    }
+                  }
+                },
+                "deliveryDate": {
+                  "include_in_all": false,
+                  "properties": {
+                    "endDate": {
+                      "format": "dateOptionalTime",
+                      "include_in_all": false,
+                      "type": "date"
+                    },
+                    "startDate": {
+                      "format": "dateOptionalTime",
+                      "include_in_all": false,
+                      "type": "date"
+                    }
+                  }
+                },
+                "deliveryLocation": {
+                  "include_in_all": false,
+                  "properties": {
+                    "elevation": {
+                      "include_in_all": true,
+                      "index": "no",
+                      "type": "string"
+                    },
+                    "latitude": {
+                      "include_in_all": false,
+                      "index": "no",
+                      "type": "string"
+                    },
+                    "longitude": {
+                      "include_in_all": false,
+                      "index": "no",
+                      "type": "string"
+                    }
+                  }
+                },
+                "description": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "description_en": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "description_ru": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "id": {
+                  "include_in_all": false,
+                  "index": "no",
+                  "type": "string"
+                },
+                "quantity": {
+                  "include_in_all": false,
+                  "type": "double"
+                },
+                "relatedLot": {
+                  "analyzer": "whitespace_lower",
+                  "include_in_all": false,
+                  "type": "string"
+                },
+                "unit": {
+                  "include_in_all": false,
+                  "properties": {
+                    "code": {
+                      "include_in_all": false,
+                      "type": "string"
+                    },
+                    "name": {
+                      "include_in_all": true,
+                      "type": "string"
+                    },
+                    "name_en": {
+                      "include_in_all": true,
+                      "type": "string"
+                    },
+                    "name_ru": {
+                      "include_in_all": true,
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            },
+            "mode": {
+              "analyzer": "whitespace_lower",
+              "include_in_all": false,
+              "type": "string"
+            },
+            "numberOfContracts": {
+              "include_in_all": false,
+              "type": "long"
+            },
+            "owner": {
+              "analyzer": "whitespace_lower",
+              "include_in_all": false,
+              "type": "string"
+            },
+            "period": {
+              "include_in_all": false,
+              "properties": {
+                "endDate": {
+                  "format": "dateOptionalTime",
+                  "include_in_all": false,
+                  "type": "date"
+                },
+                "startDate": {
+                  "format": "dateOptionalTime",
+                  "include_in_all": false,
+                  "type": "date"
+                }
+              }
+            },
+            "procuringEntity": {
+              "include_in_all": false,
+              "properties": {
+                "additionalContactPoints": {
+                  "include_in_all": false,
+                  "properties": {
+                    "availableLanguage": {
+                      "include_in_all": false,
+                      "type": "string"
+                    },
+                    "email": {
+                      "analyzer": "whitespace_lower",
+                      "include_in_all": true,
+                      "type": "string"
+                    },
+                    "faxNumber": {
+                      "include_in_all": false,
+                      "type": "string"
+                    },
+                    "name": {
+                      "include_in_all": true,
+                      "type": "string"
+                    },
+                    "name_en": {
+                      "include_in_all": true,
+                      "type": "string"
+                    },
+                    "telephone": {
+                      "analyzer": "telephone",
+                      "include_in_all": true,
+                      "type": "string"
+                    },
+                    "url": {
+                      "include_in_all": true,
+                      "type": "string"
+                    }
+                  }
+                },
+                "address": {
+                  "include_in_all": false,
+                  "properties": {
+                    "countryName": {
+                      "include_in_all": false,
+                      "type": "string"
+                    },
+                    "countryName_en": {
+                      "include_in_all": false,
+                      "type": "string"
+                    },
+                    "countryName_ru": {
+                      "include_in_all": false,
+                      "type": "string"
+                    },
+                    "locality": {
+                      "include_in_all": false,
+                      "type": "string"
+                    },
+                    "postalCode": {
+                      "analyzer": "postalcode",
+                      "include_in_all": true,
+                      "type": "string"
+                    },
+                    "region": {
+                      "include_in_all": true,
+                      "type": "string"
+                    },
+                    "streetAddress": {
+                      "include_in_all": true,
+                      "type": "string"
+                    }
+                  }
+                },
+                "contactPoint": {
+                  "include_in_all": false,
+                  "properties": {
+                    "availableLanguage": {
+                      "include_in_all": false,
+                      "type": "string"
+                    },
+                    "email": {
+                      "analyzer": "whitespace_lower",
+                      "include_in_all": true,
+                      "type": "string"
+                    },
+                    "faxNumber": {
+                      "include_in_all": false,
+                      "type": "string"
+                    },
+                    "name": {
+                      "include_in_all": true,
+                      "type": "string"
+                    },
+                    "name_en": {
+                      "include_in_all": true,
+                      "type": "string"
+                    },
+                    "name_ru": {
+                      "include_in_all": true,
+                      "type": "string"
+                    },
+                    "telephone": {
+                      "analyzer": "telephone",
+                      "include_in_all": true,
+                      "type": "string"
+                    },
+                    "url": {
+                      "include_in_all": false,
+                      "index": "no",
+                      "type": "string"
+                    }
+                  }
+                },
+                "identifier": {
+                  "include_in_all": true,
+                  "properties": {
+                    "id": {
+                      "analyzer": "whitespace_lower",
+                      "include_in_all": true,
+                      "type": "string"
+                    },
+                    "legalName": {
+                      "include_in_all": true,
+                      "type": "string"
+                    },
+                    "legalName_en": {
+                      "include_in_all": true,
+                      "type": "string"
+                    },
+                    "scheme": {
+                      "analyzer": "whitespace_lower",
+                      "include_in_all": false,
+                      "type": "string"
+                    },
+                    "uri": {
+                      "include_in_all": true,
+                      "type": "string"
+                    }
+                  }
+                },
+                "kind": {
+                  "analyzer": "whitespace_lower",
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "name": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "name_en": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "name_ru": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "registryRecord": {
+                  "include_in_all": true,
+                  "properties": {
+                    "edrpou": {
+                      "analyzer": "whitespace_lower",
+                      "include_in_all": true,
+                      "type": "string"
+                    },
+                    "location": {
+                      "include_in_all": true,
+                      "type": "string"
+                    },
+                    "name": {
+                      "include_in_all": true,
+                      "type": "string"
+                    },
+                    "shortName": {
+                      "include_in_all": true,
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            },
+            "status": {
+              "analyzer": "whitespace_lower",
+              "include_in_all": false,
+              "type": "string"
+            },
+            "tender_id": {
+              "analyzer": "whitespace_lower",
+              "include_in_all": true,
+              "type": "string"
+            },
+            "terminationDetails": {
+              "include_in_all": true,
+              "type": "string"
+            },
+            "title": {
+              "include_in_all": true,
+              "type": "string"
+            },
+            "title_en": {
+              "include_in_all": true,
+              "type": "string"
+            },
+            "title_ru": {
+              "include_in_all": true,
+              "type": "string"
+            }
+          }
+        },
         "auctionPeriod": {
           "include_in_all": false,
           "properties": {
@@ -170,6 +978,10 @@
                           "include_in_all": true,
                           "type": "string"
                         },
+                        "legalName_ru": {
+                          "include_in_all": true,
+                          "type": "string"
+                        },
                         "scheme": {
                           "include_in_all": false,
                           "type": "string"
@@ -187,8 +999,17 @@
                     "name_en": {
                       "include_in_all": true,
                       "type": "string"
+                    },
+                    "name_ru": {
+                      "include_in_all": true,
+                      "type": "string"
                     }
                   }
+                },
+                "bid_id": {
+                  "analyzer": "whitespace",
+                  "include_in_all": false,
+                  "type": "string"
                 },
                 "cancellationReason": {
                   "include_in_all": false,
@@ -446,6 +1267,10 @@
             "documents": {
               "include_in_all": false,
               "properties": {
+                "author": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
                 "dateModified": {
                   "format": "dateOptionalTime",
                   "include_in_all": false,
@@ -627,6 +1452,10 @@
                       "include_in_all": true,
                       "type": "string"
                     },
+                    "legalName_ru": {
+                      "include_in_all": true,
+                      "type": "string"
+                    },
                     "scheme": {
                       "include_in_all": true,
                       "type": "string"
@@ -670,12 +1499,37 @@
                   "include_in_all": false,
                   "type": "double"
                 },
+                "amountPerformance": {
+                  "include_in_all": false,
+                  "type": "double"
+                },
+                "annualCostsReduction": {
+                  "include_in_all": false,
+                  "type": "double"
+                },
+                "contractDuration": {
+                  "include_in_all": false,
+                  "properties": {
+                    "days": {
+                      "include_in_all": false,
+                      "type": "long"
+                    },
+                    "years": {
+                      "include_in_all": false,
+                      "type": "long"
+                    }
+                  }
+                },
                 "currency": {
                   "include_in_all": false,
                   "type": "string"
                 },
                 "valueAddedTaxIncluded": {
                   "type": "boolean"
+                },
+                "yearlyPaymentsPercentage": {
+                  "include_in_all": false,
+                  "type": "double"
                 }
               }
             }
@@ -745,7 +1599,6 @@
                   "type": "string"
                 },
                 "isDescriptionDecision": {
-                  "include_in_all": false,
                   "type": "boolean"
                 },
                 "language": {
@@ -1186,6 +2039,10 @@
                       "include_in_all": true,
                       "type": "string"
                     },
+                    "legalName_ru": {
+                      "include_in_all": true,
+                      "type": "string"
+                    },
                     "scheme": {
                       "include_in_all": true,
                       "type": "string"
@@ -1239,12 +2096,37 @@
                   "include_in_all": false,
                   "type": "double"
                 },
+                "amountPerformance": {
+                  "include_in_all": false,
+                  "type": "double"
+                },
+                "annualCostsReduction": {
+                  "include_in_all": false,
+                  "type": "double"
+                },
+                "contractDuration": {
+                  "include_in_all": false,
+                  "properties": {
+                    "days": {
+                      "include_in_all": false,
+                      "type": "long"
+                    },
+                    "years": {
+                      "include_in_all": false,
+                      "type": "long"
+                    }
+                  }
+                },
                 "currency": {
                   "include_in_all": false,
                   "type": "string"
                 },
                 "valueAddedTaxIncluded": {
                   "type": "boolean"
+                },
+                "yearlyPaymentsPercentage": {
+                  "include_in_all": false,
+                  "type": "double"
                 }
               }
             }
@@ -1695,6 +2577,21 @@
             }
           }
         },
+        "contractPeriod": {
+          "include_in_all": false,
+          "properties": {
+            "clarificationsUntil": {
+              "format": "dateOptionalTime",
+              "include_in_all": false,
+              "type": "date"
+            },
+            "startDate": {
+              "format": "dateOptionalTime",
+              "include_in_all": false,
+              "type": "date"
+            }
+          }
+        },
         "contracts": {
           "include_in_all": false,
           "properties": {
@@ -1968,6 +2865,22 @@
                     "name_ru": {
                       "include_in_all": true,
                       "type": "string"
+                    },
+                    "value": {
+                      "include_in_all": false,
+                      "properties": {
+                        "amount": {
+                          "include_in_all": false,
+                          "type": "double"
+                        },
+                        "currency": {
+                          "include_in_all": false,
+                          "type": "string"
+                        },
+                        "valueAddedTaxIncluded": {
+                          "type": "boolean"
+                        }
+                      }
                     }
                   }
                 }
@@ -2082,6 +2995,10 @@
                       "include_in_all": true,
                       "type": "string"
                     },
+                    "legalName_ru": {
+                      "include_in_all": true,
+                      "type": "string"
+                    },
                     "scheme": {
                       "include_in_all": false,
                       "type": "string"
@@ -2117,12 +3034,37 @@
                   "include_in_all": false,
                   "type": "double"
                 },
+                "amountPerformance": {
+                  "include_in_all": false,
+                  "type": "double"
+                },
+                "annualCostsReduction": {
+                  "include_in_all": false,
+                  "type": "double"
+                },
+                "contractDuration": {
+                  "include_in_all": false,
+                  "properties": {
+                    "days": {
+                      "include_in_all": false,
+                      "type": "long"
+                    },
+                    "years": {
+                      "include_in_all": false,
+                      "type": "long"
+                    }
+                  }
+                },
                 "currency": {
                   "include_in_all": false,
                   "type": "string"
                 },
                 "valueAddedTaxIncluded": {
                   "type": "boolean"
+                },
+                "yearlyPaymentsPercentage": {
+                  "include_in_all": false,
+                  "type": "double"
                 }
               }
             }
@@ -2158,6 +3100,10 @@
         "documents": {
           "include_in_all": false,
           "properties": {
+            "author": {
+              "include_in_all": true,
+              "type": "string"
+            },
             "dateModified": {
               "format": "dateOptionalTime",
               "include_in_all": false,
@@ -2351,6 +3297,104 @@
             }
           }
         },
+        "funders": {
+          "include_in_all": false,
+          "properties": {
+            "address": {
+              "include_in_all": false,
+              "properties": {
+                "countryName": {
+                  "include_in_all": false,
+                  "type": "string"
+                },
+                "locality": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "postalCode": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "region": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "streetAddress": {
+                  "include_in_all": true,
+                  "type": "string"
+                }
+              }
+            },
+            "contactPoint": {
+              "include_in_all": false,
+              "properties": {
+                "email": {
+                  "analyzer": "whitespace_lower",
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "faxNumber": {
+                  "include_in_all": false,
+                  "type": "string"
+                },
+                "name": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "name_en": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "telephone": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "url": {
+                  "include_in_all": false,
+                  "type": "string"
+                }
+              }
+            },
+            "identifier": {
+              "include_in_all": false,
+              "properties": {
+                "id": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "legalName": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "legalName_en": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "scheme": {
+                  "include_in_all": false,
+                  "type": "string"
+                }
+              }
+            },
+            "name": {
+              "include_in_all": true,
+              "type": "string"
+            },
+            "name_en": {
+              "include_in_all": true,
+              "type": "string"
+            },
+            "name_ru": {
+              "include_in_all": true,
+              "type": "string"
+            }
+          }
+        },
+        "fundingKind": {
+          "analyzer": "whitespace_lower",
+          "include_in_all": true,
+          "type": "string"
+        },
         "guarantee": {
           "include_in_all": false,
           "properties": {
@@ -2531,6 +3575,22 @@
                 "name_ru": {
                   "include_in_all": true,
                   "type": "string"
+                },
+                "value": {
+                  "include_in_all": false,
+                  "properties": {
+                    "amount": {
+                      "include_in_all": false,
+                      "type": "double"
+                    },
+                    "currency": {
+                      "include_in_all": false,
+                      "type": "string"
+                    },
+                    "valueAddedTaxIncluded": {
+                      "type": "boolean"
+                    }
+                  }
                 }
               }
             }
@@ -2647,6 +3707,94 @@
             }
           }
         },
+        "mainProcurementCategory": {
+          "analyzer": "whitespace_lower",
+          "include_in_all": false,
+          "type": "string"
+        },
+        "maxAwardsCount": {
+          "include_in_all": false,
+          "type": "long"
+        },
+        "milestones": {
+          "include_in_all": false,
+          "properties": {
+            "code": {
+              "include_in_all": true,
+              "type": "string"
+            },
+            "codeDuration": {
+              "analyzer": "whitespace_lower",
+              "include_in_all": true,
+              "type": "string"
+            },
+            "codePercentage": {
+              "analyzer": "whitespace_lower",
+              "include_in_all": true,
+              "type": "string"
+            },
+            "description": {
+              "include_in_all": true,
+              "type": "string"
+            },
+            "duration": {
+              "include_in_all": false,
+              "properties": {
+                "days": {
+                  "include_in_all": false,
+                  "type": "long"
+                },
+                "type": {
+                  "include_in_all": false,
+                  "type": "string"
+                }
+              }
+            },
+            "id": {
+              "analyzer": "whitespace_lower",
+              "include_in_all": false,
+              "type": "string"
+            },
+            "percentage": {
+              "include_in_all": false,
+              "type": "double"
+            },
+            "relatedLot": {
+              "include_in_all": false,
+              "type": "string"
+            },
+            "sequenceNumber": {
+              "include_in_all": false,
+              "type": "long"
+            },
+            "title": {
+              "analyzer": "whitespace_lower",
+              "include_in_all": true,
+              "type": "string"
+            },
+            "type": {
+              "analyzer": "whitespace_lower",
+              "include_in_all": false,
+              "type": "string"
+            }
+          }
+        },
+        "minValue": {
+          "include_in_all": false,
+          "properties": {
+            "amount": {
+              "include_in_all": false,
+              "type": "double"
+            },
+            "currency": {
+              "include_in_all": false,
+              "type": "string"
+            },
+            "valueAddedTaxIncluded": {
+              "type": "boolean"
+            }
+          }
+        },
         "minimalStep": {
           "include_in_all": false,
           "properties": {
@@ -2663,12 +3811,21 @@
             }
           }
         },
+        "minimalStepPercentage": {
+          "include_in_all": false,
+          "type": "double"
+        },
         "mode": {
           "analyzer": "whitespace_lower",
           "include_in_all": false,
           "type": "string"
         },
         "next_check": {
+          "format": "dateOptionalTime",
+          "include_in_all": false,
+          "type": "date"
+        },
+        "noticePublicationDate": {
           "format": "dateOptionalTime",
           "include_in_all": false,
           "type": "date"
@@ -2725,6 +3882,10 @@
                   "type": "string"
                 },
                 "name_en": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "name_ru": {
                   "include_in_all": true,
                   "type": "string"
                 },
@@ -2826,6 +3987,10 @@
                   "type": "string"
                 },
                 "legalName_en": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "legalName_ru": {
                   "include_in_all": true,
                   "type": "string"
                 },
@@ -3018,6 +4183,11 @@
                       "type": "string"
                     }
                   }
+                },
+                "bid_id": {
+                  "analyzer": "whitespace_lower",
+                  "include_in_all": false,
+                  "type": "string"
                 },
                 "cancellationReason": {
                   "analyzer": "whitespace_lower",
@@ -3216,6 +4386,10 @@
             "documents": {
               "include_in_all": false,
               "properties": {
+                "author": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
                 "dateModified": {
                   "format": "dateOptionalTime",
                   "include_in_all": false,
@@ -3239,6 +4413,12 @@
                   "type": "string"
                 },
                 "documentOf": {
+                  "analyzer": "whitespace_lower",
+                  "include_in_all": false,
+                  "type": "string"
+                },
+                "documentType": {
+                  "analyzer": "whitespace_lower",
                   "include_in_all": false,
                   "type": "string"
                 },
@@ -3411,6 +4591,10 @@
                       "include_in_all": true,
                       "type": "string"
                     },
+                    "legalName_ru": {
+                      "include_in_all": true,
+                      "type": "string"
+                    },
                     "scheme": {
                       "include_in_all": true,
                       "type": "string"
@@ -3580,6 +4764,10 @@
         "version": {
           "include_in_all": false,
           "type": "long"
+        },
+        "yearlyPaymentsPercentageRange": {
+          "include_in_all": false,
+          "type": "double"
         }
       }
     }
