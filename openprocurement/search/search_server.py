@@ -63,6 +63,7 @@ prefix_map = {
     'lid_like': 'lotID',
     'tid_like': 'tenderID',
     'pid_like': 'planID',
+    'agrid_like': 'agreements.agreementID',
     'cav_like': 'items.classification.id',
     'cpv_like': 'items.classification.id',
     'dkpp_like': 'items.additionalClassifications.id',
@@ -80,6 +81,8 @@ match_map = {
     'lid': 'lotID',
     'tid': 'tenderID',
     'pid': 'planID',
+    'agrid': 'agreements.agreementID',
+    'agr_tender': 'agreements.tender_id',
     'cav': 'items.classification.id',
     'cpv': 'items.classification.id',
     'dkpp': 'items.additionalClassifications.id',
@@ -93,6 +96,7 @@ match_map = {
     'edrpou': 'procuringEntity.identifier.id',
     'procedure': 'procurementMethod',
     'proc_type': 'procurementMethodType',
+    'main_proc_category': 'mainProcurementCategory',
     'asset_type': 'assetType',
     'lot_type': 'lotType',
     'tender_procedure': 'tender.procurementMethod',
@@ -103,12 +107,16 @@ match_map = {
     'unit_code': 'unit.code',
     'status': 'status',
 }
-range_map = {
+str_range_map = {
     'region': 'procuringEntity.address.postalCode',
     'address_region': 'address.postalCode',
     'asset_region': 'assetCustodian.address.postalCode',
     'lot_region': 'lotCustodian.address.postalCode',
     'item_region': 'items.address.postalCode',
+    'milestone_duration': 'milestones.codeDuration',
+    'milestone_percentage': 'milestones.codePercentage',
+}
+float_range_map = {
     'item_square': 'items.quantity_MTK',
     'value': 'value.amount',
     'budget': 'budget.amount',
@@ -307,14 +315,22 @@ def prepare_search_body(args, default_sort='dateModified', source_fields=None):
             force_lower=force_lower)
         body.append(match)
 
-    # range values ie postal code
-    for key in range_map.keys():
+    # int/float range values ie value.amount
+    for key in float_range_map.keys():
         if not args.get(key):
             continue
-        field = range_map[key]
+        field = float_range_map[key]
         query = args.getlist(key)
-        float_field = 'postalCode' not in field
-        match = range_query(query, field, float_field)
+        match = range_query(query, field, force_float=True)
+        body.append(match)
+
+    # str range values ie postal code
+    for key in str_range_map.keys():
+        if not args.get(key):
+            continue
+        field = str_range_map[key]
+        query = args.getlist(key)
+        match = range_query(query, field, force_float=False)
         body.append(match)
 
     # date range
