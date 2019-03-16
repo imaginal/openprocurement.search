@@ -78,7 +78,9 @@ def main():
         logger.error("Can't change process user: %s", str(e))
 
     # try get exclusive lock to prevent second start
-    lock_filename = config.get('index_names', 'index_worker') + '.lock'
+    lock_filename = config.get('pidfile', '')
+    if not lock_filename:
+        lock_filename = config.get('index_names', 'index_worker') + '.lock'
     lock_file = open(lock_filename, "w")
     try:
         fcntl.lockf(lock_file, fcntl.LOCK_EX + fcntl.LOCK_NB)
