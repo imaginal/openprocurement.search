@@ -1,3 +1,16 @@
+search-tenders (0.8.1) stable; urgency=low
+
+ *  Release of version 0.8.1
+ *  Add pidfile config option for index_worker
+ *  Add reindex_loops feature for index_worker
+ *  Add new search filters: agrid, agrid_like, agr_tender, main_proc_category,
+    milestone_duration, milestone_percentage
+ *  Split search_server range map into str_range_map/float_range_map
+ *  Update tender mappings settings, add agreements and much more
+ *  Create copy of config for each index instance
+
+ -- Volodymyr Flonts <flyonts@gmail.com>  Sat Mar 16 18:20:00 EET 2019
+
 search-tenders (0.8) stable; urgency=low
 
  *  Release of version 0.8
@@ -77,7 +90,7 @@ search-tenders (0.7) stable; urgency=low
 
  * Add multiple edrpou search for orgs
  * Add sorting by tender.value and plan.budget
- * Allow update_orgs start on slave 
+ * Allow update_orgs start on slave
  * Change default tokenizer to standart
  * Force read-only mode for orgs.sqlite3
  * Add test_load utility
@@ -188,7 +201,7 @@ search-tenders (0.3-5) stable; urgency=low
  * Fix: don't leave loop on full reindexing
  * Fix: leave indexing loop if nothing returned
  * Improve indexer concurency and verbose logging
- * New cron.hourly maintenance task instead of cron.daily 
+ * New cron.hourly maintenance task instead of cron.daily
 
  -- Volodymyr Flonts <flyonts@gmail.com>  Mon Jul 25 00:07:11 EEST 2016
 
@@ -199,7 +212,7 @@ search-tenders (0.3-1) stable; urgency=low
  * Add skip_until feature for tenders and plans
  * Add possibility to disable one of indexes
  * Update heartbeat during long indexing cycle
- * Add retry after REST client 50x errors 
+ * Add retry after REST client 50x errors
  * Disable ocds_speed option, sleep(1) each 1k
 
  -- Volodymyr Flonts <flyonts@gmail.com>  Fri Jul 22 15:30:53 EEST 2016
