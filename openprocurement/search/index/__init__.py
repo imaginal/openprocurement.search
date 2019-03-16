@@ -17,6 +17,7 @@ class BaseIndex(object):
     config = {
         'async_reindex': 1,
         'ignore_errors': 0,
+        'reindex_loops': 3,
         'reindex_check': '1,10',
         'number_of_shards': 6,
         'index_parallel': 1,
@@ -41,6 +42,9 @@ class BaseIndex(object):
         if config:
             self.config.update(config)
             self.config['index_speed'] = float(self.config['index_speed'])
+            self.config['reindex_loops'] = int(self.config['reindex_loops'])
+        if self.config['reindex_loops'] < 1:
+            self.config['reindex_loops'] = 1
         rename_key = 'rename_' + self.__index_name__
         if rename_key in self.config:
             self.__index_name__ = self.config[rename_key]
@@ -431,7 +435,10 @@ class BaseIndex(object):
         # reconnect elatic and prevent future stop_childs
         self.engine.start_in_subprocess()
 
-        self.index_source(self.next_index_name, reset=True, reindex=True)
+        for n in range(self.config['reindex_loops']):
+            logger.info("Reindex loop %d of %d", n+1, self.config['reindex_loops'])
+            self.index_source(self.next_index_name, reset=True, reindex=True)
+            self.engine.flush()
 
         self.engine.flush()
 
@@ -463,7 +470,10 @@ class BaseIndex(object):
 
         # reindex in old-way sync mode
         if not self.allow_async_reindex:
-            self.index_source(self.next_index_name, reset=True, reindex=True)
+            for n in range(self.config['reindex_loops']):
+                logger.info("Reindex loop %d of %d", n+1, self.config['reindex_loops'])
+                self.index_source(self.next_index_name, reset=True, reindex=True)
+                self.engine.flush()
             if self.check_index(self.next_index_name):
                 self.set_current(self.next_index_name)
                 return True
