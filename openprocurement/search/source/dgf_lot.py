@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from time import time, mktime
+from random import random
 from datetime import datetime, timedelta
 from retrying import retry
 from socket import setdefaulttimeout
@@ -28,8 +29,8 @@ class DgfLotSource(BaseSource):
         'lot_preload': 5000,
         'lot_fast_client': False,
         'lot_fast_stepsback': 5,
-        'lot_reseteach': 23,
-        'lot_resethour': 23,
+        'lot_reseteach': 0,
+        'lot_resethour': 0,
         'lot_user_agent': '',
         'lot_file_cache': '',
         'lot_cache_allow': 'complete,cancelled,unsuccessful',
@@ -42,8 +43,10 @@ class DgfLotSource(BaseSource):
             self.config.update(config)
         self.config['lot_limit'] = int(self.config['lot_limit'] or 100)
         self.config['lot_preload'] = int(self.config['lot_preload'] or 100)
-        self.config['lot_reseteach'] = int(self.config['lot_reseteach'] or 3)
+        self.config['lot_reseteach'] = int(self.config['lot_reseteach'] or 0)
         self.config['lot_resethour'] = int(self.config['lot_resethour'] or 0)
+        if self.config['lot_reseteach'] > 1:
+            self.config['lot_reseteach'] += random()
         self.client_user_agent += " (lots) " + self.config['lot_user_agent']
         if use_cache:
             self.cache_setpath(self.config['lot_file_cache'], self.config['lot_api_url'],
@@ -81,10 +84,12 @@ class DgfLotSource(BaseSource):
     def need_reset(self):
         if self.should_reset:
             return True
-        if time() - self.last_reset_time > 3600 * int(self.config['lot_reseteach']):
+        if time() - self.last_reset_time < 3600:
+            return False
+        if self.config['lot_reseteach'] and time() - self.last_reset_time > 3600 * self.config['lot_reseteach']:
             return True
-        if time() - self.last_reset_time > 3600:
-            return datetime.now().hour == int(self.config['lot_resethour'])
+        if self.config['lot_resethour'] and datetime.now().hour == int(self.config['lot_resethour']):
+            return True
 
     @retry(stop_max_attempt_number=5, wait_fixed=5000)
     def reset(self):

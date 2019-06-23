@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-from time import time, mktime
+from time import time
+from random import random
 from datetime import datetime, timedelta
 from retrying import retry
 from socket import setdefaulttimeout
@@ -28,8 +29,8 @@ class AuctionSource(BaseSource):
         'auction_preload': 5000,
         'auction_fast_client': 0,
         'auction_fast_stepsback': 5,
-        'auction_reseteach': 23,
-        'auction_resethour': 23,
+        'auction_reseteach': 0,
+        'auction_resethour': 0,
         'auction_user_agent': '',
         'auction_file_cache': '',
         'auction_cache_allow': 'complete,cancelled,unsuccessful',
@@ -42,7 +43,9 @@ class AuctionSource(BaseSource):
             self.config.update(config)
         self.config['auction_limit'] = int(self.config['auction_limit'] or 100)
         self.config['auction_preload'] = int(self.config['auction_preload'] or 100)
-        self.config['auction_reseteach'] = int(self.config['auction_reseteach'] or 3)
+        self.config['auction_reseteach'] = int(self.config['auction_reseteach'] or 0)
+        if self.config['auction_reseteach'] > 1:
+            self.config['auction_reseteach'] += random()
         self.config['auction_resethour'] = int(self.config['auction_resethour'] or 0)
         self.client_user_agent += " (auctions) " + self.config['auction_user_agent']
         if use_cache:
@@ -82,10 +85,12 @@ class AuctionSource(BaseSource):
     def need_reset(self):
         if self.should_reset:
             return True
-        if time() - self.last_reset_time > 3600 * int(self.config['auction_reseteach']):
+        if time() - self.last_reset_time < 3600:
+            return False
+        if self.config['auction_reseteach'] and time() - self.last_reset_time > 3600 * self.config['auction_reseteach']:
             return True
-        if time() - self.last_reset_time > 3600:
-            return datetime.now().hour == int(self.config['auction_resethour'])
+        if self.config['auction_resethour'] and datetime.now().hour == int(self.config['auction_resethour']):
+            return True
 
     @retry(stop_max_attempt_number=5, wait_fixed=5000)
     def reset(self):
@@ -306,8 +311,8 @@ class AuctionSource2(AuctionSource):
         'auction2_preload': 10000,
         'auction2_fast_client': False,
         'auction2_fast_stepsback': 5,
-        'auction2_reseteach': 23,
-        'auction2_resethour': 23,
+        'auction2_reseteach': 0,
+        'auction2_resethour': 0,
         'auction2_user_agent': '',
         'auction2_file_cache': '',
         'auction2_cache_allow': 'complete,cancelled,unsuccessful',
@@ -321,8 +326,10 @@ class AuctionSource2(AuctionSource):
             self.config.update(config)
         self.config['auction2_limit'] = int(self.config['auction2_limit'] or 100)
         self.config['auction2_preload'] = int(self.config['auction2_preload'] or 100)
-        self.config['auction2_reseteach'] = int(self.config['auction2_reseteach'] or 3)
+        self.config['auction2_reseteach'] = int(self.config['auction2_reseteach'] or 0)
         self.config['auction2_resethour'] = int(self.config['auction2_resethour'] or 0)
+        if self.config['auction2_reseteach']:
+            self.config['auction2_reseteach'] += random()
         self.config['auction_preload'] = int(self.config['auction2_preload'] or 100)  # FIXME
         self.client_user_agent += " (auctions) " + self.config['auction2_user_agent']
         if use_cache:
@@ -337,10 +344,12 @@ class AuctionSource2(AuctionSource):
     def need_reset(self):
         if self.should_reset:
             return True
-        if time() - self.last_reset_time > 3600 * int(self.config['auction2_reseteach']):
+        if time() - self.last_reset_time < 3600:
+            return False
+        if self.config['auction2_reseteach'] and time() - self.last_reset_time > 3600 * self.config['auction2_reseteach']:
             return True
-        if time() - self.last_reset_time > 3600:
-            return datetime.now().hour == int(self.config['auction2_resethour'])
+        if self.config['auction2_resethour'] and datetime.now().hour == int(self.config['auction2_resethour']):
+            return True
 
     @retry(stop_max_attempt_number=5, wait_fixed=5000)
     def reset(self):

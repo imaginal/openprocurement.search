@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-from time import time, mktime
+from time import time
+from random import random
 from datetime import datetime, timedelta
 from retrying import retry
 from socket import setdefaulttimeout
@@ -28,8 +29,8 @@ class AssetSource(BaseSource):
         'asset_preload': 5000,
         'asset_fast_client': False,
         'asset_fast_stepsback': 5,
-        'asset_reseteach': 23,
-        'asset_resethour': 23,
+        'asset_reseteach': 0,
+        'asset_resethour': 0,
         'asset_user_agent': '',
         'asset_file_cache': '',
         'asset_cache_allow': 'complete,cancelled,unsuccessful',
@@ -42,8 +43,10 @@ class AssetSource(BaseSource):
             self.config.update(config)
         self.config['asset_limit'] = int(self.config['asset_limit'] or 100)
         self.config['asset_preload'] = int(self.config['asset_preload'] or 100)
-        self.config['asset_reseteach'] = int(self.config['asset_reseteach'] or 3)
+        self.config['asset_reseteach'] = int(self.config['asset_reseteach'] or 0)
         self.config['asset_resethour'] = int(self.config['asset_resethour'] or 0)
+        if self.config['asset_reseteach'] > 1:
+            self.config['asset_reseteach'] += random()
         self.client_user_agent += " (assets) " + self.config['asset_user_agent']
         if use_cache:
             self.cache_setpath(self.config['asset_file_cache'], self.config['asset_api_url'],
@@ -73,7 +76,7 @@ class AssetSource(BaseSource):
     def need_reset(self):
         if self.should_reset:
             return True
-        if time() - self.last_reset_time > 3600 * int(self.config['asset_reseteach']):
+        if time() - self.last_reset_time > 3600 * self.config['asset_reseteach']:
             return True
         if time() - self.last_reset_time > 3600:
             return datetime.now().hour == int(self.config['asset_resethour'])

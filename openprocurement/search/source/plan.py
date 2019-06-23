@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from time import time
+from random import random
 from datetime import datetime, timedelta
 from socket import setdefaulttimeout
 from retrying import retry
@@ -45,6 +46,8 @@ class PlanSource(BaseSource):
         self.config['plan_preload'] = int(self.config['plan_preload'] or 0) or 100
         self.config['plan_reseteach'] = int(self.config['plan_reseteach'] or 0)
         self.config['plan_resethour'] = int(self.config['plan_resethour'] or 0)
+        if self.config['plan_reseteach'] > 1:
+            self.config['plan_reseteach'] += random()
         self.client_user_agent += " (plans) " + self.config['plan_user_agent']
         if use_cache:
             self.cache_setpath(self.config['plan_file_cache'], self.config['plan_api_url'],
@@ -83,7 +86,7 @@ class PlanSource(BaseSource):
             return True
         if self.last_preload_count >= 50 or time() - self.last_reset_time < 3600:
             return False
-        if self.config['plan_reseteach'] and (time() - self.last_reset_time > 3600 * int(self.config['plan_reseteach'])):
+        if self.config['plan_reseteach'] and (time() - self.last_reset_time > 3600 * self.config['plan_reseteach']):
             logger.info("Reset by plan_reseteach=%s", self.config['plan_reseteach'])
             return True
         if self.config['plan_resethour'] and (datetime.now().hour == int(self.config['plan_resethour'])):
@@ -92,8 +95,8 @@ class PlanSource(BaseSource):
 
     @retry(stop_max_attempt_number=5, wait_fixed=5000)
     def reset(self):
-        logger.info("Reset plans client, plan_skip_until=%s plan_skip_after=%s",
-                    self.config['plan_skip_until'], self.config['plan_skip_after'])
+        logger.info("Reset plans client, plan_skip_until=%s plan_skip_after=%s plan_fast_client=%s",
+                    self.config['plan_skip_until'], self.config['plan_skip_after'], self.config['plan_fast_client'])
         self.stat_resets += 1
         if self.config['plan_decode_orgs']:
             self.orgs_db = OrgsDecoder(self.config)
@@ -112,8 +115,10 @@ class PlanSource(BaseSource):
             params=params,
             timeout=float(self.config['timeout']),
             user_agent=self.client_user_agent)
-        logger.info("PlansClient %s", self.client.headers)
-        if str(self.config['plan_fast_client']) == "2":
+        logger.info("PlansClient params %s/%s %s",
+            self.config['plan_api_url'], self.config['plan_api_version'], self.client.params)
+        logger.info("PlansClient headers %s", self.client.headers)
+        if str(self.config['plan_fast_client']).stip() == "2":
             # main client from present to future
             self.client.params['descending'] = 1
             self.client.get_tenders()
@@ -130,7 +135,9 @@ class PlanSource(BaseSource):
                 params=fast_params,
                 timeout=float(self.config['timeout']),
                 user_agent=self.client_user_agent+" back_client")
-            logger.info("PlansClient (back) %s", self.fast_client.headers)
+            logger.info("PlansClient (back) params %s/%s %s",
+                self.config['plan_api_url'], self.config['plan_api_version'], str(self.fast_client.params))
+            logger.info("PlansClient (back) headers %s", self.fast_client.headers)
         elif self.config['plan_fast_client']:
             fast_params = dict(params)
             fast_params['descending'] = 1
@@ -146,7 +153,9 @@ class PlanSource(BaseSource):
                 self.fast_client.get_tenders()
                 self.sleep(self.preload_wait)
             self.fast_client.params.pop('descending')
-            logger.info("PlansClient (fast) %s", self.fast_client.headers)
+            logger.info("PlansClient (back) params %s/%s %s",
+                self.config['plan_api_url'], self.config['plan_api_version'], str(self.fast_client.params))
+            logger.info("PlansClient (fast) headers %s", self.fast_client.headers)
         else:
             self.fast_client = None
         if self.config['plan_file_cache'] and self.cache_path:
