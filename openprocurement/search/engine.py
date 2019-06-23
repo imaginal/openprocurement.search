@@ -13,7 +13,7 @@ from elasticsearch.client import IndicesClient
 from elasticsearch.exceptions import ElasticsearchException, NotFoundError
 
 from openprocurement.search.version import __version__
-from openprocurement.search.utils import SharedFileDict, long_version, reset_watchdog
+from openprocurement.search.utils import SharedFileDict, long_version, reset_watchdog, update_watchdog, restore_watchdog
 from openprocurement.search.base_plugin import PLUGIN_API_VERSION
 
 
@@ -204,6 +204,33 @@ class SearchEngine(object):
         indices = IndicesClient(self.elastic)
         stats = indices.stats(index_name)
         return stats['indices'][index_name]['primaries']
+
+    def optimize_index(self, index_name, max_num_segments=1, timeout=18000):
+        logger.info("Optimize %s with max_num_segments=%d", index_name, max_num_segments)
+        es_options_copy = dict(self.es_options)
+        es_options_copy['request_timeout'] = timeout
+        es_options_copy['timeout'] = timeout
+        elastic = Elasticsearch([self.elatic_host], **es_options_copy)
+        indices = IndicesClient(elastic)
+        update_watchdog(timeout + 30)
+        try:
+            res = indices.refresh(index_name)
+            logger.info("Refresh %s result %s", index_name, str(res))
+            self.sleep(5)
+            res = indices.optimize(index_name, max_num_segments=max_num_segments)
+            logger.info("Optimize %s result %s", index_name, str(res))
+            self.sleep(5)
+            res = indices.segments(index_name, human=True)
+            if isinstance(res, dict) and 'indices' in res:
+                res = res['indices'][index_name]
+                for k, s in res['shards'].items():
+                    for i in s:
+                        i.pop('segments', None)
+                        i.pop('routing', None)
+            logger.info("Segments %s result %s", index_name, str(res))
+        except Exception as e:
+            logger.error("Optimize failed %s", str(e))
+        restore_watchdog()
 
     def search(self, body, start=0, limit=0, index=None, index_keys=None, index_set=None):
         if not index and index_set:
