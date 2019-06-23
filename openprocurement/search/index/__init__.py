@@ -22,10 +22,12 @@ class BaseIndex(object):
         'index_parallel': 1,
         'index_speed': 500,
         'query_speed': 100,
-        'reindex_loops': 2,
+        'reindex_loops': 3,
         'reindex_check': '1000,1',
+        'max_num_segments': 1,
+        'optimize_index': False,
         'new_index_diff': 0.999,
-        'log_not_index': False,
+        'log_noindex': False,
         # common mappings settings
         'dynamic': False,
         'dynamic_templates': True,
@@ -51,10 +53,13 @@ class BaseIndex(object):
         assert(self.__index_name__)
         logger.debug("Create %s index based on %s source", self, source)
         if config:
+            self.config = dict(self.config)
             self.config.update(config)
             self.config['index_speed'] = float(self.config['index_speed'])
             self.config['query_speed'] = float(self.config['query_speed'])
             self.config['reindex_loops'] = int(self.config['reindex_loops'])
+        if self.config['reindex_loops'] < 1:
+            self.config['reindex_loops'] = 1
         rename_key = 'rename_' + self.__index_name__
         if rename_key in self.config:
             self.__index_name__ = self.config[rename_key]
@@ -251,7 +256,7 @@ class BaseIndex(object):
         if self.noindex_prefix:
             noindex_key = self.noindex_prefix + index_key
             noindex_name = self.noindex_prefix + name
-            self.engine.set_index(noindex_key, noindex_name)
+            # self.engine.set_index(noindex_key, noindex_name)
             self.engine.set_alias(noindex_key, noindex_name)
         return name
 
@@ -323,11 +328,11 @@ class BaseIndex(object):
             logger.error("[%s] dateModified mismatch %s", index_name, str(item))
             return None
         if self.test_noindex(item):
-            if self.engine.debug or self.config['log_not_index']:
+            if self.engine.debug or self.config['log_noindex']:
                 logger.info("[%s] Noindex %s %s %s", index_name,
-                            item['data'].get('id', ''),
-                            item['data'].get('tenderID', ''),
-                            item['data'].get('dateModified', ''))
+                            item['data'].get('id', '-'),
+                            item['data'].get('tenderID', '-'),
+                            item['data'].get('dateModified', '-'))
             if self.noindex_prefix:
                 index_name = self.noindex_prefix + index_name
                 ignore_bulk = True
@@ -560,7 +565,10 @@ class BaseIndex(object):
         self.engine.start_in_subprocess()
 
         for n in range(self.config['reindex_loops']):
+            logger.info("Reindex %s loop %d of %d", self.__index_name__, n + 1, self.config['reindex_loops'])
             self.index_source(self.next_index_name, reset=True, reindex=True)
+            if self.config['optimize_index'] and n < self.config['reindex_loops'] - 1:
+                self.engine.optimize_index(self.next_index_name, int(self.config['max_num_segments']))
             self.engine.flush()
 
         if self.check_index(self.next_index_name, wait=5):
@@ -592,7 +600,10 @@ class BaseIndex(object):
         # reindex in old-way sync mode
         if not self.allow_async_reindex:
             for n in range(self.config['reindex_loops']):
+                logger.info("Reindex %s loop %d of %d", self.__index_name__, n + 1, self.config['reindex_loops'])
                 self.index_source(self.next_index_name, reset=True, reindex=True)
+                if self.config['optimize_index'] and n < self.config['reindex_loops'] - 1:
+                    self.engine.optimize_index(self.next_index_name, int(self.config['max_num_segments']))
                 self.engine.flush()
             if self.current_index:
                 logger.info("Check indexes before change")
