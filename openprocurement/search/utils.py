@@ -105,6 +105,18 @@ def watchdog_thread(logger):
             os._exit(1)
             break
 
+
+def update_watchdog(timeout):
+    if Watchdog.timeout:
+        Watchdog.save_timeout = Watchdog.timeout
+        Watchdog.timeout = int(timeout)
+
+
+def restore_watchdog():
+    if Watchdog.timeout:
+        Watchdog.timeout = Watchdog.save_timeout
+
+
 def setup_watchdog(timeout, logger=None):
     if not timeout or int(timeout) < 10:
         return
@@ -162,8 +174,13 @@ class SharedFileDict(object):
         return self.cache.pop(key, default)
 
     def update(self, items):
-        self.cache = dict(items)
-        self.write(reread=False)
+        changed = False
+        for k, v in items.items():
+            if self.cache.get(k) != v:
+                self.cache[k] = v
+                changed = True
+        if changed:
+            self.write()
 
     def is_expired(self):
         return time.time() - self.lastsync > self.expire
