@@ -14,6 +14,8 @@ class OrgsIndex(BaseIndex):
 
     def need_reindex(self):
         if not self.current_index:
+            if self.config['reindex_loops'] > 1:
+                self.config['reindex_loops'] = 1
             return True
         if self.force_next_reindex:
             self.force_next_reindex = False
