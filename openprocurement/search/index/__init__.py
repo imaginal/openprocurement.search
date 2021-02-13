@@ -47,7 +47,8 @@ class BaseIndex(object):
     source_last_queries = 0
     plugin_config_key = ''
 
-    SUFFIX_FORMAT = "%Y-%m-%d-%H%M%S"
+    #SUFFIX_FORMAT = "%Y-%m-%d-%H%M%S"
+    SUFFIX_FORMAT = "%Y-%m-%d-%H0000"
 
     def __init__(self, engine, source, config={}):
         assert(self.__index_name__)
@@ -214,7 +215,7 @@ class BaseIndex(object):
             name = None
         if name and not self.engine.index_exists(name):
             name = None
-        if name and self.index_age(name) > 5 * 24 * 3600:
+        if name and self.index_age(name) > 15 * 24 * 3600:
             name = None
         if name:
             logger.info("Use already created index %s", name)
@@ -272,9 +273,9 @@ class BaseIndex(object):
     def before_index_item(self, item):
         return True
 
-    def handle_error(self, error, exc_info):
+    def handle_error(self, error, exc_info, context='-'):
         if self.config['ignore_errors']:
-            logger.error("%s %s (ignored)", type(error).__name__, str(error))
+            logger.error("%s %s %s (ignored)", type(error).__name__, str(error), str(context))
         else:
             raise exc_info[0], exc_info[1], exc_info[2]
 
@@ -309,7 +310,7 @@ class BaseIndex(object):
         if indexed or not_indexed or exists > 10:
             exists = (" exists %d" % exists) if exists else ""
             indexed = (" indexed %d" % indexed) if indexed else ""
-            not_indexed = (" not_indexed %d" % not_indexed) if not_indexed else ""
+            not_indexed = (" not_ind %d" % not_indexed) if not_indexed else ""
             logger.info("[%s] Fetched %d%s%s%s last %s", index_name, fetched, exists,
                         indexed, not_indexed, last_item.get('dateModified', '-'))
 
@@ -400,7 +401,7 @@ class BaseIndex(object):
                         else:
                             not_indexed += 1
                     except Exception as e:
-                        self.handle_error(e, sys.exc_info())
+                        self.handle_error(e, sys.exc_info(), info)
                 else:
                     index_exist += 1
                 # update statistics
