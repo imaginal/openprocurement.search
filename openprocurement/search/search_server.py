@@ -73,6 +73,7 @@ prefix_map = {
     'plan_dkpp_like': 'additionalClassifications.id',
     'asset_cav_like': 'classification.id',
     'asset_cpvs_like': 'additionalClassifications.id',
+    'rationale_like': 'procurementMethodRationale',
 }
 match_map = {
     'id': 'id',
@@ -422,6 +423,9 @@ def prepare_search_body(args, default_sort='dateModified', source_fields=None):
         match = match_query(query, field,
             operator='and')
         body.append(match)
+
+    if not body:
+        raise ValueError('Empty request')
 
     if not body:
         body = {'query': {'match_all': {}}}
