@@ -103,6 +103,15 @@ class TenderSource(BaseSource):
                         for supplier in contract['suppliers']:
                             if supplier.get('identifier'):
                                 supplier['identifier']['active'] = supplier['identifier'].get('id')
+
+        # fix failed to parse [agreements.contracts.suppliers.contactPoint.telephone]
+        if 'agreements' in tender['data']:
+            for agreement in tender['data']['agreements']:
+                for contract in agreement.get('contracts', []):
+                    for supplier in contract.get('suppliers', []):
+                        if 'contactPoint' in supplier:
+                            supplier['contactPoint'].pop('telephone', None)
+
         # decode official org name from EDRPOU registry
         if self.config['tender_decode_orgs'] and self.orgs_db:
             if 'procuringEntity' in tender['data']:
