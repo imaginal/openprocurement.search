@@ -2,12 +2,10 @@
 from time import time
 from random import random
 from datetime import datetime, timedelta
-from socket import setdefaulttimeout
-from retrying import retry
 
 from openprocurement.search.source import BaseSource, TendersClient
 from openprocurement.search.source.orgs import OrgsDecoder
-from openprocurement.search.utils import long_version, restkit_error
+from openprocurement.search.utils import long_version, request_error, retry
 
 from logging import getLogger
 logger = getLogger(__name__)
@@ -93,20 +91,20 @@ class PlanSource(BaseSource):
             logger.info("Reset by plan_resethour=%s", self.config['plan_resethour'])
             return True
 
-    @retry(stop_max_attempt_number=5, wait_fixed=5000)
+    @retry(5, logger=logger)
     def reset(self):
         logger.info("Reset plans client, plan_skip_until=%s plan_skip_after=%s plan_fast_client=%s",
                     self.config['plan_skip_until'], self.config['plan_skip_after'], self.config['plan_fast_client'])
         self.stat_resets += 1
         if self.config['plan_decode_orgs']:
             self.orgs_db = OrgsDecoder(self.config)
-        if self.config.get('timeout', None):
-            setdefaulttimeout(float(self.config['timeout']))
         params = {}
         if self.config['plan_api_mode']:
             params['mode'] = self.config['plan_api_mode']
         if self.config['plan_limit']:
             params['limit'] = self.config['plan_limit']
+        if self.client:
+            self.client.close()
         self.client = TendersClient(
             key=self.config['plan_api_key'],
             host_url=self.config['plan_api_url'],
@@ -115,10 +113,13 @@ class PlanSource(BaseSource):
             params=params,
             timeout=float(self.config['timeout']),
             user_agent=self.client_user_agent)
-        logger.info("PlansClient params %s/%s %s",
+        logger.info("PlansClient params %s/api/%s %s",
             self.config['plan_api_url'], self.config['plan_api_version'], self.client.params)
-        logger.info("PlansClient headers %s", self.client.headers)
-        if str(self.config['plan_fast_client']).stip() == "2":
+        logger.info("PlansClient cookie %s", self.client.cookies)
+        if self.fast_client:
+            self.fast_client.close()
+            self.fast_client = None
+        if str(self.config['plan_fast_client']).strip() == "2":
             # main client from present to future
             self.client.params['descending'] = 1
             self.client.get_tenders()
@@ -133,11 +134,12 @@ class PlanSource(BaseSource):
                 api_version=self.config['plan_api_version'],
                 resource=self.config['plan_resource'],
                 params=fast_params,
+                session=self.client.session,
                 timeout=float(self.config['timeout']),
-                user_agent=self.client_user_agent+" back_client")
-            logger.info("PlansClient (back) params %s/%s %s",
+                user_agent=self.client_user_agent + " back_client")
+            logger.info("PlansClient (back) params %s/api/%s %s",
                 self.config['plan_api_url'], self.config['plan_api_version'], str(self.fast_client.params))
-            logger.info("PlansClient (back) headers %s", self.fast_client.headers)
+            logger.info("PlansClient (back) cookie %s", self.fast_client.cookies)
         elif self.config['plan_fast_client']:
             fast_params = dict(params)
             fast_params['descending'] = 1
@@ -147,15 +149,16 @@ class PlanSource(BaseSource):
                 api_version=self.config['plan_api_version'],
                 resource=self.config['plan_resource'],
                 params=fast_params,
+                session=self.client.session,
                 timeout=float(self.config['timeout']),
-                user_agent=self.client_user_agent+" fast_client")
+                user_agent=self.client_user_agent + " fast_client")
             for i in range(int(self.config['plan_fast_stepsback'])):
                 self.fast_client.get_tenders()
                 self.sleep(self.preload_wait)
             self.fast_client.params.pop('descending')
-            logger.info("PlansClient (back) params %s/%s %s",
+            logger.info("PlansClient (back) params %s/api/%s %s",
                 self.config['plan_api_url'], self.config['plan_api_version'], str(self.fast_client.params))
-            logger.info("PlansClient (fast) headers %s", self.fast_client.headers)
+            logger.info("PlansClient (fast) cookie %s", self.fast_client.cookies)
         else:
             self.fast_client = None
         if self.config['plan_file_cache'] and self.cache_path:
@@ -187,7 +190,7 @@ class PlanSource(BaseSource):
             except Exception as e:
                 retry_count += 1
                 logger.error("GET %s retry %d count %d error %s", self.client.prefix_path,
-                    retry_count, len(preload_items), restkit_error(e, self.fast_client))
+                    retry_count, len(preload_items), request_error(e, self.fast_client))
                 self.sleep(5 * retry_count)
                 if retry_count > 1:
                     self.reset()
@@ -216,7 +219,7 @@ class PlanSource(BaseSource):
             except Exception as e:
                 retry_count += 1
                 logger.error("GET %s retry %d count %d error %s", self.client.prefix_path,
-                    retry_count, len(preload_items), restkit_error(e, self.client))
+                    retry_count, len(preload_items), request_error(e, self.client))
                 self.sleep(5 * retry_count)
                 if retry_count > 1:
                     self.reset()
@@ -271,7 +274,6 @@ class PlanSource(BaseSource):
             if self.last_yielded or not self.last_skipped:
                 break
 
-
     def cache_allow(self, data):
         if data and data['data']['dateModified'] < self.cache_allow_dateModified:
             return True
@@ -294,7 +296,7 @@ class PlanSource(BaseSource):
                     raise e
                 retry_count += 1
                 logger.error("GET %s/%s meta %s retry %d error %s", self.client.prefix_path,
-                    str(item['id']), str(item), retry_count, restkit_error(e, self.client))
+                    str(item['id']), str(item), retry_count, request_error(e, self.client))
                 self.sleep(5 * retry_count)
                 if retry_count > 1:
                     self.reset()
