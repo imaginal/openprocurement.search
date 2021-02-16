@@ -26,6 +26,7 @@ setup(
     install_requires=[
         'elasticsearch==1.9.0',
         'Flask',
+        'munch',
         'pytz',
         'iso8601',
         'PyYAML',
