@@ -2,12 +2,10 @@
 from time import time
 from random import random
 from datetime import datetime, timedelta
-from socket import setdefaulttimeout
-from retrying import retry
 
 from openprocurement.search.source import BaseSource, TendersClient
 from openprocurement.search.source.orgs import OrgsDecoder
-from openprocurement.search.utils import long_version, restkit_error
+from openprocurement.search.utils import long_version, retry, request_error
 
 from logging import getLogger
 logger = getLogger(__name__)
@@ -22,6 +20,7 @@ class TenderSource(BaseSource):
         'tender_api_key': '',
         'tender_api_url': "",
         'tender_api_version': '0',
+        'tender_resource': 'tenders',
         'tender_api_mode': '',
         'tender_skip_after': None,
         'tender_skip_until': None,
@@ -104,14 +103,6 @@ class TenderSource(BaseSource):
                             if supplier.get('identifier'):
                                 supplier['identifier']['active'] = supplier['identifier'].get('id')
 
-        # fix failed to parse [agreements.contracts.suppliers.contactPoint.telephone]
-        if 'agreements' in tender['data']:
-            for agreement in tender['data']['agreements']:
-                for contract in agreement.get('contracts', []):
-                    for supplier in contract.get('suppliers', []):
-                        if 'contactPoint' in supplier:
-                            supplier['contactPoint'].pop('telephone', None)
-
         # decode official org name from EDRPOU registry
         if self.config['tender_decode_orgs'] and self.orgs_db:
             if 'procuringEntity' in tender['data']:
@@ -135,30 +126,35 @@ class TenderSource(BaseSource):
             logger.info("Reset by tender_resethour=%s", self.config['tender_resethour'])
             return True
 
-    @retry(stop_max_attempt_number=5, wait_fixed=5000)
+    @retry(5, logger=logger)
     def reset(self):
         logger.info("Reset tenders client, tender_skip_until=%s tender_skip_after=%s tender_fast_client=%s",
                     self.config['tender_skip_until'], self.config['tender_skip_after'], self.config['tender_fast_client'])
         self.stat_resets += 1
         if self.config['tender_decode_orgs']:
             self.orgs_db = OrgsDecoder(self.config)
-        if self.config.get('timeout', None):
-            setdefaulttimeout(float(self.config['timeout']))
         params = {}
         if self.config['tender_api_mode']:
             params['mode'] = self.config['tender_api_mode']
         if self.config['tender_limit']:
             params['limit'] = self.config['tender_limit']
+        if self.client:
+            self.client.close()
+            self.client = None
         self.client = TendersClient(
             key=self.config['tender_api_key'],
             host_url=self.config['tender_api_url'],
             api_version=self.config['tender_api_version'],
+            resource=self.config['tender_resource'],
             params=params,
             timeout=float(self.config['timeout']),
             user_agent=self.client_user_agent)
-        logger.info("TendersClient params %s/%s %s",
+        logger.info("TendersClient params %s/api/%s %s",
             self.config['tender_api_url'], self.config['tender_api_version'], self.client.params)
-        logger.info("TendersClient headers %s", self.client.headers)
+        logger.info("TendersClient cookie %s", self.client.cookies)
+        if self.fast_client:
+            self.fast_client.close()
+            self.fast_client = None
         if str(self.config['tender_fast_client']).strip() == "2":
             # main client from present to future
             self.client.params['descending'] = 1
@@ -172,12 +168,14 @@ class TenderSource(BaseSource):
                 key=self.config['tender_api_key'],
                 host_url=self.config['tender_api_url'],
                 api_version=self.config['tender_api_version'],
+                resource=self.config['tender_resource'],
                 params=fast_params,
+                session=self.client.session,
                 timeout=float(self.config['timeout']),
-                user_agent=self.client_user_agent+" back_client")
-            logger.info("TendersClient (back) params %s/%s %s",
+                user_agent=self.client_user_agent + " back_client")
+            logger.info("TendersClient (back) params %s/api/%s %s",
                 self.config['tender_api_url'], self.config['tender_api_version'], self.fast_client.params)
-            logger.info("TendersClient (back) headers %s", self.fast_client.headers)
+            logger.info("TendersClient (back) cookie %s", self.fast_client.cookies)
         elif self.config['tender_fast_client']:
             fast_params = dict(params)
             fast_params['descending'] = 1
@@ -185,16 +183,18 @@ class TenderSource(BaseSource):
                 key=self.config['tender_api_key'],
                 host_url=self.config['tender_api_url'],
                 api_version=self.config['tender_api_version'],
+                resource=self.config['tender_resource'],
                 params=fast_params,
+                session=self.client.session,
                 timeout=float(self.config['timeout']),
-                user_agent=self.client_user_agent+" fast_client")
+                user_agent=self.client_user_agent + " fast_client")
             for i in range(int(self.config['tender_fast_stepsback'])):
                 self.fast_client.get_tenders()
                 self.sleep(self.preload_wait)
             self.fast_client.params.pop('descending')
-            logger.info("TendersClient (fast) params %s/%s %s",
+            logger.info("TendersClient (fast) params %s/api/%s %s",
                 self.config['tender_api_url'], self.config['tender_api_version'], self.fast_client.params)
-            logger.info("TendersClient (fast) %s", self.fast_client.headers)
+            logger.info("TendersClient (fast) cookie %s", self.fast_client.cookies)
         else:
             self.fast_client = None
         if self.config['tender_file_cache'] and self.cache_path:
@@ -226,7 +226,7 @@ class TenderSource(BaseSource):
             except Exception as e:
                 retry_count += 1
                 logger.error("GET %s retry %d count %d error %s", self.client.prefix_path,
-                    retry_count, len(preload_items), restkit_error(e, self.fast_client))
+                    retry_count, len(preload_items), request_error(e, self.fast_client))
                 self.sleep(5 * retry_count)
                 if retry_count > 1:
                     self.reset()
@@ -255,7 +255,7 @@ class TenderSource(BaseSource):
             except Exception as e:
                 retry_count += 1
                 logger.error("GET %s retry %d count %d error %s", self.client.prefix_path,
-                    retry_count, len(preload_items), restkit_error(e, self.client))
+                    retry_count, len(preload_items), request_error(e, self.client))
                 self.sleep(5 * retry_count)
                 if retry_count > 1:
                     self.reset()
@@ -326,13 +326,13 @@ class TenderSource(BaseSource):
             try:
                 tender = self.client.get_tender(item['id'])
                 assert tender['data']['id'] == item['id'], "bad tender.id"
-                # assert tender['data']['dateModified'] >= item['dateModified'], "bad tender.dateModified"
+                assert tender['data']['dateModified'] >= item['dateModified'], "bad tender.dateModified"
             except Exception as e:
                 if retry_count > 3:
                     raise e
                 retry_count += 1
                 logger.error("GET %s/%s meta %s retry %d error %s", self.client.prefix_path,
-                    str(item['id']), str(item), retry_count, restkit_error(e, self.client))
+                    str(item['id']), str(item), retry_count, request_error(e, self.client))
                 self.sleep(5 * retry_count)
                 if retry_count > 1:
                     self.reset()
