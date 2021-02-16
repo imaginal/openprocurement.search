@@ -5,15 +5,22 @@ import gzip
 import simplejson as json
 from time import sleep
 from munch import munchify
-from socket import setdefaulttimeout
 from openprocurement.search.version import __version__
-from openprocurement_client import client
+from openprocurement.search.client import client
 
 from logging import getLogger
 logger = getLogger(__name__)
 
 
-class BaseSource:
+class TendersClient(client.BaseClient):
+    def get_tenders(self, params={}, feed='changes'):
+        return self.get_list(params, feed)
+
+    def get_tender(self, tender_id):
+        return self.get_item(tender_id)
+
+
+class BaseSource(object):
     """Data Source Interface
     """
     should_exit = False
@@ -87,7 +94,8 @@ class BaseSource:
         return os.path.join(self.cache_path, name[:2], name[2:4])
 
     def cahce_filename(self, name, dirname=None):
-        dirname = self.cache_dirname(name)
+        if dirname is None:
+            dirname = self.cache_dirname(name)
         return os.path.join(dirname, name + '.gz')
 
     def cache_allow(self, data):
@@ -147,16 +155,3 @@ class BaseSource:
     def disable_cache(self):
         self.cache_path = None
 
-
-class TendersClient(client.TendersClient):
-    def __init__(self, *args, **kwargs):
-        self.user_agent = kwargs.pop('user_agent', None)
-        self.timeout = kwargs.pop('timeout', 300)
-        if self.timeout:
-            setdefaulttimeout(self.timeout)
-        super(TendersClient, self).__init__(*args, **kwargs)
-
-    def request(self, *args, **kwargs):
-        if 'User-Agent' not in self.headers and self.user_agent:
-            self.headers['User-Agent'] = self.user_agent
-        return super(TendersClient, self).request(*args, **kwargs)
