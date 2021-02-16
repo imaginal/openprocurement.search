@@ -5,10 +5,12 @@ import yaml
 import time
 import pytz
 import iso8601
+import functools
 import signal
 import datetime
 import logging
 import threading
+import warnings
 
 TZ = pytz.timezone(os.environ['TZ'] if 'TZ' in os.environ else 'Europe/Kiev')
 
@@ -28,25 +30,56 @@ def long_version(dt, local_timezone=TZ):
     return int(1e6 * unixtime + dt.microsecond)
 
 
-def restkit_error(e, client=None):
+def request_error(e, client=None):
     out = str(e)
     try:
+        request = getattr(e, 'request', None)
         response = getattr(e, 'response', None)
         headers = getattr(response, 'headers', None)
         if headers:
-            out += " Status:" + str(response.status_int)
-            out += " Headers:" + str(headers)
-        if client:
-            headers = getattr(client, 'headers')
+            out += " Status: " + str(response.status_code)
+            out += " Headers: " + str(headers)
+        if request:
+            url = getattr(request, 'url')
+            headers = getattr(request, 'headers')
+            out += " RequestHeaders: " + str(headers)
+            out += " URL: " + str(url)
+        elif client:
             params = getattr(client, 'params')
             prefix = getattr(client, 'prefix_path')
-            uri = getattr(client, 'uri')
-            out += " RequestHeaders:" + str(headers)
-            out += " RequestParams:" + str(params)
-            out += " URI:%s%s" % (uri, prefix)
-    except:
+            out += " RequestParams: " + str(params)
+            out += " URL: " + str(prefix)
+    except Exception:
         pass
     return out
+
+
+def restkit_error(e, client=None):
+    warnings.warn("restkit is deprecated", DeprecationWarning, stacklevel=2)
+    return request_error(e, client)
+
+
+def retry(tries, delay=5, backoff=2, exceptions=Exception, logger=None):
+    def deco_retry(f):
+        @functools.wraps(f)
+        def f_retry(*args, **kwargs):
+            mtries, mdelay = tries, delay
+            while mtries > 1:
+                mtries -= 1
+                try:
+                    return f(*args, **kwargs)
+                except (SystemExit, KeyboardInterrupt):
+                    raise
+                except exceptions as exc:
+                    if logger:
+                        msg = "{} {}: {}. Rerty {} of {} wait {} sec.".format(f.__name__,
+                            exc.__class__.__name__, exc, tries - mtries, tries, mdelay)
+                        logger.warning(msg)
+                    time.sleep(mdelay)
+                    mdelay *= backoff
+            return f(*args, **kwargs)
+        return f_retry  # true decorator
+    return deco_retry
 
 
 def decode_bool_values(config):
@@ -88,6 +121,7 @@ class Watchdog:
     counter = 0
     timeout = 0
 
+
 def watchdog_thread(logger):
     while True:
         Watchdog.counter += 1
@@ -124,6 +158,7 @@ def setup_watchdog(timeout, logger=None):
     thread = threading.Thread(target=watchdog_thread, name='Watchdog', args=(logger,))
     thread.daemon = True
     thread.start()
+
 
 def reset_watchdog():
     if Watchdog.timeout:
@@ -194,7 +229,7 @@ class SharedFileDict(object):
             pass
 
     def write(self, pop_key=None, reread=True):
-        tmp_file = self.filename+'.tmp'
+        tmp_file = self.filename + '.tmp'
         with open(tmp_file, 'w') as fp:
             fcntl.lockf(fp, fcntl.LOCK_EX)
             if reread:
