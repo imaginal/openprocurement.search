@@ -3,9 +3,7 @@ from logging import getLogger
 from importlib import import_module
 from time import time, sleep, localtime, strftime
 from datetime import datetime
-from restkit import request
-from retrying import retry
-import simplejson as json
+import requests
 
 from elasticsearch import Elasticsearch
 from elasticsearch.helpers import bulk
@@ -13,7 +11,8 @@ from elasticsearch.client import IndicesClient
 from elasticsearch.exceptions import ElasticsearchException, NotFoundError
 
 from openprocurement.search.version import __version__
-from openprocurement.search.utils import SharedFileDict, long_version, reset_watchdog, update_watchdog, restore_watchdog
+from openprocurement.search.utils import (SharedFileDict, long_version, reset_watchdog,
+    update_watchdog, restore_watchdog, retry)
 from openprocurement.search.base_plugin import PLUGIN_API_VERSION
 
 
@@ -193,13 +192,13 @@ class SearchEngine(object):
                 pass
         return stout
 
-    @retry(stop_max_attempt_number=5, wait_fixed=5000)
+    @retry(5, logger=logger)
     def index_info(self, index_name):
         indices = IndicesClient(self.elastic)
         info = indices.get(index_name)
         return info[index_name]
 
-    @retry(stop_max_attempt_number=5, wait_fixed=5000)
+    @retry(5, logger=logger)
     def index_stats(self, index_name):
         indices = IndicesClient(self.elastic)
         stats = indices.stats(index_name)
@@ -295,8 +294,9 @@ class SearchEngine(object):
             return self.last_heartbeat_value
         # ... or get from master
         try:
-            r = request(self.slave_mode, timeout=5)
-            data = json.loads(r.body_string())
+            r = requests.get(self.slave_mode, timeout=5)
+            r.raise_for_status()
+            data = r.json()
             # log result
             hv = data['heartbeat']
             lag = time() - hv
@@ -367,7 +367,7 @@ class IndexEngine(SearchEngine):
         indices = IndicesClient(self.elastic)
         indices.create(index_name, body=body)
 
-    @retry(stop_max_attempt_number=5, wait_fixed=5000)
+    @retry(5, logger=logger)
     def get_item(self, index_name, meta, source=True):
         try:
             found = self.elastic.get(index_name,
@@ -378,7 +378,7 @@ class IndexEngine(SearchEngine):
             return None
         return found
 
-    @retry(stop_max_attempt_number=5, wait_fixed=5000)
+    @retry(5, logger=logger)
     def test_exists(self, index_name, meta):
         if self.debug:
             if meta['version'] > long_version(datetime.now()):
