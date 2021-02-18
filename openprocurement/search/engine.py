@@ -29,7 +29,8 @@ class SearchEngine(object):
         'elastic_timeout': 300,
         'slave_mode': None,
         'slave_wakeup': 600,
-        'check_on_start': 1,
+        'ignore_errors': False,
+        'check_on_start': True,
         'bulk_insert': False,
         'reindex_wait': 5,
         'update_wait': 5,
@@ -392,7 +393,7 @@ class IndexEngine(SearchEngine):
             return None
         return found['_version'] >= meta['version']
 
-    def index_item(self, index_name, item, ignore_bulk=False):
+    def index_item(self, index_name, item, ignore_bulk=False, ignore_errors=False):
         # bulk insert
         if not ignore_bulk and self.config['bulk_insert']:
             return self.bulk_index(index_name, item)
@@ -415,8 +416,11 @@ class IndexEngine(SearchEngine):
                 if retry_count > 3:
                     raise e
                 retry_count += 1
-                logger.error("[%s] Can't index %s error %s",
-                    index_name, str(meta), str(e))
+                ignored = "(ignored)" if ignore_errors else ""
+                logger.error("[%s] Can't index %s error %s %s",
+                    index_name, str(meta), str(e), ignored)
+                if retry_count > 2 and ignore_errors:
+                    return None
                 self.sleep(self.config['error_wait'])
                 if self.test_exists(index_name, meta):
                     return None
@@ -433,11 +437,12 @@ class IndexEngine(SearchEngine):
         return True
 
     def flush_bulk(self):
+        ignore_errors = self.config.get('ignore_errors', False)
         for index_name, items_list in self.bulk_buffer.items():
             if len(items_list) < 50 or self.bulk_errors:
                 for item in items_list:
                     if not self.test_exists(index_name, item['meta']):
-                        self.index_item(index_name, item, ignore_bulk=True)
+                        self.index_item(index_name, item, ignore_bulk=True, ignore_errors=ignore_errors)
             else:
                 bulk_dict = {}
                 for item in items_list:
