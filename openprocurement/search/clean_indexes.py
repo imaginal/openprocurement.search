@@ -102,7 +102,7 @@ def process_config(config):
 
     yafile = parser.get('search_engine', 'index_names')
     with open("%s.yaml" % yafile) as f:
-        index_yaml = yaml.load(f)
+        index_yaml = yaml.safe_load(f)
 
     if len(sys.argv) > 2 and '--all' in sys.argv:
         for prefix in index_yaml.keys():
