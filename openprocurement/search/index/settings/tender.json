@@ -1148,6 +1148,11 @@
                   "index": "no",
                   "type": "string"
                 },
+                "rejectReason": {
+                  "analyzer": "whitespace_lower",
+                  "include_in_all": false,
+                  "type": "string"
+                },
                 "relatedLot": {
                   "analyzer": "whitespace_lower",
                   "include_in_all": false,
@@ -1159,6 +1164,15 @@
                 },
                 "resolutionType": {
                   "analyzer": "whitespace_lower",
+                  "include_in_all": false,
+                  "type": "string"
+                },
+                "reviewDate": {
+                  "format": "dateOptionalTime",
+                  "include_in_all": false,
+                  "type": "date"
+                },
+                "reviewPlace": {
                   "include_in_all": false,
                   "type": "string"
                 },
@@ -1187,6 +1201,20 @@
                   "analyzer": "whitespace_lower",
                   "include_in_all": false,
                   "type": "string"
+                },
+                "value": {
+                  "include_in_all": false,
+                  "properties": {
+                    "amount": {
+                      "include_in_all": false,
+                      "type": "double"
+                    },
+                    "currency": {
+                      "analyzer": "whitespace_lower",
+                      "include_in_all": false,
+                      "type": "string"
+                    }
+                  }
                 }
               }
             },
@@ -1362,6 +1390,43 @@
               "analyzer": "whitespace_lower",
               "include_in_all": true,
               "type": "string"
+            },
+            "milestones": {
+              "include_in_all": false,
+              "properties": {
+                "code": {
+                  "analyzer": "whitespace_lower",
+                  "include_in_all": false,
+                  "type": "string"
+                },
+                "date": {
+                  "format": "dateOptionalTime",
+                  "include_in_all": false,
+                  "type": "date"
+                },
+                "description": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "description_en": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "description_ru": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "dueDate": {
+                  "format": "dateOptionalTime",
+                  "include_in_all": false,
+                  "type": "date"
+                },
+                "id": {
+                  "include_in_all": false,
+                  "index": "no",
+                  "type": "string"
+                }
+              }
             },
             "qualified": {
               "type": "boolean"
