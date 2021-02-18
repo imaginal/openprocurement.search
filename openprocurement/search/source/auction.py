@@ -43,7 +43,7 @@ class AuctionSource(BaseSource):
             self.config.update(config)
         self.config['auction_limit'] = int(self.config['auction_limit'] or 100)
         self.config['auction_preload'] = int(self.config['auction_preload'] or 100)
-        self.config['auction_reseteach'] = int(self.config['auction_reseteach'] or 0)
+        self.config['auction_reseteach'] = float(self.config['auction_reseteach'] or 0)
         if self.config['auction_reseteach'] > 1:
             self.config['auction_reseteach'] += random()
         self.config['auction_resethour'] = int(self.config['auction_resethour'] or 0)
@@ -88,8 +88,10 @@ class AuctionSource(BaseSource):
         if time() - self.last_reset_time < 3600:
             return False
         if self.config['auction_reseteach'] and time() - self.last_reset_time > 3600 * self.config['auction_reseteach']:
+            logger.info("Reset by auction_reseteach=%s", str(self.config['auction_reseteach']))
             return True
         if self.config['auction_resethour'] and datetime.now().hour == int(self.config['auction_resethour']):
+            logger.info("Reset by auction_resethour=%s", str(self.config['auction_resethour']))
             return True
 
     @retry(stop_max_attempt_number=5, wait_fixed=5000)

@@ -26,7 +26,7 @@ class PlanSource(BaseSource):
         'plan_skip_until': None,
         'plan_limit': 1000,
         'plan_preload': 5000,
-        'plan_reseteach': 12,
+        'plan_reseteach': 13,
         'plan_resethour': 0,
         'plan_decode_orgs': False,
         'plan_fast_client': 0,
@@ -42,7 +42,7 @@ class PlanSource(BaseSource):
             self.config.update(config)
         self.config['plan_limit'] = int(self.config['plan_limit'] or 0) or 100
         self.config['plan_preload'] = int(self.config['plan_preload'] or 0) or 100
-        self.config['plan_reseteach'] = int(self.config['plan_reseteach'] or 0)
+        self.config['plan_reseteach'] = float(self.config['plan_reseteach'] or 0)
         self.config['plan_resethour'] = int(self.config['plan_resethour'] or 0)
         if self.config['plan_reseteach'] > 1:
             self.config['plan_reseteach'] += random()
@@ -85,10 +85,10 @@ class PlanSource(BaseSource):
         if self.last_preload_count >= 50 or time() - self.last_reset_time < 3600:
             return False
         if self.config['plan_reseteach'] and (time() - self.last_reset_time > 3600 * self.config['plan_reseteach']):
-            logger.info("Reset by plan_reseteach=%s", self.config['plan_reseteach'])
+            logger.info("Reset by plan_reseteach=%s", str(self.config['plan_reseteach']))
             return True
         if self.config['plan_resethour'] and (datetime.now().hour == int(self.config['plan_resethour'])):
-            logger.info("Reset by plan_resethour=%s", self.config['plan_resethour'])
+            logger.info("Reset by plan_resethour=%s", str(self.config['plan_resethour']))
             return True
 
     @retry(5, logger=logger)

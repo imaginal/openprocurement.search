@@ -43,7 +43,7 @@ class AssetSource(BaseSource):
             self.config.update(config)
         self.config['asset_limit'] = int(self.config['asset_limit'] or 100)
         self.config['asset_preload'] = int(self.config['asset_preload'] or 100)
-        self.config['asset_reseteach'] = int(self.config['asset_reseteach'] or 0)
+        self.config['asset_reseteach'] = float(self.config['asset_reseteach'] or 0)
         self.config['asset_resethour'] = int(self.config['asset_resethour'] or 0)
         if self.config['asset_reseteach'] > 1:
             self.config['asset_reseteach'] += random()
@@ -77,9 +77,11 @@ class AssetSource(BaseSource):
         if self.should_reset:
             return True
         if time() - self.last_reset_time > 3600 * self.config['asset_reseteach']:
+            logger.info("Reset by asset_reseteach=%s", str(self.config['asset_reseteach']))
             return True
-        if time() - self.last_reset_time > 3600:
-            return datetime.now().hour == int(self.config['asset_resethour'])
+        if self.config['asset_resethour'] and datetime.now().hour == int(self.config['asset_resethour']):
+            logger.info("Reset by asset_resethour=%s", str(self.config['asset_resethour']))
+            return True
 
     @retry(stop_max_attempt_number=5, wait_fixed=5000)
     def reset(self):

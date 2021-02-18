@@ -43,7 +43,7 @@ class DgfLotSource(BaseSource):
             self.config.update(config)
         self.config['lot_limit'] = int(self.config['lot_limit'] or 100)
         self.config['lot_preload'] = int(self.config['lot_preload'] or 100)
-        self.config['lot_reseteach'] = int(self.config['lot_reseteach'] or 0)
+        self.config['lot_reseteach'] = float(self.config['lot_reseteach'] or 0)
         self.config['lot_resethour'] = int(self.config['lot_resethour'] or 0)
         if self.config['lot_reseteach'] > 1:
             self.config['lot_reseteach'] += random()
@@ -87,8 +87,10 @@ class DgfLotSource(BaseSource):
         if time() - self.last_reset_time < 3600:
             return False
         if self.config['lot_reseteach'] and time() - self.last_reset_time > 3600 * self.config['lot_reseteach']:
+            logger.info("Reset by lot_reseteach=%s", str(self.config['lot_reseteach']))
             return True
         if self.config['lot_resethour'] and datetime.now().hour == int(self.config['lot_resethour']):
+            logger.info("Reset by lot_resethour=%s", str(self.config['lot_resethour']))
             return True
 
     @retry(stop_max_attempt_number=5, wait_fixed=5000)

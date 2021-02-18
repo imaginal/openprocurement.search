@@ -26,7 +26,7 @@ class TenderSource(BaseSource):
         'tender_skip_until': None,
         'tender_limit': 1000,
         'tender_preload': 5000,
-        'tender_reseteach': 8,
+        'tender_reseteach': 11,
         'tender_resethour': 0,
         'tender_bids_tenderers': False,
         'tender_decode_orgs': False,
@@ -44,7 +44,7 @@ class TenderSource(BaseSource):
             self.config.update(config)
         self.config['tender_limit'] = int(self.config['tender_limit'] or 0) or 100
         self.config['tender_preload'] = int(self.config['tender_preload'] or 0) or 100
-        self.config['tender_reseteach'] = int(self.config['tender_reseteach'] or 0)
+        self.config['tender_reseteach'] = float(self.config['tender_reseteach'] or 0)
         self.config['tender_resethour'] = int(self.config['tender_resethour'] or 0)
         if self.config['tender_reseteach'] > 1:
             self.config['tender_reseteach'] += random()
@@ -103,6 +103,8 @@ class TenderSource(BaseSource):
                             if supplier.get('identifier'):
                                 supplier['identifier']['active'] = supplier['identifier'].get('id')
 
+        # TODO: fix failed to parse [agreements.contracts.suppliers.contactPoint.telephone]
+
         # decode official org name from EDRPOU registry
         if self.config['tender_decode_orgs'] and self.orgs_db:
             if 'procuringEntity' in tender['data']:
@@ -120,10 +122,10 @@ class TenderSource(BaseSource):
         if self.last_preload_count >= 50 or time() - self.last_reset_time < 3600:
             return False
         if self.config['tender_reseteach'] and (time() - self.last_reset_time > 3600 * self.config['tender_reseteach']):
-            logger.info("Reset by tender_reseteach=%s", self.config['tender_reseteach'])
+            logger.info("Reset by tender_reseteach=%s", str(self.config['tender_reseteach']))
             return True
         if self.config['tender_resethour'] and (datetime.now().hour == int(self.config['tender_resethour'])):
-            logger.info("Reset by tender_resethour=%s", self.config['tender_resethour'])
+            logger.info("Reset by tender_resethour=%s", str(self.config['tender_resethour']))
             return True
 
     @retry(5, logger=logger)
