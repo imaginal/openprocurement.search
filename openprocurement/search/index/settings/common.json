@@ -69,6 +69,21 @@
             ],
             "tokenizer": "whitespace"
           },
+          "email": {
+            "char_filter": [
+              "eol_to_space",
+              "del_brackets",
+              "del_punct_start",
+              "del_punct_before",
+              "del_punct_after",
+              "del_punct_end"
+            ],
+            "filter": [
+              "lowercase",
+              "token_length"
+            ],
+            "tokenizer": "whitespace"
+          },
           "keyword_lower": {
             "filter": [
               "lowercase"
