@@ -223,7 +223,7 @@ class SharedFileDict(object):
     def read(self):
         try:
             with open(self.filename) as fp:
-                self.cache = yaml.load(fp) or {}
+                self.cache = yaml.safe_load(fp) or {}
             self.lastsync = time.time()
         except (IOError, ValueError):
             pass
