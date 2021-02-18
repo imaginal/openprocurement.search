@@ -47,6 +47,14 @@
                   "include_in_all": true,
                   "type": "string"
                 },
+                "description_en": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "description_ru": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
                 "documents": {
                   "include_in_all": false,
                   "properties": {
@@ -324,6 +332,14 @@
               "include_in_all": true,
               "type": "string"
             },
+            "description_en": {
+              "include_in_all": true,
+              "type": "string"
+            },
+            "description_ru": {
+              "include_in_all": true,
+              "type": "string"
+            },
             "documents": {
               "include_in_all": false,
               "properties": {
@@ -408,6 +424,14 @@
                   "include_in_all": false,
                   "properties": {
                     "description": {
+                      "include_in_all": true,
+                      "type": "string"
+                    },
+                    "description_en": {
+                      "include_in_all": true,
+                      "type": "string"
+                    },
+                    "description_ru": {
                       "include_in_all": true,
                       "type": "string"
                     },
@@ -985,7 +1009,7 @@
                           "type": "string"
                         },
                         "legalName_ru": {
-                          "include_in_all": false,
+                          "include_in_all": true,
                           "type": "string"
                         },
                         "scheme": {
@@ -1064,6 +1088,14 @@
                   "type": "date"
                 },
                 "description": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "description_en": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "description_ru": {
                   "include_in_all": true,
                   "type": "string"
                 },
@@ -1197,6 +1229,14 @@
                   "include_in_all": true,
                   "type": "string"
                 },
+                "title_en": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "title_ru": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
                 "type": {
                   "analyzer": "whitespace_lower",
                   "include_in_all": false,
@@ -1235,6 +1275,14 @@
                   "include_in_all": true,
                   "type": "string"
                 },
+                "description_en": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "description_ru": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
                 "documents": {
                   "include_in_all": false,
                   "properties": {
@@ -1263,6 +1311,14 @@
                       "type": "string"
                     },
                     "title": {
+                      "include_in_all": true,
+                      "type": "string"
+                    },
+                    "title_en": {
+                      "include_in_all": true,
+                      "type": "string"
+                    },
+                    "title_ru": {
                       "include_in_all": true,
                       "type": "string"
                     },
@@ -2017,6 +2073,14 @@
                   "include_in_all": true,
                   "type": "string"
                 },
+                "title_en": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "title_ru": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
                 "url": {
                   "include_in_all": false,
                   "index": "no",
@@ -2134,7 +2198,7 @@
                       "type": "string"
                     },
                     "legalName_ru": {
-                      "include_in_all": false,
+                      "include_in_all": true,
                       "type": "string"
                     },
                     "scheme": {
@@ -2537,6 +2601,14 @@
               "include_in_all": true,
               "type": "string"
             },
+            "description_en": {
+              "include_in_all": true,
+              "type": "string"
+            },
+            "description_ru": {
+              "include_in_all": true,
+              "type": "string"
+            },
             "documents": {
               "include_in_all": false,
               "properties": {
@@ -2669,6 +2741,14 @@
               "include_in_all": true,
               "type": "string"
             },
+            "title_en": {
+              "include_in_all": true,
+              "type": "string"
+            },
+            "title_ru": {
+              "include_in_all": true,
+              "type": "string"
+            },
             "type": {
               "analyzer": "whitespace_lower",
               "include_in_all": false,
@@ -2710,6 +2790,14 @@
               "type": "date"
             },
             "description": {
+              "include_in_all": true,
+              "type": "string"
+            },
+            "description_en": {
+              "include_in_all": true,
+              "type": "string"
+            },
+            "description_ru": {
               "include_in_all": true,
               "type": "string"
             },
@@ -2797,6 +2885,14 @@
                   "include_in_all": false,
                   "properties": {
                     "description": {
+                      "include_in_all": true,
+                      "type": "string"
+                    },
+                    "description_en": {
+                      "include_in_all": true,
+                      "type": "string"
+                    },
+                    "description_ru": {
                       "include_in_all": true,
                       "type": "string"
                     },
@@ -3089,7 +3185,7 @@
                       "type": "string"
                     },
                     "legalName_ru": {
-                      "include_in_all": false,
+                      "include_in_all": true,
                       "type": "string"
                     },
                     "scheme": {
@@ -3118,6 +3214,14 @@
               }
             },
             "title": {
+              "include_in_all": true,
+              "type": "string"
+            },
+            "title_en": {
+              "include_in_all": true,
+              "type": "string"
+            },
+            "title_ru": {
               "include_in_all": true,
               "type": "string"
             },
@@ -3313,6 +3417,10 @@
               "include_in_all": true,
               "type": "string"
             },
+            "description_ru": {
+              "include_in_all": true,
+              "type": "string"
+            },
             "enum": {
               "include_in_all": false,
               "properties": {
@@ -3495,6 +3603,14 @@
               "include_in_all": true,
               "properties": {
                 "description": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "description_en": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "description_ru": {
                   "include_in_all": true,
                   "type": "string"
                 },
@@ -4238,6 +4354,14 @@
                   "include_in_all": true,
                   "type": "string"
                 },
+                "description_en": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "description_ru": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
                 "documents": {
                   "include_in_all": false,
                   "properties": {
@@ -4362,6 +4486,14 @@
                   "type": "date"
                 },
                 "title": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "title_en": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "title_ru": {
                   "include_in_all": true,
                   "type": "string"
                 },
@@ -4639,6 +4771,14 @@
               "include_in_all": true,
               "type": "string"
             },
+            "description_en": {
+              "include_in_all": true,
+              "type": "string"
+            },
+            "description_ru": {
+              "include_in_all": true,
+              "type": "string"
+            },
             "id": {
               "include_in_all": false,
               "index": "no",
@@ -4654,6 +4794,14 @@
               "type": "string"
             },
             "title": {
+              "include_in_all": true,
+              "type": "string"
+            },
+            "title_en": {
+              "include_in_all": true,
+              "type": "string"
+            },
+            "title_ru": {
               "include_in_all": true,
               "type": "string"
             }
