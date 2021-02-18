@@ -3446,9 +3446,14 @@
               "type": "string"
             },
             "owner_token": {
-              "analyzer": "whitespace_lower",
+              "analyzer": "whitespace",
               "include_in_all": false,
               "index": "no",
+              "type": "string"
+            },
+            "rejectReason": {
+              "analyzer": "whitespace_lower",
+              "include_in_all": false,
               "type": "string"
             },
             "relatedLot": {
@@ -3463,6 +3468,15 @@
             "resolutionType": {
               "analyzer": "whitespace_lower",
               "include_in_all": false,
+              "type": "string"
+            },
+            "reviewDate": {
+              "format": "dateOptionalTime",
+              "include_in_all": false,
+              "type": "date"
+            },
+            "reviewPlace": {
+              "include_in_all": true,
               "type": "string"
             },
             "satisfied": {
@@ -3498,6 +3512,43 @@
               "analyzer": "whitespace_lower",
               "include_in_all": false,
               "type": "string"
+            },
+            "value": {
+              "include_in_all": false,
+              "properties": {
+                "amount": {
+                  "include_in_all": false,
+                  "type": "double"
+                },
+                "currency": {
+                  "analyzer": "whitespace_lower",
+                  "include_in_all": false,
+                  "type": "string"
+                },
+                "valueAddedTaxIncluded": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        },
+        "contractPeriod": {
+          "include_in_all": false,
+          "properties": {
+            "clarificationsUntil": {
+              "format": "dateOptionalTime",
+              "include_in_all": false,
+              "type": "date"
+            },
+            "endDate": {
+              "format": "dateOptionalTime",
+              "include_in_all": false,
+              "type": "date"
+            },
+            "startDate": {
+              "format": "dateOptionalTime",
+              "include_in_all": false,
+              "type": "date"
             }
           }
         },
@@ -3549,6 +3600,11 @@
             "documents": {
               "include_in_all": false,
               "properties": {
+                "author": {
+                  "analyzer": "whitespace_lower",
+                  "include_in_all": false,
+                  "type": "string"
+                },
                 "dateModified": {
                   "format": "dateOptionalTime",
                   "include_in_all": false,
@@ -3956,6 +4012,11 @@
                 "name_ru": {
                   "include_in_all": true,
                   "type": "string"
+                },
+                "scale": {
+                  "analyzer": "whitespace_lower",
+                  "include_in_all": false,
+                  "type": "string"
                 }
               }
             },
@@ -3975,6 +4036,10 @@
               "include_in_all": false,
               "properties": {
                 "amount": {
+                  "include_in_all": false,
+                  "type": "double"
+                },
+                "amountNet": {
                   "include_in_all": false,
                   "type": "double"
                 },
@@ -4011,6 +4076,252 @@
                   "type": "double"
                 }
               }
+            }
+          }
+        },
+        "criteria": {
+          "include_in_all": false,
+          "properties": {
+            "classification": {
+              "include_in_all": false,
+              "properties": {
+                "id": {
+                  "analyzer": "whitespace_lower",
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "scheme": {
+                  "include_in_all": false,
+                  "type": "string"
+                }
+              }
+            },
+            "description": {
+              "include_in_all": true,
+              "type": "string"
+            },
+            "description_en": {
+              "include_in_all": true,
+              "type": "string"
+            },
+            "description_ru": {
+              "include_in_all": true,
+              "type": "string"
+            },
+            "id": {
+              "include_in_all": false,
+              "index": "no",
+              "type": "string"
+            },
+            "legislation": {
+              "include_in_all": false,
+              "properties": {
+                "article": {
+                  "include_in_all": false,
+                  "type": "string"
+                },
+                "identifier": {
+                  "include_in_all": false,
+                  "properties": {
+                    "id": {
+                      "analyzer": "whitespace_lower",
+                      "include_in_all": true,
+                      "type": "string"
+                    },
+                    "legalName": {
+                      "include_in_all": true,
+                      "type": "string"
+                    },
+                    "legalName_en": {
+                      "include_in_all": true,
+                      "type": "string"
+                    },
+                    "legalName_ru": {
+                      "include_in_all": true,
+                      "type": "string"
+                    },
+                    "scheme": {
+                      "include_in_all": false,
+                      "type": "string"
+                    },
+                    "uri": {
+                      "include_in_all": true,
+                      "type": "string"
+                    }
+                  }
+                },
+                "type": {
+                  "analyzer": "whitespace_lower",
+                  "include_in_all": false,
+                  "type": "string"
+                },
+                "version": {
+                  "include_in_all": false,
+                  "type": "string"
+                }
+              }
+            },
+            "relatesTo": {
+              "analyzer": "whitespace_lower",
+              "include_in_all": false,
+              "type": "string"
+            },
+            "requirementGroups": {
+              "include_in_all": false,
+              "properties": {
+                "description": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "description_en": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "description_ru": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "id": {
+                  "include_in_all": false,
+                  "index": "no",
+                  "type": "string"
+                },
+                "requirements": {
+                  "include_in_all": false,
+                  "properties": {
+                    "dataType": {
+                      "analyzer": "whitespace_lower",
+                      "include_in_all": false,
+                      "type": "string"
+                    },
+                    "description": {
+                      "include_in_all": true,
+                      "type": "string"
+                    },
+                    "description_en": {
+                      "include_in_all": true,
+                      "type": "string"
+                    },
+                    "description_ru": {
+                      "include_in_all": true,
+                      "type": "string"
+                    },
+                    "eligibleEvidences": {
+                      "include_in_all": false,
+                      "properties": {
+                        "description": {
+                          "include_in_all": true,
+                          "type": "string"
+                        },
+                        "description_en": {
+                          "include_in_all": true,
+                          "type": "string"
+                        },
+                        "description_ru": {
+                          "include_in_all": true,
+                          "type": "string"
+                        },
+                        "id": {
+                          "include_in_all": false,
+                          "index": "no",
+                          "type": "string"
+                        },
+                        "relatedDocument": {
+                          "include_in_all": false,
+                          "properties": {
+                            "id": {
+                              "include_in_all": false,
+                              "index": "no",
+                              "type": "string"
+                            },
+                            "title": {
+                              "include_in_all": true,
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "title": {
+                          "include_in_all": true,
+                          "type": "string"
+                        },
+                        "title_en": {
+                          "include_in_all": true,
+                          "type": "string"
+                        },
+                        "title_ru": {
+                          "include_in_all": true,
+                          "type": "string"
+                        },
+                        "type": {
+                          "analyzer": "whitespace_lower",
+                          "include_in_all": false,
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "expectedValue": {
+                      "include_in_all": false,
+                      "type": "string"
+                    },
+                    "id": {
+                      "include_in_all": false,
+                      "index": "no",
+                      "type": "string"
+                    },
+                    "maxValue": {
+                      "include_in_all": false,
+                      "type": "string"
+                    },
+                    "minValue": {
+                      "include_in_all": false,
+                      "type": "string"
+                    },
+                    "title": {
+                      "include_in_all": true,
+                      "type": "string"
+                    },
+                    "title_en": {
+                      "include_in_all": true,
+                      "type": "string"
+                    },
+                    "title_ru": {
+                      "include_in_all": true,
+                      "type": "string"
+                    },
+                    "unit": {
+                      "include_in_all": false,
+                      "properties": {
+                        "code": {
+                          "analyzer": "whitespace_lower",
+                          "include_in_all": false,
+                          "type": "string"
+                        },
+                        "name": {
+                          "include_in_all": false,
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "source": {
+              "analyzer": "whitespace_lower",
+              "include_in_all": false,
+              "type": "string"
+            },
+            "title": {
+              "include_in_all": true,
+              "type": "string"
+            },
+            "title_en": {
+              "include_in_all": true,
+              "type": "string"
+            },
+            "title_ru": {
+              "include_in_all": true,
+              "type": "string"
             }
           }
         },
@@ -4330,6 +4641,7 @@
           }
         },
         "fundingKind": {
+          "analyzer": "whitespace_lower",
           "include_in_all": false,
           "type": "string"
         },
@@ -4588,6 +4900,11 @@
               "include_in_all": true,
               "type": "string"
             },
+            "fundingKind": {
+              "analyzer": "whitespace_lower",
+              "include_in_all": false,
+              "type": "string"
+            },
             "guarantee": {
               "include_in_all": false,
               "properties": {
@@ -4607,6 +4924,23 @@
               "index": "no",
               "type": "string"
             },
+            "minValue": {
+              "include_in_all": false,
+              "properties": {
+                "amount": {
+                  "include_in_all": false,
+                  "type": "double"
+                },
+                "currency": {
+                  "analyzer": "whitespace_lower",
+                  "include_in_all": false,
+                  "type": "string"
+                },
+                "valueAddedTaxIncluded": {
+                  "type": "boolean"
+                }
+              }
+            },
             "minimalStep": {
               "include_in_all": false,
               "properties": {
@@ -4615,6 +4949,7 @@
                   "type": "double"
                 },
                 "currency": {
+                  "analyzer": "whitespace_lower",
                   "include_in_all": false,
                   "type": "string"
                 },
