@@ -48,7 +48,7 @@ class BaseIndex(object):
     plugin_config_key = ''
 
     #SUFFIX_FORMAT = "%Y-%m-%d-%H%M%S"
-    SUFFIX_FORMAT = "%Y-%m-%d-%H0000"
+    SUFFIX_FORMAT = "%Y%m%d%H"
 
     def __init__(self, engine, source, config={}):
         assert(self.__index_name__)
