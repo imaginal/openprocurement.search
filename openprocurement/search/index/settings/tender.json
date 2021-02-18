@@ -187,7 +187,8 @@
                           "type": "string"
                         },
                         "faxNumber": {
-                          "include_in_all": false,
+                          "analyzer": "telephone",
+                          "include_in_all": true,
                           "type": "string"
                         },
                         "name": {
@@ -649,7 +650,8 @@
                       "type": "string"
                     },
                     "faxNumber": {
-                      "include_in_all": false,
+                      "analyzer": "telephone",
+                      "include_in_all": true,
                       "type": "string"
                     },
                     "name": {
@@ -722,7 +724,8 @@
                       "type": "string"
                     },
                     "faxNumber": {
-                      "include_in_all": false,
+                      "analyzer": "telephone",
+                      "include_in_all": true,
                       "type": "string"
                     },
                     "name": {
@@ -762,6 +765,10 @@
                       "type": "string"
                     },
                     "legalName_en": {
+                      "include_in_all": true,
+                      "type": "string"
+                    },
+                    "legalName_ru": {
                       "include_in_all": true,
                       "type": "string"
                     },
@@ -806,6 +813,14 @@
                       "type": "string"
                     },
                     "name": {
+                      "include_in_all": true,
+                      "type": "string"
+                    },
+                    "name_en": {
+                      "include_in_all": true,
+                      "type": "string"
+                    },
+                    "name_ru": {
                       "include_in_all": true,
                       "type": "string"
                     },
@@ -966,7 +981,8 @@
                           "type": "string"
                         },
                         "faxNumber": {
-                          "include_in_all": false,
+                          "analyzer": "telephone",
+                          "include_in_all": true,
                           "type": "string"
                         },
                         "name": {
@@ -1542,7 +1558,8 @@
                       "type": "string"
                     },
                     "faxNumber": {
-                      "include_in_all": false,
+                      "analyzer": "telephone",
+                      "include_in_all": true,
                       "type": "string"
                     },
                     "name": {
@@ -2149,7 +2166,8 @@
                       "type": "string"
                     },
                     "faxNumber": {
-                      "include_in_all": false,
+                      "analyzer": "telephone",
+                      "include_in_all": true,
                       "type": "string"
                     },
                     "name": {
@@ -2237,6 +2255,14 @@
                       "type": "string"
                     },
                     "name": {
+                      "include_in_all": true,
+                      "type": "string"
+                    },
+                    "name_en": {
+                      "include_in_all": true,
+                      "type": "string"
+                    },
+                    "name_ru": {
                       "include_in_all": true,
                       "type": "string"
                     },
@@ -2484,7 +2510,8 @@
                       "type": "string"
                     },
                     "faxNumber": {
-                      "include_in_all": false,
+                      "analyzer": "telephone",
+                      "include_in_all": true,
                       "type": "string"
                     },
                     "name": {
@@ -2524,6 +2551,10 @@
                       "type": "string"
                     },
                     "legalName_en": {
+                      "include_in_all": true,
+                      "type": "string"
+                    },
+                    "legalName_ru": {
                       "include_in_all": true,
                       "type": "string"
                     },
@@ -3136,7 +3167,8 @@
                       "type": "string"
                     },
                     "faxNumber": {
-                      "include_in_all": false,
+                      "analyzer": "telephone",
+                      "include_in_all": true,
                       "type": "string"
                     },
                     "name": {
@@ -3515,6 +3547,7 @@
                   "type": "string"
                 },
                 "faxNumber": {
+                  "analyzer": "telephone",
                   "include_in_all": true,
                   "type": "string"
                 },
@@ -3523,6 +3556,10 @@
                   "type": "string"
                 },
                 "name_en": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "name_ru": {
                   "include_in_all": true,
                   "type": "string"
                 },
@@ -3550,6 +3587,10 @@
                   "type": "string"
                 },
                 "legalName_en": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "legalName_ru": {
                   "include_in_all": true,
                   "type": "string"
                 },
@@ -3998,7 +4039,8 @@
                   "type": "string"
                 },
                 "faxNumber": {
-                  "include_in_all": false,
+                  "analyzer": "telephone",
+                  "include_in_all": true,
                   "type": "string"
                 },
                 "name": {
@@ -4071,7 +4113,8 @@
                   "type": "string"
                 },
                 "faxNumber": {
-                  "include_in_all": false,
+                  "analyzer": "telephone",
+                  "include_in_all": true,
                   "type": "string"
                 },
                 "name": {
@@ -4111,6 +4154,10 @@
                   "type": "string"
                 },
                 "legalName_en": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "legalName_ru": {
                   "include_in_all": true,
                   "type": "string"
                 },
@@ -4155,6 +4202,14 @@
                   "type": "string"
                 },
                 "name": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "name_en": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "name_ru": {
                   "include_in_all": true,
                   "type": "string"
                 },
@@ -4241,7 +4296,8 @@
                           "type": "string"
                         },
                         "faxNumber": {
-                          "include_in_all": false,
+                          "analyzer": "telephone",
+                          "include_in_all": true,
                           "type": "string"
                         },
                         "name": {
@@ -4284,6 +4340,10 @@
                           "include_in_all": true,
                           "type": "string"
                         },
+                        "legalName_ru": {
+                          "include_in_all": true,
+                          "type": "string"
+                        },
                         "scheme": {
                           "analyzer": "whitespace_lower",
                           "include_in_all": false,
@@ -4300,6 +4360,10 @@
                       "type": "string"
                     },
                     "name_en": {
+                      "include_in_all": true,
+                      "type": "string"
+                    },
+                    "name_ru": {
                       "include_in_all": true,
                       "type": "string"
                     }
@@ -4685,6 +4749,7 @@
                       "type": "string"
                     },
                     "faxNumber": {
+                      "analyzer": "telephone",
                       "include_in_all": true,
                       "type": "string"
                     },
@@ -4826,6 +4891,10 @@
                   "include_in_all": true,
                   "type": "string"
                 },
+                "legalName_ru": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
                 "scheme": {
                   "analyzer": "whitespace_lower",
                   "include_in_all": false,
@@ -4844,6 +4913,14 @@
               }
             },
             "name": {
+              "include_in_all": true,
+              "type": "string"
+            },
+            "name_en": {
+              "include_in_all": true,
+              "type": "string"
+            },
+            "name_ru": {
               "include_in_all": true,
               "type": "string"
             }
