@@ -15,7 +15,7 @@ class TenderIndex(BaseIndex):
         self.set_reindex_options(
             self.config.get('tender_reindex', '5,6'),
             self.config.get('tender_check', '1,1'))
-        if self.config.get('tender_noindex', False):
+        if self.config.get('tender_save_noindex', False):
             self.noindex_prefix = 'noindex_'
 
     def need_reindex(self):
