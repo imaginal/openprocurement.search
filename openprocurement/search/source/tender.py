@@ -30,6 +30,7 @@ class TenderSource(BaseSource):
         'tender_resethour': 0,
         'tender_bids_tenderers': False,
         'tender_decode_orgs': False,
+        'tender_save_noindex': False,
         'tender_fast_client': 0,
         'tender_fast_stepsback': 10,
         'tender_user_agent': '',
