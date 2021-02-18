@@ -182,7 +182,7 @@
                       "include_in_all": false,
                       "properties": {
                         "email": {
-                          "analyzer": "whitespace_lower",
+                          "analyzer": "email",
                           "include_in_all": true,
                           "type": "string"
                         },
@@ -645,7 +645,7 @@
                       "type": "string"
                     },
                     "email": {
-                      "analyzer": "whitespace_lower",
+                      "analyzer": "email",
                       "include_in_all": true,
                       "type": "string"
                     },
@@ -719,7 +719,7 @@
                       "type": "string"
                     },
                     "email": {
-                      "analyzer": "whitespace_lower",
+                      "analyzer": "email",
                       "include_in_all": true,
                       "type": "string"
                     },
@@ -976,7 +976,7 @@
                       "include_in_all": false,
                       "properties": {
                         "email": {
-                          "analyzer": "whitespace_lower",
+                          "analyzer": "email",
                           "include_in_all": true,
                           "type": "string"
                         },
@@ -1553,7 +1553,7 @@
                   "include_in_all": false,
                   "properties": {
                     "email": {
-                      "analyzer": "whitespace_lower",
+                      "analyzer": "email",
                       "include_in_all": true,
                       "type": "string"
                     },
@@ -2161,7 +2161,7 @@
                   "include_in_all": false,
                   "properties": {
                     "email": {
-                      "analyzer": "whitespace_lower",
+                      "analyzer": "email",
                       "include_in_all": true,
                       "type": "string"
                     },
@@ -2505,7 +2505,7 @@
                   "include_in_all": false,
                   "properties": {
                     "email": {
-                      "analyzer": "whitespace_lower",
+                      "analyzer": "email",
                       "include_in_all": true,
                       "type": "string"
                     },
@@ -3162,7 +3162,7 @@
                   "include_in_all": false,
                   "properties": {
                     "email": {
-                      "analyzer": "whitespace_lower",
+                      "analyzer": "email",
                       "include_in_all": true,
                       "type": "string"
                     },
@@ -3542,7 +3542,7 @@
               "include_in_all": true,
               "properties": {
                 "email": {
-                  "analyzer": "whitespace_lower",
+                  "analyzer": "email",
                   "include_in_all": true,
                   "type": "string"
                 },
@@ -4034,7 +4034,7 @@
                   "type": "string"
                 },
                 "email": {
-                  "analyzer": "whitespace_lower",
+                  "analyzer": "email",
                   "include_in_all": true,
                   "type": "string"
                 },
@@ -4108,7 +4108,7 @@
                   "type": "string"
                 },
                 "email": {
-                  "analyzer": "whitespace_lower",
+                  "analyzer": "email",
                   "include_in_all": true,
                   "type": "string"
                 },
@@ -4291,7 +4291,7 @@
                       "include_in_all": false,
                       "properties": {
                         "email": {
-                          "analyzer": "whitespace_lower",
+                          "analyzer": "email",
                           "include_in_all": true,
                           "type": "string"
                         },
@@ -4744,7 +4744,7 @@
                   "include_in_all": true,
                   "properties": {
                     "email": {
-                      "analyzer": "whitespace_lower",
+                      "analyzer": "email",
                       "include_in_all": true,
                       "type": "string"
                     },
