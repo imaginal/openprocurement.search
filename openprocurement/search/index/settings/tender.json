@@ -4958,6 +4958,10 @@
                 }
               }
             },
+            "minimalStepPercentage": {
+              "include_in_all": false,
+              "type": "double"
+            },
             "status": {
               "analyzer": "whitespace_lower",
               "include_in_all": false,
@@ -4990,6 +4994,90 @@
                   "type": "boolean"
                 }
               }
+            },
+            "yearlyPaymentsPercentageRange": {
+              "include_in_all": false,
+              "type": "double"
+            }
+          }
+        },
+        "mainProcurementCategory": {
+          "analyzer": "whitespace_lower",
+          "include_in_all": false,
+          "type": "string"
+        },
+        "maxAwardsCount": {
+          "include_in_all": false,
+          "type": "long"
+        },
+        "milestones": {
+          "include_in_all": false,
+          "properties": {
+            "code": {
+              "analyzer": "whitespace_lower",
+              "include_in_all": false,
+              "type": "string"
+            },
+            "description": {
+              "include_in_all": true,
+              "type": "string"
+            },
+            "description_en": {
+              "include_in_all": true,
+              "type": "string"
+            },
+            "description_ru": {
+              "include_in_all": true,
+              "type": "string"
+            },
+            "duration": {
+              "include_in_all": false,
+              "properties": {
+                "days": {
+                  "include_in_all": false,
+                  "type": "long"
+                },
+                "type": {
+                  "include_in_all": false,
+                  "type": "string"
+                }
+              }
+            },
+            "id": {
+              "analyzer": "whitespace_lower",
+              "include_in_all": false,
+              "index": "no",
+              "type": "string"
+            },
+            "percentage": {
+              "include_in_all": false,
+              "type": "double"
+            },
+            "relatedLot": {
+              "include_in_all": false,
+              "index": "no",
+              "type": "string"
+            },
+            "sequenceNumber": {
+              "include_in_all": false,
+              "type": "long"
+            },
+            "title": {
+              "include_in_all": true,
+              "type": "string"
+            },
+            "title_en": {
+              "include_in_all": true,
+              "type": "string"
+            },
+            "title_ru": {
+              "include_in_all": true,
+              "type": "string"
+            },
+            "type": {
+              "analyzer": "whitespace_lower",
+              "include_in_all": false,
+              "type": "string"
             }
           }
         },
@@ -5052,6 +5140,16 @@
           "analyzer": "whitespace_lower",
           "include_in_all": false,
           "type": "string"
+        },
+        "plans": {
+          "include_in_all": false,
+          "properties": {
+            "id": {
+              "analyzer": "whitespace_lower",
+              "include_in_all": true,
+              "type": "string"
+            }
+          }
         },
         "procurementMethod": {
           "analyzer": "whitespace_lower",
@@ -5269,6 +5367,11 @@
               }
             }
           }
+        },
+        "profile": {
+          "analyzer": "whitespace_lower",
+          "include_in_all": true,
+          "type": "string"
         },
         "qualificationPeriod": {
           "include_in_all": false,
@@ -5562,9 +5665,14 @@
                   "type": "string"
                 },
                 "owner_token": {
-                  "analyzer": "whitespace_lower",
+                  "analyzer": "whitespace",
                   "include_in_all": false,
                   "index": "no",
+                  "type": "string"
+                },
+                "rejectReason": {
+                  "analyzer": "whitespace_lower",
+                  "include_in_all": false,
                   "type": "string"
                 },
                 "relatedLot": {
@@ -5578,6 +5686,15 @@
                 },
                 "resolutionType": {
                   "analyzer": "whitespace_lower",
+                  "include_in_all": false,
+                  "type": "string"
+                },
+                "reviewDate": {
+                  "format": "dateOptionalTime",
+                  "include_in_all": false,
+                  "type": "date"
+                },
+                "reviewPlace": {
                   "include_in_all": false,
                   "type": "string"
                 },
@@ -5614,6 +5731,23 @@
                   "analyzer": "whitespace_lower",
                   "include_in_all": false,
                   "type": "string"
+                },
+                "value": {
+                  "include_in_all": false,
+                  "properties": {
+                    "amount": {
+                      "include_in_all": false,
+                      "type": "double"
+                    },
+                    "currency": {
+                      "analyzer": "whitespace_lower",
+                      "include_in_all": false,
+                      "type": "string"
+                    },
+                    "valueAddedTaxIncluded": {
+                      "type": "boolean"
+                    }
+                  }
                 }
               }
             },
@@ -5723,8 +5857,105 @@
               "include_in_all": true,
               "type": "string"
             },
+            "milestones": {
+              "include_in_all": false,
+              "properties": {
+                "code": {
+                  "analyzer": "whitespace_lower",
+                  "include_in_all": false,
+                  "type": "string"
+                },
+                "date": {
+                  "format": "dateOptionalTime",
+                  "include_in_all": false,
+                  "type": "date"
+                },
+                "description": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "description_en": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "description_ru": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "dueDate": {
+                  "format": "dateOptionalTime",
+                  "include_in_all": false,
+                  "type": "date"
+                },
+                "id": {
+                  "include_in_all": false,
+                  "index": "no",
+                  "type": "string"
+                }
+              }
+            },
             "qualified": {
               "type": "boolean"
+            },
+            "requirementResponses": {
+              "include_in_all": false,
+              "properties": {
+                "description": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "description_en": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "description_ru": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "id": {
+                  "include_in_all": false,
+                  "index": "no",
+                  "type": "string"
+                },
+                "requirement": {
+                  "include_in_all": false,
+                  "properties": {
+                    "id": {
+                      "include_in_all": false,
+                      "index": "no",
+                      "type": "string"
+                    },
+                    "title": {
+                      "include_in_all": true,
+                      "type": "string"
+                    },
+                    "title_en": {
+                      "include_in_all": true,
+                      "type": "string"
+                    },
+                    "title_ru": {
+                      "include_in_all": true,
+                      "type": "string"
+                    }
+                  }
+                },
+                "title": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "title_en": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "title_ru": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "value": {
+                  "include_in_all": false,
+                  "type": "string"
+                }
+              }
             },
             "status": {
               "analyzer": "whitespace_lower",
@@ -5924,6 +6155,86 @@
         "shortlistedFirms": {
           "include_in_all": false,
           "properties": {
+            "address": {
+              "include_in_all": false,
+              "properties": {
+                "countryName": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "countryName_en": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "countryName_ru": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "locality": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "postalCode": {
+                  "analyzer": "postalcode",
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "region": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "streetAddress": {
+                  "include_in_all": true,
+                  "type": "string"
+                }
+              }
+            },
+            "contactPoint": {
+              "include_in_all": false,
+              "properties": {
+                "availableLanguage": {
+                  "include_in_all": false,
+                  "type": "string"
+                },
+                "email": {
+                  "analyzer": "email",
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "faxNumber": {
+                  "analyzer": "telephone",
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "name": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "name_en": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "name_ru": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "telephone": {
+                  "analyzer": "telephone",
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "url": {
+                  "include_in_all": false,
+                  "index": "no",
+                  "type": "string"
+                }
+              }
+            },
+            "id": {
+              "analyzer": "whitespace_lower",
+              "include_in_all": true,
+              "type": "string"
+            },
             "identifier": {
               "include_in_all": false,
               "properties": {
@@ -5971,6 +6282,16 @@
             },
             "name_ru": {
               "include_in_all": true,
+              "type": "string"
+            },
+            "scale": {
+              "analyzer": "whitespace_lower",
+              "include_in_all": false,
+              "type": "string"
+            },
+            "status": {
+              "analyzer": "whitespace_lower",
+              "include_in_all": false,
               "type": "string"
             }
           }
@@ -6023,6 +6344,10 @@
           "type": "string"
         },
         "title_ru": {
+          "include_in_all": true,
+          "type": "string"
+        },
+        "unsuccessfulReason": {
           "include_in_all": true,
           "type": "string"
         },
