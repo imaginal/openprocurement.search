@@ -1442,20 +1442,24 @@
               "properties": {
                 "author": {
                   "include_in_all": false,
+                  "index": "no",
                   "type": "string"
                 },
                 "dateModified": {
                   "format": "dateOptionalTime",
                   "include_in_all": false,
+                  "index": "no",
                   "type": "date"
                 },
                 "datePublished": {
                   "format": "dateOptionalTime",
                   "include_in_all": false,
+                  "index": "no",
                   "type": "date"
                 },
                 "description": {
-                  "include_in_all": true,
+                  "include_in_all": false,
+                  "index": "no",
                   "type": "string"
                 },
                 "description_en": {
@@ -1893,15 +1897,18 @@
                 "dateModified": {
                   "format": "dateOptionalTime",
                   "include_in_all": false,
+                  "index": "no",
                   "type": "date"
                 },
                 "datePublished": {
                   "format": "dateOptionalTime",
                   "include_in_all": false,
+                  "index": "no",
                   "type": "date"
                 },
                 "description": {
-                  "include_in_all": true,
+                  "include_in_all": false,
+                  "index": "no",
                   "type": "string"
                 },
                 "description_en": {
@@ -1914,15 +1921,18 @@
                 },
                 "documentOf": {
                   "include_in_all": false,
+                  "index": "no",
                   "type": "string"
                 },
                 "documentType": {
                   "analyzer": "whitespace_lower",
                   "include_in_all": false,
+                  "index": "no",
                   "type": "string"
                 },
                 "format": {
                   "include_in_all": false,
+                  "index": "no",
                   "type": "string"
                 },
                 "hash": {
@@ -1947,6 +1957,7 @@
                 "relatedItem": {
                   "analyzer": "whitespace_lower",
                   "include_in_all": false,
+                  "index": "no",
                   "type": "string"
                 },
                 "title": {
@@ -1982,15 +1993,18 @@
                 "dateModified": {
                   "format": "dateOptionalTime",
                   "include_in_all": false,
+                  "index": "no",
                   "type": "date"
                 },
                 "datePublished": {
                   "format": "dateOptionalTime",
                   "include_in_all": false,
+                  "index": "no",
                   "type": "date"
                 },
                 "description": {
-                  "include_in_all": true,
+                  "include_in_all": false,
+                  "index": "no",
                   "type": "string"
                 },
                 "description_en": {
@@ -3671,15 +3685,18 @@
                 "dateModified": {
                   "format": "dateOptionalTime",
                   "include_in_all": false,
+                  "index": "no",
                   "type": "date"
                 },
                 "datePublished": {
                   "format": "dateOptionalTime",
                   "include_in_all": false,
+                  "index": "no",
                   "type": "date"
                 },
                 "description": {
-                  "include_in_all": true,
+                  "include_in_all": false,
+                  "index": "no",
                   "type": "string"
                 },
                 "description_en": {
@@ -4216,10 +4233,12 @@
                 "type": {
                   "analyzer": "whitespace_lower",
                   "include_in_all": false,
+                  "index": "no",
                   "type": "string"
                 },
                 "version": {
                   "include_in_all": false,
+                  "index": "no",
                   "type": "string"
                 }
               }
@@ -4255,6 +4274,7 @@
                     "dataType": {
                       "analyzer": "whitespace_lower",
                       "include_in_all": false,
+                      "index": "no",
                       "type": "string"
                     },
                     "description": {
@@ -4420,20 +4440,24 @@
           "properties": {
             "author": {
               "include_in_all": false,
+              "index": "no",
               "type": "string"
             },
             "dateModified": {
               "format": "dateOptionalTime",
               "include_in_all": false,
+              "index": "no",
               "type": "date"
             },
             "datePublished": {
               "format": "dateOptionalTime",
               "include_in_all": false,
+              "index": "no",
               "type": "date"
             },
             "description": {
-              "include_in_all": true,
+              "include_in_all": false,
+              "index": "no",
               "type": "string"
             },
             "description_en": {
@@ -4446,15 +4470,18 @@
             },
             "documentOf": {
               "include_in_all": false,
+              "index": "no",
               "type": "string"
             },
             "documentType": {
               "analyzer": "whitespace_lower",
               "include_in_all": false,
+              "index": "no",
               "type": "string"
             },
             "format": {
               "include_in_all": false,
+              "index": "no",
               "type": "string"
             },
             "hash": {
@@ -4475,6 +4502,7 @@
             "relatedItem": {
               "analyzer": "whitespace_lower",
               "include_in_all": false,
+              "index": "no",
               "type": "string"
             },
             "title": {
@@ -4876,6 +4904,7 @@
             "relatedLot": {
               "analyzer": "whitespace_lower",
               "include_in_all": false,
+              "index": "no",
               "type": "string"
             },
             "unit": {
