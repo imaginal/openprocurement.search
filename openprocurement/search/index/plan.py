@@ -15,6 +15,8 @@ class PlanIndex(BaseIndex):
         self.set_reindex_options(
             self.config.get('plan_reindex', '10,7'),
             self.config.get('plan_check', '1,1'))
+        self.set_optimize_options(
+            self.config.get('plan_optimize', False))
 
     def need_reindex(self):
         if not self.current_index:
