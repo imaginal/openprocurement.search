@@ -30,7 +30,7 @@ class BaseIndex(object):
         'log_noindex': False,
         # common mappings settings
         'dynamic': False,
-        'dynamic_templates': True,
+        'dynamic_templates': False,
         'date_detection': False,
         'numeric_detection': False,
         'number_of_shards': 6
@@ -47,7 +47,7 @@ class BaseIndex(object):
     source_last_queries = 0
     plugin_config_key = ''
 
-    #SUFFIX_FORMAT = "%Y-%m-%d-%H%M%S"
+    # SUFFIX_FORMAT = "%Y-%m-%d-%H%M%S"
     SUFFIX_FORMAT = "%Y%m%d%H"
 
     def __init__(self, engine, source, config={}):
@@ -96,7 +96,7 @@ class BaseIndex(object):
         try:
             s_time = time.strptime(suffix, BaseIndex.SUFFIX_FORMAT)
             suffix = time.mktime(s_time)
-        except:
+        except ValueError:
             suffix = 0
         return suffix
 
@@ -562,7 +562,7 @@ class BaseIndex(object):
     def async_reindex(self):
         logger.info("*** Start Reindex-%s in subprocess", self.__index_name__)
 
-        # reconnect elatic and prevent future stop_childs
+        # reconnect elastic and prevent future stop_childs
         self.engine.start_in_subprocess()
 
         for n in range(self.config['reindex_loops']):

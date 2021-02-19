@@ -13,7 +13,7 @@ from elasticsearch.exceptions import ElasticsearchException, NotFoundError
 from openprocurement.search.version import __version__
 from openprocurement.search.utils import (SharedFileDict, long_version, reset_watchdog,
     update_watchdog, restore_watchdog, retry)
-from openprocurement.search.base_plugin import PLUGIN_API_VERSION
+from openprocurement.search.plugin import PLUGIN_API_VERSION
 
 
 logger = getLogger(__name__)
@@ -55,12 +55,12 @@ class SearchEngine(object):
             self.config.update(config)
             self.config['update_wait'] = int(self.config['update_wait'])
         self.names_db = SharedFileDict(self.config.get('index_names'))
-        self.elatic_host = self.config.get('elastic_host')
+        self.elastic_host = self.config.get('elastic_host')
         if role and (role + '_elastic_host') in self.config:
-            self.elatic_host = self.config[role + '_elastic_host']
+            self.elastic_host = self.config[role + '_elastic_host']
         self.es_options['timeout'] = int(self.config['elastic_timeout'])
         self.es_options['request_timeout'] = int(self.config['elastic_timeout'])
-        self.elastic = Elasticsearch([self.elatic_host],
+        self.elastic = Elasticsearch([self.elastic_host],
             **self.es_options)
         self.slave_mode = self.config.get('slave_mode') or None
         self.slave_wakeup = int(self.config['slave_wakeup'] or 600)
@@ -126,7 +126,7 @@ class SearchEngine(object):
 
     def start_in_subprocess(self):
         # create copy of elastic connection
-        self.elastic = Elasticsearch([self.elatic_host],
+        self.elastic = Elasticsearch([self.elastic_host],
             **self.es_options)
         # we're not master anymore, clear inherited reindex_process
         for index in self.index_list:
@@ -210,7 +210,7 @@ class SearchEngine(object):
         es_options_copy = dict(self.es_options)
         es_options_copy['request_timeout'] = timeout
         es_options_copy['timeout'] = timeout
-        elastic = Elasticsearch([self.elatic_host], **es_options_copy)
+        elastic = Elasticsearch([self.elastic_host], **es_options_copy)
         indices = IndicesClient(elastic)
         update_watchdog(timeout + 30)
         try:
@@ -325,9 +325,10 @@ class IndexEngine(SearchEngine):
     """Indexer Engine
     """
 
-    def __init__(self, config={}, role='index'):
+    def __init__(self, config={}, role='index', dump_config=True):
         super(IndexEngine, self).__init__(config, role)
-        logger.info("Start with config:\n\t%s", self.dump_config())
+        if dump_config:
+            logger.info("Start with config:\n\t%s", self.dump_config())
 
     def dump_config(self):
         cs = "\n\t".join(["%-20s = %s" % (k, v)
@@ -343,7 +344,7 @@ class IndexEngine(SearchEngine):
     def index_exists(self, index_name):
         try:
             self.index_info(index_name)
-        except:
+        except Exception:
             return False
         return True
 
