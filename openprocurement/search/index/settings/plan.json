@@ -99,7 +99,8 @@
             },
             "id": {
               "analyzer": "whitespace_lower",
-              "include_in_all": true,
+              "include_in_all": false,
+              "index": "no",
               "type": "string"
             },
             "notes": {
@@ -291,15 +292,18 @@
             "dateModified": {
               "format": "dateOptionalTime",
               "include_in_all": false,
+              "index": "no",
               "type": "date"
             },
             "datePublished": {
               "format": "dateOptionalTime",
               "include_in_all": false,
+              "index": "no",
               "type": "date"
             },
             "description": {
-              "include_in_all": true,
+              "include_in_all": false,
+              "index": "no",
               "type": "string"
             },
             "description_en": {
@@ -321,6 +325,7 @@
             },
             "format": {
               "include_in_all": false,
+              "index": "no",
               "type": "string"
             },
             "hash": {
@@ -339,7 +344,8 @@
               "type": "string"
             },
             "title": {
-              "include_in_all": true,
+              "include_in_all": false,
+              "index": "no",
               "type": "string"
             },
             "title_en": {
@@ -455,7 +461,8 @@
             },
             "id": {
               "analyzer": "whitespace_lower",
-              "include_in_all": true,
+              "include_in_all": false,
+              "index": "no",
               "type": "string"
             },
             "quantity": {
