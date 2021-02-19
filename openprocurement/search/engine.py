@@ -205,6 +205,16 @@ class SearchEngine(object):
         stats = indices.stats(index_name)
         return stats['indices'][index_name]['primaries']
 
+    def get_index_segments(indices, index_name):
+        res = indices.segments(index_name, human=True)
+        if isinstance(res, dict) and 'indices' in res:
+            res = res['indices'][index_name]
+            for k, s in res['shards'].items():
+                for i in s:
+                    i.pop('segments', None)
+                    i.pop('routing', None)
+        return res
+
     def optimize_index(self, index_name, max_num_segments=1, timeout=18000):
         logger.info("Optimize %s with max_num_segments=%d", index_name, max_num_segments)
         es_options_copy = dict(self.es_options)
@@ -217,17 +227,15 @@ class SearchEngine(object):
             res = indices.refresh(index_name)
             logger.info("Refresh %s result %s", index_name, str(res))
             self.sleep(5)
+            res = self.get_index_segments(indices, index_name)
+            logger.info("Segments %s before optimize %s", index_name, str(res))
             res = indices.optimize(index_name, max_num_segments=max_num_segments)
             logger.info("Optimize %s result %s", index_name, str(res))
             self.sleep(5)
-            res = indices.segments(index_name, human=True)
-            if isinstance(res, dict) and 'indices' in res:
-                res = res['indices'][index_name]
-                for k, s in res['shards'].items():
-                    for i in s:
-                        i.pop('segments', None)
-                        i.pop('routing', None)
-            logger.info("Segments %s result %s", index_name, str(res))
+            res = self.get_index_segments(indices, index_name)
+            logger.info("Segments %s after optimize %s", index_name, str(res))
+            res = indices.refresh(index_name)
+            logger.info("Refresh %s result %s", index_name, str(res))
         except Exception as e:
             logger.error("Optimize failed %s", str(e))
         restore_watchdog()
