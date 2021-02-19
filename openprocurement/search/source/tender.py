@@ -28,6 +28,7 @@ class TenderSource(BaseSource):
         'tender_preload': 5000,
         'tender_reseteach': 11,
         'tender_resethour': 0,
+        'tender_optimize': False,
         'tender_bids_tenderers': False,
         'tender_decode_orgs': False,
         'tender_save_noindex': False,
