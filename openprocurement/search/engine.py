@@ -215,6 +215,17 @@ class SearchEngine(object):
                     i.pop('routing', None)
         return res
 
+    def get_max_num_segments(self, res):
+        max_num_segments = 0
+        try:
+            for k, s in res["shards"].items():
+                for i in s:
+                    if i['num_search_segments'] > max_num_segments:
+                        max_num_segments = i['num_search_segments']
+        except KeyError:
+            pass
+        return max_num_segments
+
     def optimize_index(self, index_name, max_num_segments=1, timeout=18000):
         logger.info("Optimize %s with max_num_segments=%d", index_name, max_num_segments)
         es_options_copy = dict(self.es_options)
@@ -229,13 +240,17 @@ class SearchEngine(object):
             self.sleep(5)
             res = self.get_index_segments(indices, index_name)
             logger.info("Segments %s before optimize %s", index_name, str(res))
-            res = indices.optimize(index_name, max_num_segments=max_num_segments)
-            logger.info("Optimize %s result %s", index_name, str(res))
-            self.sleep(5)
-            res = self.get_index_segments(indices, index_name)
-            logger.info("Segments %s after optimize %s", index_name, str(res))
-            res = indices.refresh(index_name)
-            logger.info("Refresh %s result %s", index_name, str(res))
+            curr_max_segments = self.get_max_num_segments(res)
+            if curr_max_segments > max_num_segments:
+                res = indices.optimize(index_name, max_num_segments=max_num_segments)
+                logger.info("Optimize %s result %s", index_name, str(res))
+                self.sleep(5)
+                res = self.get_index_segments(indices, index_name)
+                logger.info("Segments %s after optimize %s", index_name, str(res))
+                res = indices.refresh(index_name)
+                logger.info("Refresh %s result %s", index_name, str(res))
+            else:
+                logger.info("No need to optimize")
         except Exception as e:
             logger.error("Optimize failed %s", str(e))
         restore_watchdog()
