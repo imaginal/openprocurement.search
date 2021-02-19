@@ -41,6 +41,7 @@ setup(
             'index_worker = openprocurement.search.index_worker:main',
             'search_server = openprocurement.search.search_server:main',
             'clean_indexes = openprocurement.search.clean_indexes:main',
+            'optimize_indexes = openprocurement.search.optimize_indexes:main',
             'ocds_ftp_sync = openprocurement.search.ocds_ftp_sync:main',
             'test_load = openprocurement.search.test_load:main',
             'test_index = openprocurement.search.test_index:main',
