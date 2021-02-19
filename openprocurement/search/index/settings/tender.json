@@ -25,6 +25,69 @@
               "include_in_all": true,
               "type": "string"
             },
+            "changes": {
+              "include_in_all": false,
+              "properties": {
+                "agreementNumber": {
+                  "analyzer": "whitespace_lower",
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "date": {
+                  "format": "dateOptionalTime",
+                  "include_in_all": false,
+                  "type": "date"
+                },
+                "dateSigned": {
+                  "format": "dateOptionalTime",
+                  "include_in_all": false,
+                  "type": "date"
+                },
+                "id": {
+                  "include_in_all": false,
+                  "index": "no",
+                  "type": "string"
+                },
+                "modifications": {
+                  "include_in_all": false,
+                  "properties": {
+                    "addend": {
+                      "include_in_all": false,
+                      "type": "double"
+                    },
+                    "contractId": {
+                      "analyzer": "whitespace_lower",
+                      "include_in_all": false,
+                      "index": "no",
+                      "type": "string"
+                    },
+                    "factor": {
+                      "include_in_all": false,
+                      "type": "double"
+                    },
+                    "itemId": {
+                      "include_in_all": false,
+                      "index": "no",
+                      "type": "string"
+                    }
+                  }
+                },
+                "rationale": {
+                  "include_in_all": true,
+                  "type": "string"
+                },
+                "rationaleType": {
+                  "analyzer": "whitespace_lower",
+                  "include_in_all": false,
+                  "type": "string"
+                },
+                "status": {
+                  "analyzer": "whitespace_lower",
+                  "include_in_all": false,
+                  "type": "string"
+                }
+              }
+            },
             "contracts": {
               "include_in_all": false,
               "properties": {
