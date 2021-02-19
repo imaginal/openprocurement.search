@@ -37,7 +37,7 @@ def process_all(elastic_host, index_list, index_yaml):
     fresh_time = time.time() - (Options.fresh_age * 86400)
     candidates = list()
 
-    current_keys  = index_yaml.keys()
+    current_keys = index_yaml.keys()
     current_names = index_yaml.values()
 
     for index in sorted(index_list):
@@ -51,7 +51,7 @@ def process_all(elastic_host, index_list, index_yaml):
             continue
         try:
             created_time = BaseIndex.index_created_time(name)
-        except:
+        except ValueError:
             logger.info("Skip unknown %s", name)
             continue
         if created_time < 1e9:
@@ -63,8 +63,8 @@ def process_all(elastic_host, index_list, index_yaml):
             continue
         candidates.append(name)
         noindex_name = 'noindex_' + name
-        # if noindex_name in index_list:
-        candidates.append(noindex_name)
+        if noindex_name in index_list:
+            candidates.append(noindex_name)
 
     if len(candidates) < 1:
         logger.info("Not enought candidates")
