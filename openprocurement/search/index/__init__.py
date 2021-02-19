@@ -68,6 +68,7 @@ class BaseIndex(object):
             self.allow_async_reindex = self.config['async_reindex']
         self.set_reindex_options(self.config.get('reindex', ''),
             self.config.get('reindex_check', ''))
+        self.set_optimize_options(False)
         source.engine = engine
         self.source = source
         self.engine = engine
@@ -112,6 +113,13 @@ class BaseIndex(object):
             return time.time()
         suffix = BaseIndex.index_created_time(name)
         return int(time.time() - int(suffix))
+
+    def set_optimize_options(self, optimize_hours):
+        if optimize_hours:
+            self.optimize_start_hour, self.optimize_end_hour = map(int, optimize_hours.split(','))
+        else:
+            self.optimize_start_hour, self.optimize_end_hour = None, None
+        self.last_optimize = time.time()
 
     def set_reindex_options(self, reindex_period, reindex_check):
         # reindex_period - two digits, first is age in days, seconds is weekday
@@ -639,6 +647,25 @@ class BaseIndex(object):
         else:
             logger.error("Can't start subprocess")
 
+    def need_optimize(self):
+        if not self.current_index:
+            return False
+        if self.optimize_start_hour is None:
+            return False
+        period = 3610 * abs(self.optimize_start_hour - self.optimize_end_hour)
+        if time() - self.last_optimize < period:
+            return False
+        now_hour = datetime.now().hour
+        if self.optimize_end_hour > self.optimize_start_hour:
+            return now_hour >= self.optimize_start_hour and now_hour < self.optimize_end_hour
+        if self.optimize_end_hour < self.optimize_start_hour:
+            return now_hour >= self.optimize_start_hour or now_hour < self.optimize_end_hour
+        return False
+
+    def optimize_index(self):
+        self.last_optimize = time()
+        self.engine.optimize_index(self.current_index, int(self.config['max_num_segments']))
+
     def process(self, allow_reindex=True):
         if self.engine.should_exit:
             return
@@ -648,5 +675,8 @@ class BaseIndex(object):
 
         if self.need_reindex() and allow_reindex:
             self.reindex()
+
+        if self.need_optimize():
+            self.optimize_index()
 
         return self.index_source()
