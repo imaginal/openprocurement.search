@@ -653,7 +653,7 @@ class BaseIndex(object):
         if self.optimize_start_hour is None:
             return False
         period = 3610 * abs(self.optimize_start_hour - self.optimize_end_hour)
-        if time() - self.last_optimize < period:
+        if time.time() - self.last_optimize < period:
             return False
         now_hour = datetime.now().hour
         if self.optimize_end_hour > self.optimize_start_hour:
@@ -663,7 +663,7 @@ class BaseIndex(object):
         return False
 
     def optimize_index(self):
-        self.last_optimize = time()
+        self.last_optimize = time.time()
         self.engine.optimize_index(self.current_index, int(self.config['max_num_segments']))
 
     def process(self, allow_reindex=True):
