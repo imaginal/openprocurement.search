@@ -105,7 +105,7 @@ class BaseSource(object):
         cache_total = self.cache_hits + self.cache_miss
         if cache_total > 0 and cache_total % 10000 == 0:
             cache_usage = 100 * self.cache_hits / cache_total
-            logger.info("[%s] File cache %d hits, %d miss, %d puts, usage %d%%",
+            logger.info("[source:%s] File cache %d hits, %d miss, %d puts, usage %d%%",
                         self.__doc_type__, self.cache_hits, self.cache_miss,
                         self.cache_puts, cache_usage)
 
