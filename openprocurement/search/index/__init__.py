@@ -8,7 +8,7 @@ from multiprocessing import Process
 from pkgutil import get_data
 from logging import getLogger
 
-from openprocurement.search.utils import long_version
+from openprocurement.search.utils import long_version, stop_watchdog
 
 logger = getLogger(__name__)
 
@@ -597,6 +597,7 @@ class BaseIndex(object):
             exit_code = 1
 
         # exit with specific code to signal master process reset source
+        stop_watchdog()
         sys.exit(exit_code)
 
     def reindex(self):

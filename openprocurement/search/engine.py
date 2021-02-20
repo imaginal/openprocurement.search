@@ -12,7 +12,7 @@ from elasticsearch.exceptions import ElasticsearchException, NotFoundError
 
 from openprocurement.search.version import __version__
 from openprocurement.search.utils import (SharedFileDict, long_version, reset_watchdog,
-    update_watchdog, restore_watchdog, retry)
+    setup_watchdog, update_watchdog, restore_watchdog, retry)
 from openprocurement.search.plugin import PLUGIN_API_VERSION
 
 
@@ -125,6 +125,9 @@ class SearchEngine(object):
                     search_map[k].update(v)
 
     def start_in_subprocess(self):
+        if 'watchdog' in self.config and self.config['watchdog']:
+            logger.info("Setup watchdog for %s seconds", self.config['watchdog'])
+            setup_watchdog(self.config['watchdog'], logger, force=True)
         # create copy of elastic connection
         self.elastic = Elasticsearch([self.elastic_host],
             **self.es_options)

@@ -158,10 +158,11 @@ def restore_watchdog():
         Watchdog.timeout = Watchdog.save_timeout
 
 
-def setup_watchdog(timeout, logger=None):
+def setup_watchdog(timeout, logger=None, force=False):
     if not timeout or int(timeout) < 10:
         return
-    assert Watchdog.thread is None
+    if not force:
+        assert Watchdog.thread is None
     Watchdog.timeout = int(timeout)
     Watchdog.thread = threading.Thread(target=watchdog_thread,
         name='Watchdog', args=(logger,))
@@ -176,8 +177,6 @@ def reset_watchdog():
 
 def stop_watchdog():
     Watchdog.stop = True
-    if Watchdog.thread:
-        Watchdog.thread.join(1)
 
 
 class InfoFilter(logging.Filter):

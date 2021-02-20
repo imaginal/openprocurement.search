@@ -46,6 +46,7 @@ def sigterm_handler(signo, frame):
         engine.should_exit = True
         engine.stop_childs()
     signal.alarm(10)
+    stop_watchdog()
     # sys.exit(0)
 
 
