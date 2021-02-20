@@ -377,6 +377,7 @@ class BaseIndex(object):
         if not index_name:
             if not self.reindex_process:
                 logger.warning("No current index for %s", repr(self))
+            self.engine.sleep(1)
             return
 
         if reset or self.source.need_reset():
@@ -685,10 +686,10 @@ class BaseIndex(object):
         if self.reindex_process:
             self.check_subprocess()
 
-        if self.need_reindex() and allow_reindex:
+        elif self.need_reindex() and allow_reindex:
             self.reindex()
 
-        if self.need_optimize():
+        elif self.need_optimize():
             self.optimize_index()
 
         return self.index_source()
