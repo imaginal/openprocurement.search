@@ -311,6 +311,8 @@ class TenderSource(BaseSource):
                 self.stat_fetched += 1
                 yield self.patch_version(tender)
 
+            if self.last_skipped:
+                logger.info("Skipped %d tenders, last %s", self.stat_skipped, self.last_skipped)
             if self.last_yielded or not self.last_skipped:
                 break
 

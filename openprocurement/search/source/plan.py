@@ -271,6 +271,8 @@ class PlanSource(BaseSource):
                 self.stat_fetched += 1
                 yield self.patch_version(plan)
 
+            if self.last_skipped:
+                logger.info("Skipped %d plans, last %s", self.stat_skipped, self.last_skipped)
             if self.last_yielded or not self.last_skipped:
                 break
 
