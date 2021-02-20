@@ -463,6 +463,8 @@ class IndexEngine(SearchEngine):
         return True
 
     def flush_bulk(self):
+        if self.should_exit:
+            return
         ignore_errors = self.config.get('ignore_errors', False)
         for index_name, items_list in self.bulk_buffer.items():
             if len(items_list) < 50 or self.bulk_errors:
@@ -516,6 +518,8 @@ class IndexEngine(SearchEngine):
             break
 
     def flush_queue(self):
+        if self.should_exit:
+            return
         for index in self.index_list:
             if getattr(index.source, 'queue', None):
                 index.process()
