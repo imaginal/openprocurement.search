@@ -614,6 +614,8 @@ class BaseIndex(object):
             for n in range(self.config['reindex_loops']):
                 logger.info("Reindex %s loop %d of %d", self.__index_name__, n + 1, self.config['reindex_loops'])
                 self.index_source(self.next_index_name, reset=True, reindex=True)
+                if self.engine.should_exit:
+                    return
                 if self.config['optimize_index'] and n < self.config['reindex_loops'] - 1:
                     self.engine.optimize_index(self.next_index_name, int(self.config['max_num_segments']))
                 self.engine.flush()
