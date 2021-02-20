@@ -59,7 +59,7 @@ class BaseClient(object):
             self.session.close()
 
     def request_cookie(self):
-        self.session.head(self.prefix_path, timeout=self.timeout)
+        self.session.get(self.prefix_path, timeout=self.timeout)
 
     def log_error(self, url, exc, method='GET'):
         logger.error("{} {} {}".format(method, url, repr(exc)))
