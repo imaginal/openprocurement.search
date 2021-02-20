@@ -357,6 +357,9 @@ class BaseIndex(object):
         return self.engine.index_item(index_name, item, ignore_bulk=ignore_bulk)
 
     def index_source(self, index_name=None, reset=False, reindex=False):
+        if self.engine.should_exit:
+            return
+
         if self.engine.slave_mode:
             if not self.engine.heartbeat(self.source):
                 self.engine.sleep(10)
@@ -668,6 +671,8 @@ class BaseIndex(object):
         return False
 
     def optimize_index(self):
+        if self.engine.should_exit:
+            return
         self.last_optimize = time.time()
         self.engine.optimize_index(self.current_index, int(self.config['max_num_segments']))
 
