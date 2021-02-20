@@ -113,17 +113,21 @@ def chage_process_user_group(config, logger=None):
     gid = os.getgid()
     euid = os.geteuid()
     egid = os.getegid()
-    logger.info("Process real user/group %d/%d %s/%s", uid, gid, getpwuid(uid)[0], getgrgid(gid)[0])
-    logger.info("Process effective user/group %d/%d %s/%s", euid, egid, getpwuid(euid)[0], getgrgid(egid)[0])
+    logger.info("Process real user/group %d/%d %s/%s",
+        uid, gid, getpwuid(uid)[0], getgrgid(gid)[0])
+    logger.info("Process effective user/group %d/%d %s/%s",
+        euid, egid, getpwuid(euid)[0], getgrgid(egid)[0])
 
 
 class Watchdog:
     counter = 0
     timeout = 0
+    thread = None
+    stop = False
 
 
 def watchdog_thread(logger):
-    while True:
+    while not Watchdog.stop:
         Watchdog.counter += 1
         time.sleep(1)
         if Watchdog.counter >= Watchdog.timeout - 5:
@@ -133,11 +137,14 @@ def watchdog_thread(logger):
             if logger:
                 logger.warning("Watchdog kill pid %d", os.getpid())
             os.kill(os.getpid(), signal.SIGTERM)
+            signal.alarm(10)
         if Watchdog.counter >= Watchdog.timeout + 5:
             if logger:
                 logger.warning("Watchdog exit")
             os._exit(1)
-            break
+            return
+    if logger:
+        logger.info("Watchdog stop")
 
 
 def update_watchdog(timeout):
@@ -154,15 +161,23 @@ def restore_watchdog():
 def setup_watchdog(timeout, logger=None):
     if not timeout or int(timeout) < 10:
         return
+    assert Watchdog.thread is None
     Watchdog.timeout = int(timeout)
-    thread = threading.Thread(target=watchdog_thread, name='Watchdog', args=(logger,))
-    thread.daemon = True
-    thread.start()
+    Watchdog.thread = threading.Thread(target=watchdog_thread,
+        name='Watchdog', args=(logger,))
+    Watchdog.thread.daemon = True
+    Watchdog.thread.start()
 
 
 def reset_watchdog():
     if Watchdog.timeout:
         Watchdog.counter = 0
+
+
+def stop_watchdog():
+    Watchdog.stop = True
+    if Watchdog.thread:
+        Watchdog.thread.join(1)
 
 
 class InfoFilter(logging.Filter):
