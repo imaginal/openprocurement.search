@@ -12,7 +12,8 @@ from ConfigParser import ConfigParser
 
 from openprocurement.search.version import __version__
 from openprocurement.search.engine import IndexEngine, logger
-from openprocurement.search.utils import decode_bool_values, chage_process_user_group, setup_watchdog
+from openprocurement.search.utils import (decode_bool_values, chage_process_user_group,
+    setup_watchdog, stop_watchdog)
 
 from openprocurement.search.source.orgs import OrgsSource
 from openprocurement.search.index.orgs import OrgsIndex
@@ -156,6 +157,8 @@ def main():
         os.remove(lock_filename)
         if engine and hasattr(engine, 'stop_childs'):
             engine.stop_childs()
+        if 'watchdog' in config:
+            stop_watchdog()
         logger.info("Shutdown")
 
     return 0
