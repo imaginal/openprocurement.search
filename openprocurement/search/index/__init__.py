@@ -267,6 +267,8 @@ class BaseIndex(object):
             noindex_name = self.noindex_prefix + name
             # self.engine.set_index(noindex_key, noindex_name)
             self.engine.set_alias(noindex_key, noindex_name)
+        # also update last_optimize
+        self.last_optimize = time.time()
         return name
 
     def from_cache(self, item):
