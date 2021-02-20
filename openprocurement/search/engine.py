@@ -2,6 +2,7 @@
 from logging import getLogger
 from importlib import import_module
 from time import time, sleep, localtime, strftime
+from socket import getdefaulttimeout, setdefaulttimeout
 from datetime import datetime
 import requests
 
@@ -36,6 +37,7 @@ class SearchEngine(object):
         'update_wait': 5,
         'error_wait': 10,
         'start_wait': 0,
+        'timeout': 300,
     }
     es_options = {
         'max_retries': 3,
@@ -51,17 +53,16 @@ class SearchEngine(object):
 
     def __init__(self, config={}, role='search'):
         self.index_list = list()
-        if config:
-            self.config.update(config)
-            self.config['update_wait'] = int(self.config['update_wait'])
+        self.config.update(config)
+        if self.config['timeout']:
+            setdefaulttimeout(float(self.config['timeout']))
         self.names_db = SharedFileDict(self.config.get('index_names'))
         self.elastic_host = self.config.get('elastic_host')
         if role and (role + '_elastic_host') in self.config:
             self.elastic_host = self.config[role + '_elastic_host']
         self.es_options['timeout'] = int(self.config['elastic_timeout'])
         self.es_options['request_timeout'] = int(self.config['elastic_timeout'])
-        self.elastic = Elasticsearch([self.elastic_host],
-            **self.es_options)
+        self.elastic = Elasticsearch([self.elastic_host], **self.es_options)
         self.slave_mode = self.config.get('slave_mode') or None
         self.slave_wakeup = int(self.config['slave_wakeup'] or 600)
         self.debug = self.config.get('debug', False)
@@ -128,6 +129,8 @@ class SearchEngine(object):
         if 'watchdog' in self.config and self.config['watchdog']:
             logger.info("Setup watchdog for %s seconds", self.config['watchdog'])
             setup_watchdog(self.config['watchdog'], logger, force=True)
+        if self.config['timeout']:
+            setdefaulttimeout(float(self.config['timeout']))
         # create copy of elastic connection
         self.elastic = Elasticsearch([self.elastic_host],
             **self.es_options)
@@ -138,7 +141,7 @@ class SearchEngine(object):
         # wait before start re-indexing
         if self.config['reindex_wait']:
             logger.info("Wait %s sec before start re-indexing", str(self.config['reindex_wait']))
-            self.sleep(self.config['reindex_wait'])
+            self.sleep(float(self.config['reindex_wait']))
 
     def stop_childs(self):
         for index in self.index_list:
@@ -233,6 +236,9 @@ class SearchEngine(object):
         if self.should_exit:
             return
         logger.info("Optimize %s with max_num_segments=%d", index_name, max_num_segments)
+        default_timeout = getdefaulttimeout()
+        if default_timeout < timeout:
+            setdefaulttimeout(timeout)
         es_options_copy = dict(self.es_options)
         es_options_copy['request_timeout'] = timeout
         es_options_copy['timeout'] = timeout
@@ -258,6 +264,8 @@ class SearchEngine(object):
                 logger.info("No need to optimize")
         except Exception as e:
             logger.error("Optimize failed %s", str(e))
+        if default_timeout != getdefaulttimeout():
+            setdefaulttimeout(default_timeout)
         restore_watchdog()
 
     def search(self, body, start=0, limit=0, index=None, index_keys=None, index_set=None):
@@ -450,7 +458,7 @@ class IndexEngine(SearchEngine):
                     index_name, str(meta), str(e), ignored)
                 if retry_count > 2 and ignore_errors:
                     return None
-                self.sleep(self.config['error_wait'])
+                self.sleep(float(self.config['error_wait']))
                 if self.test_exists(index_name, meta):
                     return None
 
@@ -618,6 +626,6 @@ class IndexEngine(SearchEngine):
                 index.process(allow_reindex)
                 self.flush_bulk()
 
-            self.sleep(self.config['update_wait'])
+            self.sleep(float(self.config['update_wait']))
 
         logger.info("Leave main loop")
