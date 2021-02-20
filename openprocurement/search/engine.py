@@ -205,7 +205,7 @@ class SearchEngine(object):
         stats = indices.stats(index_name)
         return stats['indices'][index_name]['primaries']
 
-    def get_index_segments(indices, index_name):
+    def get_index_segments(self, indices, index_name):
         res = indices.segments(index_name, human=True)
         if isinstance(res, dict) and 'indices' in res:
             res = res['indices'][index_name]
@@ -223,10 +223,10 @@ class SearchEngine(object):
                     if i['num_search_segments'] > max_num_segments:
                         max_num_segments = i['num_search_segments']
         except KeyError:
-            pass
+            logger.error("Can't get max_num_segments from {}".format(res))
         return max_num_segments
 
-    def optimize_index(self, index_name, max_num_segments=1, timeout=18000):
+    def optimize_index(self, index_nmsgame, max_num_segments=1, timeout=18000):
         logger.info("Optimize %s with max_num_segments=%d", index_name, max_num_segments)
         es_options_copy = dict(self.es_options)
         es_options_copy['request_timeout'] = timeout
