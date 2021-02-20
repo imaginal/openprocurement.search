@@ -2,11 +2,9 @@
 from time import time
 from random import random
 from datetime import datetime, timedelta
-from retrying import retry
-from socket import setdefaulttimeout
 
 from openprocurement.search.source import BaseSource, TendersClient
-from openprocurement.search.utils import long_version, restkit_error
+from openprocurement.search.utils import long_version, request_error, retry
 
 from logging import getLogger
 logger = getLogger(__name__)
@@ -94,18 +92,18 @@ class AuctionSource(BaseSource):
             logger.info("Reset by auction_resethour=%s", str(self.config['auction_resethour']))
             return True
 
-    @retry(stop_max_attempt_number=5, wait_fixed=5000)
+    @retry(5, logger=logger)
     def reset(self):
         logger.info("Reset auctions client, auction_skip_until=%s auction_skip_after=%s",
                     self.config['auction_skip_until'], self.config['auction_skip_after'])
         self.stat_resets += 1
-        if self.config.get('timeout', None):
-            setdefaulttimeout(float(self.config['timeout']))
         params = {}
         if self.config['auction_api_mode']:
             params['mode'] = self.config['auction_api_mode']
         if self.config['auction_limit']:
             params['limit'] = self.config['auction_limit']
+        if self.client:
+            self.client.client()
         self.client = TendersClient(
             key=self.config['auction_api_key'],
             host_url=self.config['auction_api_url'],
@@ -120,8 +118,11 @@ class AuctionSource(BaseSource):
             self.cache_allow_dateModified = cache_date.isoformat()
             logger.info("[auction2] Cache allow dateModified before %s",
                         self.cache_allow_dateModified)
-        logger.info("AuctionClient %s", self.client.headers)
-        if str(self.config['auction_fast_client']) == "2":
+        logger.info("AuctionClient %s", self.client.cookies)
+        if self.fast_client:
+            self.fast_client.close()
+            self.fast_client = None
+        if str(self.config['auction_fast_client']).strip() == "2":
             # main client from present to future
             self.client.params['descending'] = 1
             self.client.get_tenders()
@@ -136,9 +137,10 @@ class AuctionSource(BaseSource):
                 api_version=self.config['auction_api_version'],
                 resource=self.config['auction_resource'],
                 params=fast_params,
+                session=self.client.session,
                 timeout=float(self.config['timeout']),
                 user_agent=self.client_user_agent + ' (back_client)')
-            logger.info("AuctionClient (back) %s", self.fast_client.headers)
+            logger.info("AuctionClient (back) %s", self.fast_client.cookies)
         elif self.config['auction_fast_client']:
             fast_params = dict(params)
             fast_params['descending'] = 1
@@ -148,13 +150,14 @@ class AuctionSource(BaseSource):
                 api_version=self.config['auction_api_version'],
                 resource=self.config['auction_resource'],
                 params=fast_params,
+                session=self.client.session,
                 timeout=float(self.config['timeout']),
                 user_agent=self.client_user_agent + ' (fast_client)')
             for i in range(int(self.config['auction_fast_stepsback'])):
                 self.fast_client.get_tenders()
                 self.sleep(self.preload_wait)
             self.fast_client.params.pop('descending')
-            logger.info("AuctionClient (fast) %s", self.fast_client.headers)
+            logger.info("AuctionClient (fast) %s", self.fast_client.cookies)
         else:
             self.fast_client = None
         self.skip_until = self.config.get('auction_skip_until', None)
@@ -168,6 +171,7 @@ class AuctionSource(BaseSource):
 
     def preload(self):
         preload_items = []
+        retry_count = 0
         # try prelaod last auctions first
         while self.fast_client:
             if retry_count > 3 or self.should_exit:
@@ -178,7 +182,7 @@ class AuctionSource(BaseSource):
             except Exception as e:
                 retry_count += 1
                 logger.error("GET %s retry %d count %d error %s", self.client.prefix_path,
-                    retry_count, len(preload_items), restkit_error(e, self.fast_client))
+                    retry_count, len(preload_items), request_error(e, self.fast_client))
                 self.sleep(5 * retry_count)
                 if retry_count > 1:
                     self.reset()
@@ -207,7 +211,7 @@ class AuctionSource(BaseSource):
             except Exception as e:
                 retry_count += 1
                 logger.error("GET %s retry %d count %d error %s", self.client.prefix_path,
-                    retry_count, len(preload_items), restkit_error(e, self.client))
+                    retry_count, len(preload_items), request_error(e, self.client))
                 self.sleep(5 * retry_count)
                 if retry_count > 1:
                     self.reset()
@@ -276,7 +280,7 @@ class AuctionSource(BaseSource):
                     raise e
                 retry_count += 1
                 logger.error("GET %s/%s meta %s retry %d error %s", self.client.prefix_path,
-                    str(item['id']), str(item), retry_count, restkit_error(e, self.client))
+                    str(item['id']), str(item), retry_count, request_error(e, self.client))
                 self.sleep(5 * retry_count)
                 if retry_count > 2:
                     self.reset()
@@ -353,18 +357,18 @@ class AuctionSource2(AuctionSource):
         if self.config['auction2_resethour'] and datetime.now().hour == int(self.config['auction2_resethour']):
             return True
 
-    @retry(stop_max_attempt_number=5, wait_fixed=5000)
+    @retry(5, logger=logger)
     def reset(self):
         logger.info("Reset auctions2, auction2_skip_until=%s auction2_skip_after=%s",
                     self.config['auction2_skip_until'], self.config['auction2_skip_after'])
         self.stat_resets += 1
-        if self.config.get('timeout', None):
-            setdefaulttimeout(float(self.config['timeout']))
         params = {}
         if self.config['auction2_api_mode']:
             params['mode'] = self.config['auction2_api_mode']
         if self.config['auction2_limit']:
             params['limit'] = self.config['auction2_limit']
+        if self.client:
+            self.client.close()
         self.client = TendersClient(
             key=self.config['auction2_api_key'],
             host_url=self.config['auction2_api_url'],
@@ -379,8 +383,11 @@ class AuctionSource2(AuctionSource):
             self.cache_allow_dateModified = cache_date.isoformat()
             logger.info("[auction2] Cache allow dateModified before %s",
                         self.cache_allow_dateModified)
-        logger.info("Auction2Client %s", self.client.headers)
-        if str(self.config['auction2_fast_client']) == "2":
+        logger.info("Auction2Client %s", self.client.cookies)
+        if self.fast_client:
+            self.fast_client.close()
+            self.fast_client = None
+        if str(self.config['auction2_fast_client']).strip() == "2":
             # main client from present to future
             self.client.params['descending'] = 1
             self.client.get_tenders()
@@ -395,9 +402,10 @@ class AuctionSource2(AuctionSource):
                 api_version=self.config['auction2_api_version'],
                 resource=self.config['auction2_resource'],
                 params=fast_params,
+                session=self.client.session,
                 timeout=float(self.config['timeout']),
                 user_agent=self.client_user_agent + ' (back_client)')
-            logger.info("Auction2Client (back) %s", self.fast_client.headers)
+            logger.info("Auction2Client (back) %s", self.fast_client.cookies)
         elif self.config['auction2_fast_client']:
             fast_params = dict(params)
             fast_params['descending'] = 1
@@ -407,13 +415,14 @@ class AuctionSource2(AuctionSource):
                 api_version=self.config['auction2_api_version'],
                 resource=self.config['auction2_resource'],
                 params=fast_params,
+                session=self.client.session,
                 timeout=float(self.config['timeout']),
                 user_agent=self.client_user_agent + ' (fast_client)')
             for i in range(int(self.config['auction2_fast_stepsback'])):
                 self.fast_client.get_tenders()
                 self.sleep(self.preload_wait)
             self.fast_client.params.pop('descending')
-            logger.info("Auction2Client (fast) %s", self.fast_client.headers)
+            logger.info("Auction2Client (fast) %s", self.fast_client.cookies)
         else:
             self.fast_client = None
         self.skip_until = self.config.get('auction2_skip_until', None)

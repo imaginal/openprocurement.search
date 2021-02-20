@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
-from time import time, mktime
+from time import time
 from random import random
 from datetime import datetime, timedelta
-from retrying import retry
-from socket import setdefaulttimeout
 
 from openprocurement.search.source import BaseSource, TendersClient
-from openprocurement.search.utils import long_version, restkit_error
+from openprocurement.search.utils import long_version, request_error, retry
 
 from logging import getLogger
 logger = getLogger(__name__)
@@ -93,18 +91,18 @@ class DgfLotSource(BaseSource):
             logger.info("Reset by lot_resethour=%s", str(self.config['lot_resethour']))
             return True
 
-    @retry(stop_max_attempt_number=5, wait_fixed=5000)
+    @retry(5, logger=logger)
     def reset(self):
         logger.info("Reset lots client, lot_skip_until=%s lot_skip_after=%s",
                     self.config['lot_skip_until'], self.config['lot_skip_after'])
         self.stat_resets += 1
-        if self.config.get('timeout', None):
-            setdefaulttimeout(float(self.config['timeout']))
         params = {}
         if self.config['lot_api_mode']:
             params['mode'] = self.config['lot_api_mode']
         if self.config['lot_limit']:
             params['limit'] = self.config['lot_limit']
+        if self.client:
+            self.client.close()
         self.client = TendersClient(
             key=self.config['lot_api_key'],
             host_url=self.config['lot_api_url'],
@@ -119,7 +117,10 @@ class DgfLotSource(BaseSource):
             self.cache_allow_dateModified = cache_date.isoformat()
             logger.info("[lot] Cache allow dateModified before %s",
                         self.cache_allow_dateModified)
-        logger.info("DgfLotClient %s", self.client.headers)
+        logger.info("DgfLotClient %s", self.client.cookies)
+        if self.fast_client:
+            self.fast_client.close()
+            self.fast_client = None
         if self.config['lot_fast_stepsback']:
             fast_params = dict(params)
             fast_params['descending'] = 1
@@ -129,13 +130,14 @@ class DgfLotSource(BaseSource):
                 api_version=self.config['lot_api_version'],
                 resource=self.config['lot_resource'],
                 params=fast_params,
+                session=self.client.session,
                 timeout=float(self.config['timeout']),
                 user_agent=self.client_user_agent + ' (fast_client)')
             for i in range(int(self.config['lot_fast_stepsback'])):
                 self.fast_client.get_tenders()
                 self.sleep(self.preload_wait)
             self.fast_client.params.pop('descending')
-            logger.info("DgfLotClient (fast) %s", self.fast_client.headers)
+            logger.info("DgfLotClient (fast) %s", self.fast_client.cookies)
         else:
             self.fast_client = None
         self.skip_until = self.config.get('lot_skip_until', None)
@@ -160,7 +162,7 @@ class DgfLotSource(BaseSource):
                 preload_items.extend(items)
                 logger.info("Preload fast %d assets, last %s",
                     len(preload_items), items[-1]['dateModified'])
-            except:
+            except Exception:
                 pass
 
         retry_count = 0
@@ -173,7 +175,7 @@ class DgfLotSource(BaseSource):
             except Exception as e:
                 retry_count += 1
                 logger.error("GET %s retry %d count %d error %s", self.client.prefix_path,
-                    retry_count, len(preload_items), restkit_error(e, self.client))
+                    retry_count, len(preload_items), request_error(e, self.client))
                 self.sleep(5 * retry_count)
                 self.reset()
                 continue
@@ -236,7 +238,7 @@ class DgfLotSource(BaseSource):
                     raise e
                 retry_count += 1
                 logger.error("GET %s/%s meta %s retry %d error %s", self.client.prefix_path,
-                    str(item['id']), str(item), retry_count, restkit_error(e, self.client))
+                    str(item['id']), str(item), retry_count, request_error(e, self.client))
                 self.sleep(5 * retry_count)
                 if retry_count > 2:
                     self.reset()
