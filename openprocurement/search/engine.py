@@ -119,7 +119,7 @@ class SearchEngine(object):
     def init_search_plugins(self, search_map={}):
         for cls in self.search_plugins:
             plugin_maps = getattr(cls, 'search_maps', {})
-            for k,v in plugin_maps.items():
+            for k, v in plugin_maps.items():
                 if k in search_map:
                     logger.debug("Update search map %s %s", k, str(v))
                     search_map[k].update(v)
@@ -226,7 +226,9 @@ class SearchEngine(object):
             logger.error("Can't get max_num_segments from {}".format(res))
         return max_num_segments
 
-    def optimize_index(self, index_nmsgame, max_num_segments=1, timeout=18000):
+    def optimize_index(self, index_name, max_num_segments=1, timeout=18000):
+        if self.should_exit:
+            return
         logger.info("Optimize %s with max_num_segments=%d", index_name, max_num_segments)
         es_options_copy = dict(self.es_options)
         es_options_copy['request_timeout'] = timeout
