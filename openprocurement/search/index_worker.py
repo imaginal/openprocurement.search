@@ -45,7 +45,7 @@ def sigterm_handler(signo, frame):
     if engine and hasattr(engine, 'stop_childs'):
         engine.should_exit = True
         engine.stop_childs()
-    signal.alarm(3)
+    signal.alarm(10)
     # sys.exit(0)
 
 
@@ -112,7 +112,7 @@ def main():
         logger.error("Can't get lock %s maybe already started. %s",
             lock_filename, str(e))
         lock_file.close()
-        time.sleep(10)
+        time.sleep(5)
         return 1
 
     signal.signal(signal.SIGTERM, sigterm_handler)
