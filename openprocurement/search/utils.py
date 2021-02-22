@@ -59,7 +59,7 @@ def restkit_error(e, client=None):
     return request_error(e, client)
 
 
-def retry(tries, delay=5, backoff=2, exceptions=Exception, logger=None):
+def retry(tries, delay=5, backoff=2, exceptions=Exception, exclude=None, logger=None):
     def deco_retry(f):
         @functools.wraps(f)
         def f_retry(*args, **kwargs):
@@ -71,6 +71,8 @@ def retry(tries, delay=5, backoff=2, exceptions=Exception, logger=None):
                 except (SystemExit, KeyboardInterrupt):
                     raise
                 except exceptions as exc:
+                    if exclude and isinstance(exc, exclude):
+                        raise
                     if logger:
                         msg = "{} {}: {}. Rerty {} of {} wait {} sec.".format(f.__name__,
                             exc.__class__.__name__, exc, tries - mtries, tries, mdelay)
