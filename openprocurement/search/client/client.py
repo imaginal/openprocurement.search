@@ -118,7 +118,7 @@ class BaseClient(object):
                 if i > 1:
                     self.session.cookies.clear()
                 if i < self.max_retry - 1:
-                    logger.error("Retry {} of {}".format(i, self.max_retry))
+                    logger.error("Retry {} of {}".format(i + 1, self.max_retry))
                     time.sleep(10 * i + 10)
 
         raise RetryError("Maximum retry reached for {}".format(url))
