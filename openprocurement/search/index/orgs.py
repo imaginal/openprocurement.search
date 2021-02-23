@@ -50,6 +50,9 @@ class OrgsIndex(BaseIndex):
         logger.info("Create new index %s from %s", name, settings)
         data = get_data(__name__, settings)
         body = json.loads(data)
+        doc_type = self.source.__doc_type__
+        if doc_type not in body['mappings'] and '_doc_type_' in body['mappings']:
+            body['mappings'][doc_type] = body['mappings'].pop('_doc_type_')
         orgs_shards = int(self.config.get('orgs_shards', 1) or 1)
         body['settings']['index']['number_of_shards'] = orgs_shards
         self.engine.create_index(name, body=body)

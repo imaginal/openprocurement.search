@@ -174,6 +174,8 @@ class BaseIndex(object):
                 mappings[key] = True
         # merge
         doc_type = self.source.__doc_type__
+        if doc_type not in tender['mappings'] and '_doc_type_' in tender['mappings']:
+            tender['mappings'][doc_type] = tender['mappings'].pop('_doc_type_')
         for k, v in mappings.items():
             if k in tender['mappings'][doc_type]:
                 raise KeyError("Common key '%s' found in mappings" % k)
