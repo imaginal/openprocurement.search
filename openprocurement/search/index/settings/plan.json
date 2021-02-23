@@ -1,6 +1,6 @@
 {
   "mappings": {
-    "plan": {
+    "_doc_type_": {
       "include_in_all": false,
       "properties": {
         "additionalClassifications": {

@@ -1,6 +1,6 @@
 {
   "mappings": {
-    "org": {
+    "_doc_type_": {
       "_all": {
         "index_analyzer": "nGram_analyzer",
         "search_analyzer": "whitespace_analyzer"
