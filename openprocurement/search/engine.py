@@ -9,7 +9,7 @@ import requests
 from elasticsearch import Elasticsearch
 from elasticsearch.helpers import bulk
 from elasticsearch.client import IndicesClient
-from elasticsearch.exceptions import ElasticsearchException, NotFoundError
+from elasticsearch.exceptions import ElasticsearchException, NotFoundError, RequestError
 
 from openprocurement.search.version import __version__
 from openprocurement.search.utils import (SharedFileDict, long_version, reset_watchdog,
@@ -199,16 +199,20 @@ class SearchEngine(object):
                 pass
         return stout
 
-    @retry(5, logger=logger)
+    @retry(5, exclude=NotFoundError, logger=logger)
     def index_info(self, index_name):
         indices = IndicesClient(self.elastic)
         info = indices.get(index_name)
+        if not info or index_name not in info:
+            raise NotFoundError(index_name)
         return info[index_name]
 
-    @retry(5, logger=logger)
+    @retry(5, exclude=NotFoundError, logger=logger)
     def index_stats(self, index_name):
         indices = IndicesClient(self.elastic)
         stats = indices.stats(index_name)
+        if not stats or index_name not in stats['indices']:
+            raise NotFoundError(index_name)
         return stats['indices'][index_name]['primaries']
 
     def get_index_segments(self, indices, index_name):
@@ -380,8 +384,10 @@ class IndexEngine(SearchEngine):
     def index_exists(self, index_name):
         try:
             self.index_info(index_name)
-        except Exception:
+        except (KeyError, NotFoundError):
+            logger.info("Index %s not found", index_name)
             return False
+        logger.info("Index %s already exists", index_name)
         return True
 
     def set_alias(self, alias_name, index_name):
@@ -401,22 +407,32 @@ class IndexEngine(SearchEngine):
             return
         logger.info("Set alias %s -> %s", alias_name, index_name)
 
-    def create_index(self, index_name, body):
+    def create_index(self, index_name, body, safe=True):
         indices = IndicesClient(self.elastic)
-        indices.create(index_name, body=body)
+        try:
+            indices.create(index_name, body=body)
+        except RequestError as exc:
+            if 'IndexAlreadyExistsException' in str(exc) and safe:
+                logger.warning("Index already exists %s", index_name)
+                return
+            else:
+                raise
 
-    @retry(5, logger=logger)
+    def item_id(self, item):
+        return item['id']
+
+    @retry(5, exclude=NotFoundError, logger=logger)
     def get_item(self, index_name, meta, source=True):
         try:
             found = self.elastic.get(index_name,
                 doc_type=meta.get('doc_type'),
-                id=meta['id'],
+                id=self.item_id(meta),
                 _source=source)
         except NotFoundError:
             return None
         return found
 
-    @retry(5, logger=logger)
+    @retry(5, exclude=NotFoundError, logger=logger)
     def test_exists(self, index_name, meta):
         if self.debug:
             if meta['version'] > long_version(datetime.now()):
@@ -424,7 +440,7 @@ class IndexEngine(SearchEngine):
         try:
             found = self.elastic.get(index_name,
                 doc_type=meta.get('doc_type'),
-                id=meta['id'],
+                id=self.item_id(meta),
                 _source=False)
         except NotFoundError:
             return None
@@ -442,7 +458,7 @@ class IndexEngine(SearchEngine):
             try:
                 res = self.elastic.index(index_name,
                     doc_type=meta.get('doc_type'),
-                    id=meta['id'],
+                    id=self.item_id(meta),
                     version=meta['version'],
                     version_type='external',
                     body=item['data'])
@@ -490,7 +506,7 @@ class IndexEngine(SearchEngine):
                             logger.warning("[%s] BULK already exists %s",
                                 index_name, str(item['meta']))
                         continue
-                    item_id = item['meta']['id']
+                    item_id = self.item_id(item['meta'])
                     if item_id in bulk_dict:
                         v1 = bulk_dict[item_id]['_version']
                         v2 = item['meta']['version']
@@ -501,11 +517,10 @@ class IndexEngine(SearchEngine):
                     bulk_dict[item_id] = {
                         '_index': index_name,
                         '_type': item['meta']['doc_type'],
-                        '_id': item['meta']['id'],
+                        '_id': item_id,
                         '_version': item['meta']['version'],
                         '_version_type': 'external',
                         '_source': item['data']
-
                     }
                 try:
                     bulk_res = bulk(self.elastic, bulk_dict.values(),
