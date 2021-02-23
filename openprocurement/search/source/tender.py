@@ -219,6 +219,8 @@ class TenderSource(BaseSource):
 
     def preload(self):
         preload_items = []
+        items = None
+
         # try prelaod last tenders first
         retry_count = 0
         while self.fast_client:
@@ -240,14 +242,15 @@ class TenderSource(BaseSource):
 
             preload_items.extend(items)
 
-            if len(items) >= 10 and 'dateModified' in items[-1]:
-                logger.info("Preload %d tenders, last %s", len(preload_items), items[-1]['dateModified'])
             if len(items) < 10:
                 break
             if len(preload_items) >= self.config['tender_preload']:
                 break
             if self.preload_wait:
                 self.sleep(self.preload_wait)
+
+        if items and len(items) >= 10 and 'dateModified' in items[-1]:
+            logger.info("Preload %d tenders, last %s", len(preload_items), items[-1]['dateModified'])
 
         retry_count = 0
         while True:
@@ -269,14 +272,15 @@ class TenderSource(BaseSource):
 
             preload_items.extend(items)
 
-            if len(items) >= 10 and 'dateModified' in items[-1]:
-                logger.info("Preload %d tenders, last %s", len(preload_items), items[-1]['dateModified'])
             if len(items) < 10:
                 break
             if len(preload_items) >= self.config['tender_preload']:
                 break
             if self.preload_wait:
                 self.sleep(self.preload_wait)
+
+        if items and len(items) >= 10 and 'dateModified' in items[-1]:
+            logger.info("Preload %d tenders, last %s", len(preload_items), items[-1]['dateModified'])
 
         if not preload_items and self.fast_client:
             if 'descending' in self.fast_client.params:
