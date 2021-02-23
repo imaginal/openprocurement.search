@@ -31,7 +31,6 @@ setup(
         'iso8601',
         'PyYAML',
         'requests',
-        'retrying',
         'simplejson',
         'setuptools',
         'distribute',
