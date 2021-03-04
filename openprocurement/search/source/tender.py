@@ -336,7 +336,9 @@ class TenderSource(BaseSource):
             try:
                 tender = self.client.get_tender(item['id'])
                 assert tender['data']['id'] == item['id'], "bad tender.id"
-                assert tender['data']['dateModified'] >= item['dateModified'], "bad tender.dateModified"
+                # except dates with zero microsec like 2021-02-26T14:30:00+02:00 < 2021-02-26T14:30:00.000000+02:00
+                if tender['data']['dateModified'] < item['dateModified'] and ".000000" not in item['dateModified']:
+                    assert tender['data']['dateModified'] >= item['dateModified'], "bad tender.dateModified"
             except Exception as e:
                 if retry_count > 3:
                     raise e

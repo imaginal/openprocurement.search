@@ -296,7 +296,9 @@ class PlanSource(BaseSource):
             try:
                 plan = self.client.get_tender(item['id'])
                 assert plan['data']['id'] == item['id'], "plan.id"
-                # assert plan['data']['dateModified'] >= item['dateModified'], "plan.dateModified"
+                # except dates with zero microsec like 2021-02-26T14:30:00+02:00 < 2021-02-26T14:30:00.000000+02:00
+                if plan['data']['dateModified'] < item['dateModified'] and ".000000" not in item['dateModified']:
+                    assert plan['data']['dateModified'] >= item['dateModified'], "plan.dateModified"
             except Exception as e:
                 if retry_count > 3:
                     raise e
